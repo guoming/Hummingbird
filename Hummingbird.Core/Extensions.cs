@@ -15,7 +15,6 @@ namespace Hummingbird.Core
     {
         public static ServiceConfig _serviceConfig;
 
-
         /// <summary>
         /// 使用服务注册
         /// 作者：郭明
@@ -26,6 +25,8 @@ namespace Hummingbird.Core
         public static void UseMicroService(this IApplicationBuilder app)
         {
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
+            _serviceConfig = _serviceConfig ?? new ServiceConfig();
 
             var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
 
@@ -40,7 +41,6 @@ namespace Hummingbird.Core
                     Console.WriteLine("WaitAndRetryForever" + ex.Message);
                 });
 
-
             policy.Execute(() =>
             {
                 var self_Register = _serviceConfig.SERVICE_SELF_REGISTER;
@@ -48,7 +48,6 @@ namespace Hummingbird.Core
 
                 if (self_Register == null || self_Register.ToLower() == bool.TrueString.ToString().ToLower())
                 {
-
                     var client = new ConsulClient(obj =>
                     {
                         obj.Address = new Uri($"http://{_serviceConfig.SERVICE_REGISTRY_ADDRESS}:{_serviceConfig.SERVICE_REGISTRY_PORT}");
@@ -92,16 +91,20 @@ namespace Hummingbird.Core
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public static IServiceCollection AddMicroService(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddMicroService(this IServiceCollection services, IConfiguration configuration,Action<ServiceConfig> setupServiceConfig)
         {
+            _serviceConfig = _serviceConfig ?? new ServiceConfig();
+
+            if (setupServiceConfig != null)
+            {
+                setupServiceConfig(_serviceConfig);
+            }
+
             services.Configure<ServiceConfig>(configuration);
-
-            //services.AddSingleton<Ocelot.DownstreamUrlCreator.IUrlBuilder, Ocelot.DownstreamUrlCreator.UrlBuilder>();
-
             return services;
         }
 
-        private static void UnRegister()
+        static void UnRegister()
         {
             var policy = RetryPolicy.Handle<Exception>()
               .Or<System.IO.IOException>()
@@ -132,7 +135,7 @@ namespace Hummingbird.Core
 
         }
 
-        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        static void CurrentDomain_ProcessExit(object sender, EventArgs e)
         {
             UnRegister();
         }
