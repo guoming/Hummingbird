@@ -6,6 +6,10 @@
     <Version>1.0.1</Version>
     <AssemblyName>DotNetCore.Resilience.Transaction</AssemblyName>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Hummingbird.Resilience.Transaction</PackageId>
+    <Authors>Hummingbird.Resilience.Transaction</Authors>
+    <Company>Hummingbird.Resilience.Transaction</Company>
+    <Product>Hummingbird.Resilience.Transaction</Product>
   </PropertyGroup>
 
   <ItemGroup>

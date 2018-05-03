@@ -5,6 +5,7 @@
     <AssemblyName>Hummingbird.EventBus</AssemblyName>
     <RootNamespace>Hummingbird.EventBus</RootNamespace>
     <Version>1.0.4</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
