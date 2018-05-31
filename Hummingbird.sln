@@ -23,6 +23,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.EventBus.Entity
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.EventBus.RabbitMQUnitTest", "Hummingbird.EventBus.RabbitMQUnitTest\Hummingbird.EventBus.RabbitMQUnitTest.csproj", "{B346AC19-7919-4550-850A-1866C522962F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Idempotency", "Hummingbird.Idempotency\Hummingbird.Idempotency.csproj", "{CC0EBBA6-97A9-4DBC-97E3-E6209BA96444}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Cache", "Hummingbird.Cache\Hummingbird.Cache.csproj", "{EB7C4ED8-BE88-46FF-A7CD-D0C21DD36942}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +65,14 @@ Global
 		{B346AC19-7919-4550-850A-1866C522962F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B346AC19-7919-4550-850A-1866C522962F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B346AC19-7919-4550-850A-1866C522962F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC0EBBA6-97A9-4DBC-97E3-E6209BA96444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC0EBBA6-97A9-4DBC-97E3-E6209BA96444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC0EBBA6-97A9-4DBC-97E3-E6209BA96444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC0EBBA6-97A9-4DBC-97E3-E6209BA96444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB7C4ED8-BE88-46FF-A7CD-D0C21DD36942}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB7C4ED8-BE88-46FF-A7CD-D0C21DD36942}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB7C4ED8-BE88-46FF-A7CD-D0C21DD36942}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB7C4ED8-BE88-46FF-A7CD-D0C21DD36942}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,6 +86,8 @@ Global
 		{654C7046-652D-49C5-94C3-85EE67E39843} = {54CC6103-E558-4122-9147-B73F2265997E}
 		{E461D5A1-C3DB-4D8F-A9DB-9F4C772BF774} = {54CC6103-E558-4122-9147-B73F2265997E}
 		{B346AC19-7919-4550-850A-1866C522962F} = {28015912-782A-4B96-9F86-D54081CD7A97}
+		{CC0EBBA6-97A9-4DBC-97E3-E6209BA96444} = {54CC6103-E558-4122-9147-B73F2265997E}
+		{EB7C4ED8-BE88-46FF-A7CD-D0C21DD36942} = {54CC6103-E558-4122-9147-B73F2265997E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

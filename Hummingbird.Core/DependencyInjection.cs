@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace Hummingbird.Core
 {
-    public static class Extensions
+    public static class DependencyInjection
     {
         public static ServiceConfig _serviceConfig;
 
@@ -62,9 +62,12 @@ namespace Hummingbird.Core
                         SERVICE_80_CHECK_HTTP = $"http://{_serviceConfig.SERVICE_ADDRESS}:{_serviceConfig.SERVICE_PORT}/{SERVICE_80_CHECK_HTTP.TrimStart('/')}";
                     }
 
+                   
+                    
+                    
                     var result = client.Agent.ServiceRegister(new AgentServiceRegistration()
                     {
-
+                        
                         ID = $"{_serviceConfig.SERVICE_NAME}|{_serviceConfig.SERVICE_ADDRESS}:{_serviceConfig.SERVICE_PORT}",
                         Name = _serviceConfig.SERVICE_NAME,
                         Address = _serviceConfig.SERVICE_ADDRESS,
@@ -75,9 +78,10 @@ namespace Hummingbird.Core
                         {  
                             Status= HealthStatus.Passing,
                             HTTP = SERVICE_80_CHECK_HTTP,
-                            Interval = TimeSpan.FromSeconds(5), //5秒执行一次健康检查
-                            Timeout = TimeSpan.FromSeconds(3),//超时时间3秒
-                            DeregisterCriticalServiceAfter =TimeSpan.FromSeconds(30), //check失败后30秒删除本服务
+                            Interval = TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s'))), //5秒执行一次健康检查
+                            Timeout = TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s'))),//超时时间3秒
+                            TTL= TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s'))*3),//生存周期3个心跳包
+                            DeregisterCriticalServiceAfter =TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s'))*3), //2个心跳包结束
                         }
                     }).Result;
 
