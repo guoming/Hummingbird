@@ -1,4 +1,5 @@
-﻿CREATE TABLE EventLogs
+﻿
+CREATE TABLE EventLogs
 (
 	EventId VARCHAR(50) NOT NULL PRIMARY KEY,
 	Content NVARCHAR(max),

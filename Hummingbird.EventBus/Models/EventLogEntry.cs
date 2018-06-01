@@ -26,6 +26,7 @@ namespace Hummingbird.EventBus.Models
             TimesSent = 0;
             EventTypeName = @event.GetType().FullName;
             Content = JsonConvert.SerializeObject(@event);
+            EventId = Guid.NewGuid().ToString("N");
         }
 
         /// <summary>
