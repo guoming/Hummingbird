@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.EventBus.RabbitMQ\Hummingbird.EventBus.RabbitMQ.csproj" />
+    <ProjectReference Include="..\Hummingbird.EventBus.SqlServer\Hummingbird.EventBus.SqlServer.csproj" />
     <ProjectReference Include="..\Hummingbird.EventBus\Hummingbird.EventBus.csproj" />
   </ItemGroup>
 

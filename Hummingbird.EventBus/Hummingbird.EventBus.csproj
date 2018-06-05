@@ -4,7 +4,7 @@
   <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Hummingbird.EventBus</AssemblyName>
     <RootNamespace>Hummingbird.EventBus</RootNamespace>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 

@@ -3,22 +3,23 @@ using System.Threading.Tasks;
 
 namespace Hummingbird.Idempotency
 {
-    public class RequestManager : IRequestManager
+    public class CacheRequestManager : IRequestManager
     {
         Hummingbird.Cache.IHummingbirdCache<object> _cacheManager;
+        Hummingbird.Idempotency.IIdempotencyOption _option;
 
-
-        public RequestManager(
+        public CacheRequestManager(
+            Hummingbird.Idempotency.IIdempotencyOption option,
             Hummingbird.Cache.IHummingbirdCache<object> cacheManager)
         {
-            
+            _option = option ?? throw new ArgumentNullException(nameof(option));
             _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
         }
         
 
         public ClientRequest Find(string Id)
         {
-            var obj= _cacheManager.Get(Id, "Idempotency");
+            var obj= _cacheManager.Get(Id, _option.IdempotencyRegion);
             return obj as ClientRequest;
         }
 
@@ -42,7 +43,7 @@ namespace Hummingbird.Idempotency
                     Request = Newtonsoft.Json.JsonConvert.SerializeObject(command),
                     Response = Newtonsoft.Json.JsonConvert.SerializeObject(response)
                 };
-                _cacheManager.Add(Id, cached, TimeSpan.FromMinutes(5), "Idempotency");
+                _cacheManager.Add(Id, cached, _option.Druation, _option.IdempotencyRegion);
             }
 
             return cached;

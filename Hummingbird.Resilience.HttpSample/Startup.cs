@@ -9,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Hummingbird.Resilience.Http;
+using Hummingbird.Cache;
+using Hummingbird.Idempotency;
 namespace Hummingbird.WebApi
 {
     public class Startup
@@ -25,6 +27,8 @@ namespace Hummingbird.WebApi
         {
             services.AddMvc();
             services.AddResilientHttpClient();
+            services.AddCache();
+            services.AddIdempotency();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

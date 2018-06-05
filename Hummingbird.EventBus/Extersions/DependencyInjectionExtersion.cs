@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 
-namespace Hummingbird.EventBus
+namespace Hummingbird.EventBus.Extersions
 {
     public static class DependencyInjectionExtersion
     {

@@ -20,6 +20,13 @@ namespace Hummingbird.WebApi
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
+                .ConfigureAppConfiguration((builderContext, config) =>
+                  {
+                      config.AddJsonFile("appsettings.json");
+                  
+                      config.AddJsonFile("cache.json");
+                      config.AddEnvironmentVariables();
+                })
                 .Build();
     }
 }

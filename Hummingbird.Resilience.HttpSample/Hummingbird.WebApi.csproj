@@ -10,15 +10,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Hummingbird.Cache\Hummingbird.Cache.csproj" />
+    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\Hummingbird.Idempotency\Hummingbird.Idempotency.csproj" />
     <ProjectReference Include="..\Hummingbird.Resilience.Http\Hummingbird.Resilience.Http.csproj" />
+    <ProjectReference Include="..\Hummingbird.Resilience.Transaction\Hummingbird.Resilience.Transaction.csproj" />
   </ItemGroup>
 
 </Project>

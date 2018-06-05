@@ -10,11 +10,17 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
     public class ValuesController : Controller
     {
         IHttpClient _httpClient;
+        Hummingbird.Cache.IHummingbirdCache<string> _cache;
 
-        public ValuesController(IHttpClient httpClient)
+        public ValuesController(IHttpClient httpClient,Hummingbird.Cache.IHummingbirdCache<string> cache)
         {
             _httpClient = httpClient;
+            _cache = cache;
 
+            _cache.Add("11", "test", TimeSpan.FromMinutes(5), "ProjectName:Enviroment1:Regsion1");
+            _cache.Add("22", "test", TimeSpan.FromMinutes(5), "ProjectName:Enviroment2:Regsion1");
+            _cache.Add("33", "test", TimeSpan.FromMinutes(5), "ProjectName:Enviroment1:Regsion2");
+            _cache.Add("44", "test", TimeSpan.FromMinutes(5), "ProjectName:Enviroment2:Regsion2");
         }
 
         [HttpGet]

@@ -116,7 +116,6 @@ namespace Hummingbird.EventBus.RabbitMQ
                     {
                         var EventIDs = new List<string>();
 
-                        Console.WriteLine($"BasicReturn:MessageId={e.BasicProperties.MessageId},RoutingKey={e.RoutingKey},ReplyText={e.ReplyText}");
                         if (!string.IsNullOrEmpty(e.BasicProperties.MessageId))
                         {
                             EventIDs.Add(e.BasicProperties.MessageId);
@@ -131,8 +130,6 @@ namespace Hummingbird.EventBus.RabbitMQ
                     //消息路由到队列并持久化后执行
                     _channel.BasicAcks += (object sender, BasicAckEventArgs e) =>
                     {
-                        Console.WriteLine($"BasicAcks:DeliveryTag={e.DeliveryTag},Multiple={e.Multiple}");
-
                         var EventIDs = new List<string>();
 
                         if (e.Multiple)
@@ -165,8 +162,6 @@ namespace Hummingbird.EventBus.RabbitMQ
                     //消息投递失败
                     _channel.BasicNacks += (object sender, BasicNackEventArgs e) =>
                     {
-                        Console.WriteLine($"BasicNacks:DeliveryTag={e.DeliveryTag},Multiple={e.Multiple},Requeue={e.Requeue}");
-
                         var EventIDs = new List<string>();
 
                         //批量确认
@@ -253,21 +248,20 @@ namespace Hummingbird.EventBus.RabbitMQ
                                 }
                                 else
                                 {
+                                 
                                     _channel.BasicPublish(
                                         exchange: _exchange,
                                         mandatory: true,
                                         routingKey: routeKey,
                                         basicProperties: properties,
                                         body: bytes);
-
                                 }
-                            });
-                   
+                            });                   
                     }
 
                     policy.Execute(() =>
                     {
-                        _channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(TimeoutMilliseconds));
+                        _channel.WaitForConfirms(TimeSpan.FromSeconds(TimeoutMilliseconds));
                     });
                 }
             }

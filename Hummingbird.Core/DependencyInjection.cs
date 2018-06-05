@@ -61,9 +61,6 @@ namespace Hummingbird.Core
                     {
                         SERVICE_80_CHECK_HTTP = $"http://{_serviceConfig.SERVICE_ADDRESS}:{_serviceConfig.SERVICE_PORT}/{SERVICE_80_CHECK_HTTP.TrimStart('/')}";
                     }
-
-                   
-                    
                     
                     var result = client.Agent.ServiceRegister(new AgentServiceRegistration()
                     {
