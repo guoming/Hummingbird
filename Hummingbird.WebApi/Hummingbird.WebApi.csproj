@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.EventBus.RabbitMQ\Hummingbird.Extersions.EventBus.RabbitMQ.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.EventBus.SqlServerLogging\Hummingbird.Extersions.EventBus.SqlServerLogging.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.Idempotency\Hummingbird.Extersions.Idempotency.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.Resilience.Http\Hummingbird.Extersions.Resilience.Http.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.ServiceRegistry\Hummingbird.Extersions.ServiceRegistry.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.UidGenerator\Hummingbird.Extersions.UidGenerator.csproj" />
+  </ItemGroup>
+
+
+</Project>
