@@ -14,7 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Hummingbird.Extersions.EventBus.SqlServer\Hummingbird.Extersions.EventBus.SqlServerLogging.csproj" />
     <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
   </ItemGroup>
 

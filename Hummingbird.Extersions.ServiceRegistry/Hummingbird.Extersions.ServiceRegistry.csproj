@@ -6,6 +6,7 @@
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Description>分布式服务注册</Description>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

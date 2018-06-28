@@ -9,12 +9,15 @@ using Polly;
 using Polly.Retry;
 using Hummingbird.Extersions.ServiceRegistry;
 using Hummingbird.Core;
+using System.Net;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjection
     {
         public static ServiceConfig _serviceConfig;
+
+    
 
         /// <summary>
         /// 添加微服务依赖
@@ -61,27 +64,27 @@ namespace Microsoft.Extensions.DependencyInjection
                     {
                         SERVICE_80_CHECK_HTTP = $"http://{_serviceConfig.SERVICE_ADDRESS}:{_serviceConfig.SERVICE_PORT}/{SERVICE_80_CHECK_HTTP.TrimStart('/')}";
                     }
-
+              
                     var result = client.Agent.ServiceRegister(new AgentServiceRegistration()
                     {
-                        ID =$"{ _serviceConfig.HOSTNAME}:{_serviceConfig.SERVICE_ADDRESS}:{_serviceConfig.SERVICE_PORT}",
+                        ID = _serviceConfig.SERVICE_ID,
                         Name = _serviceConfig.SERVICE_NAME,
                         Address = _serviceConfig.SERVICE_ADDRESS,
                         Port = int.Parse(_serviceConfig.SERVICE_PORT),
                         Tags = new[] { _serviceConfig.SERVICE_TAGS },
-                        EnableTagOverride = false,
+                        EnableTagOverride = true,
                         Check = new AgentServiceCheck()
                         {
                             Status = HealthStatus.Passing,
                             HTTP = SERVICE_80_CHECK_HTTP,
                             Interval = TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s'))), //5秒执行一次健康检查
                             Timeout = TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s'))),//超时时间3秒
-                            TTL = TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')) * 3),//生存周期3个心跳包
+                            //TTL = TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')) * 3),//生存周期3个心跳包
                             DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')) * 3), //2个心跳包结束
                         }
                     }).Result;
 
-                    Console.WriteLine($"ServiceRegister({ _serviceConfig.SERVICE_NAME}|{ _serviceConfig.SERVICE_ADDRESS}:{ _serviceConfig.SERVICE_PORT}");
+                    Console.WriteLine($"ServiceRegister({_serviceConfig.SERVICE_ID}");
                 }
             });
 
@@ -108,9 +111,11 @@ namespace Microsoft.Extensions.DependencyInjection
         ;
                     });
 
-                    var result = client.Agent.ServiceDeregister($"{_serviceConfig.SERVICE_NAME}|{ _serviceConfig.SERVICE_ADDRESS}:{ _serviceConfig.SERVICE_PORT}");
+                    var ID = _serviceConfig.SERVICE_ID;
 
-                    Console.WriteLine($"ServiceDeregister({ _serviceConfig.SERVICE_NAME}|{ _serviceConfig.SERVICE_ADDRESS}:{ _serviceConfig.SERVICE_PORT}");
+                    var result = client.Agent.ServiceDeregister(ID);
+
+                    Console.WriteLine($"ServiceDeregister({ID}");
                 }
 
                 return Task.FromResult(true);

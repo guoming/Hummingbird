@@ -46,8 +46,7 @@ namespace Hummingbird.WebApi
                     option.CacheRegion = "Idempotency";
                 })
                 .AddServiceRegistry(s =>
-                {
-                    s.HOSTNAME = Configuration["HOSTNAME"];
+                {                   
                     s.SERVICE_REGISTRY_ADDRESS = Configuration["SERVICE_REGISTRY_ADDRESS"];
                     s.SERVICE_REGISTRY_PORT = Configuration["SERVICE_REGISTRY_PORT"];
                     s.SERVICE_SELF_REGISTER = Configuration["SERVICE_SELF_REGISTER"];
