@@ -2,7 +2,7 @@
   "$schema": "http://cachemanager.michaco.net/schemas/cachemanager.json#",
   "redis": [
     {
-      "key": "redisConnection",
+      "key": "redis",
       "database": 0,
       "connectionString": "10.2.21.216:6380,password=,allowAdmin=true,ssl=false,abortConnect=false,connectTimeout=5000"
     }
@@ -14,7 +14,7 @@
       "retryTimeout": 100,
       "updateMode":  "Up",
       "backplane": {
-        "key": "redisConnection",
+        "key": "redis",
         "knownType": "Redis",
         "channelName": "redisChannel"
       },
@@ -25,18 +25,18 @@
         "knownType": "Json"
       },
       "handles": [
-        //{
-        //  "knownType": "SystemRuntime",
-        //  "enablePerformanceCounters": true,
-        //  "enableStatistics": true,
-        //  "expirationMode": "Absolute",
-        //  "expirationTimeout": "0:0:23",
-        //  "isBackplaneSource": false,
-        //  "name": "sys cache"
-        //},
+        {
+          "knownType": "MsMemory",
+          "enablePerformanceCounters": true,
+          "enableStatistics": true,
+          "expirationMode": "Absolute",
+          "expirationTimeout": "0:0:23",
+          "isBackplaneSource": false,
+          "name": "sys cache"
+        },
         {
           "knownType": "Redis",
-          "key": "redisConnection",
+          "key": "redis",
           "isBackplaneSource": true
         }
       ]

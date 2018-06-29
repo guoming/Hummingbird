@@ -25,5 +25,7 @@
     <ProjectReference Include="..\Hummingbird.Extersions.UidGenerator\Hummingbird.Extersions.UidGenerator.csproj" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
+
 
 </Project>

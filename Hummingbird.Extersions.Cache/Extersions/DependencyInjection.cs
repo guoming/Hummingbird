@@ -26,7 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 var cacheConfiguration = Configuration.GetCacheConfiguration(config.ConfigName).Builder.Build();
                 var cacheManager = CacheFactory.FromConfiguration<object>(config.ConfigName, cacheConfiguration);
 
-
+                
 
                 return cacheManager;
             });
