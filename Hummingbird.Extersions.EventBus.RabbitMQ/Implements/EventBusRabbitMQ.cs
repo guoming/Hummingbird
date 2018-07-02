@@ -336,10 +336,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         bytes = ea.Body;
                         str = Encoding.UTF8.GetString(bytes);
                         msg = JsonConvert.DeserializeObject<TD>(str);
-                        var eventActionTask = EventAction.Handle(msg);
-                        Task.WaitAll(eventActionTask);
+                        var handlerOK =await EventAction.Handle(msg);
 
-                        if (eventActionTask.Result)
+                        if (handlerOK)
                         {
                             if (_ackHandler != null)
                             {
