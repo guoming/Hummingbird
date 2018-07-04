@@ -12,21 +12,55 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public class RabbitMqOption
     {
-        public string HostName { get; set; }
-        public int Port { get; set; }
-
-        public string UserName { get; set; }
-
-        public string Password { get; set; }
-
-        public string VirtualHost { get; set; }
-
-        public int RetryCount { get; set; }
+        /// <summary>
+        /// 服务器地址(默认:localhost)
+        /// </summary>
+        public string HostName { get; set; } = "locahost";
+        /// <summary>
+        /// 端口（默认：5672）
+        /// </summary>
+        public int Port { get; set; } = 5672;
 
         /// <summary>
-        /// 幂等持续时间（秒）
+        /// 账号(默认:guest)
+        /// </summary>
+        public string UserName { get; set; } = "guest";
+
+        /// <summary>
+        /// 密码(默认:guest)
+        /// </summary>
+        public string Password { get; set; } = "guest";
+
+        /// <summary>
+        /// 虚拟主机(默认：/)
+        /// </summary>
+        public string VirtualHost { get; set; } = "/";
+
+        /// <summary>
+        /// 重试次数(默认：3)
+        /// </summary>
+        public int RetryCount { get; set; } = 3;
+
+        /// <summary>
+        /// 默认获取
+        /// </summary>
+        public ushort PreFetch { get; set; } = 1;
+
+        /// <summary>
+        /// 幂等持续时间（默认:15秒）
         /// </summary>
         public int IdempotencyDuration { get; set; } = 15;
+
+        /// <summary>
+        /// 交换机名称(默认：amq.topic)
+        /// </summary>
+        public string Exchange { get; set; } = "amq.topic";
+
+        /// <summary>
+        /// 交换机类型（默认：topic）
+        /// </summary>
+        public string ExchangeType { get; set; } = "topic";
+
     }
 
     public static class DependencyInjectionExtersion
@@ -49,7 +83,12 @@ namespace Microsoft.Extensions.DependencyInjection
                     rabbitMQPersistentConnection, 
                     logger,
                     sp,
-                    option.RetryCount);
+                    retryCount: option.RetryCount,
+                    preFetch:option.PreFetch,
+                    IdempotencyDuration: option.IdempotencyDuration,
+                    exchange: option.Exchange,
+                    exchangeType: option.ExchangeType
+                    );
             });
 
             hostBuilder.Services.AddSingleton<IRabbitMQPersistentConnection>(sp =>

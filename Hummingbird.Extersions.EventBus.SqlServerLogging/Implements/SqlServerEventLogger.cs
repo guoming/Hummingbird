@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Hummingbird.Extersions.EventBus.SqlServerLogging
 {
@@ -66,14 +67,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                 }
                 using (var tran = db.BeginTransaction())
                 {
-
-                    foreach (var EventId in events)
-                    {
-                        await db.ExecuteAsync("update EventLogs set TimesSend=TimesSent+1,State=1 where EventId=@EventId", new
-                        {
-                            EventId = EventId
-                        }, transaction: tran);
-                    }
+                    await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", events.Select(EventId => new { EventId= EventId }).ToList(), transaction: tran);
                     tran.Commit();
                 }
             }
@@ -98,14 +92,8 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                     }
                     using (var tran = db.BeginTransaction())
                     {
-
-                        foreach (var EventId in events)
-                        {
-                            await db.ExecuteAsync("update EventLogs set TimesSend=TimesSent+1,State=2 where EventId=@EventId", new
-                            {
-                                EventId = EventId
-                            }, transaction: tran);
-                        }
+                        await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=2 where EventId=@EventId", events.Select(EventId => new { EventId = EventId }).ToList(), transaction: tran);
+                    
                         tran.Commit();
                     }
                 }

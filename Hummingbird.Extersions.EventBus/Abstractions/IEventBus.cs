@@ -22,7 +22,8 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
             Action<List<string>> nackHandler = null,
             Action<List<string>> returnHandler = null,
             int EventDelaySeconds = 0,
-            int TimeoutMilliseconds = 500);
+            int TimeoutMilliseconds = 500,
+            int BatchSize=500);
 
         /// <summary>
         /// 订阅消息（同一类消息可以重复订阅）

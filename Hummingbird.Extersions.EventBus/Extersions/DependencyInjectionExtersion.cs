@@ -117,6 +117,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         public static IServiceProvider UseDispatcher(this IServiceProvider serviceProvider, int TakeCount = 1000)
         {
+          
 
             var eventBus = serviceProvider.GetRequiredService<IEventBus>();
             var logger = serviceProvider.GetRequiredService<ILogger<IEventLogger>>();
