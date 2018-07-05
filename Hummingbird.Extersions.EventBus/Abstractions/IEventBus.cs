@@ -16,7 +16,7 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         /// <summary>
         /// 发送消息
         /// </summary>
-        void Publish(
+        Task PublishAsync(
             List<Models.EventLogEntry> Events,
             Action<List<string>> ackHandler = null,
             Action<List<string>> nackHandler = null,

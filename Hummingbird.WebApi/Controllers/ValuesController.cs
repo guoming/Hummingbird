@@ -34,10 +34,17 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
         }
 
         [HttpGet]
+        [Route("Healthcheck")]
+        public async Task<string> Healthcheck()
+        {
+            return await Task.FromResult("Ok");
+        }
+
+        [HttpGet]
         public async Task<string> Get()
         {
 
-            _eventBus.Publish(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>()
+            await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>()
             {
                 new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new User{
 

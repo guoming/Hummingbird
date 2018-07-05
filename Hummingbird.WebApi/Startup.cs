@@ -25,6 +25,7 @@ namespace Hummingbird.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+          
             services.AddHummingbird(hummingbird =>
             {
                 hummingbird
@@ -103,13 +104,13 @@ namespace Hummingbird.WebApi
 
             app.UseHummingbird(humming =>
             {
-                humming.UseEventBus(sp =>
+                humming.UseEventBus(async sp =>
                 {
                     sp.UseSubscriber(eventbus =>
                     {
                         eventbus.Register<Events.NewMsgEvent, Events.NewMsgEventHandler>();
                     });
-                    sp.UseDispatcher(1000);
+                    await sp.UseDispatcherAsync(1000);
                 });
 
             });

@@ -69,7 +69,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// <summary>
         /// 发送消息
         /// </summary>
-        public void Publish(
+        public async Task PublishAsync(
             List<Models.EventLogEntry> Events,
             Action<List<string>> ackHandler = null,
             Action<List<string>> nackHandler = null,
@@ -84,13 +84,13 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 { "EventTypeName" ,msg.EventTypeName }
             });
 
-            Enqueue(evtDicts, ackHandler, nackHandler, returnHandler, EventDelaySeconds, TimeoutMilliseconds);
+            await Enqueue(evtDicts, ackHandler, nackHandler, returnHandler, EventDelaySeconds, TimeoutMilliseconds);
         }
 
         /// <summary>
         /// 发送消息
         /// </summary>
-        void Enqueue(
+        async Task Enqueue(
             Dictionary<string, Dictionary<string, string>> Events,
             Action<List<string>> ackHandler = null,
             Action<List<string>> nackHandler = null,
@@ -149,10 +149,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 _batchBlock_BasicReturn.Completion.ContinueWith(delegate { _actionBlock_BasicReturn.Complete(); });
                 _batchBlock_BasicAcks.Completion.ContinueWith(delegate { _actionBlock_BasicAcks.Complete(); });
                 _batchBlock_BasicNacks.Completion.ContinueWith(delegate { _actionBlock_BasicNacks.Complete(); });
-
-
-                System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-                stopwatch.Start();
 
                 using (var _channel = _persistentConnection.CreateModel())
                 {
@@ -275,7 +271,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         exclusive: false,
                                         autoDelete: false,
                                         arguments: dic);
-
+                                
                                 _channel.BasicPublish(
                                     exchange: "",
                                     mandatory: true,
@@ -306,13 +302,11 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
               
                 _batchBlock_BasicAcks.Complete();
                 _batchBlock_BasicNacks.Complete();
-                _batchBlock_BasicReturn.Complete();
-
+                _batchBlock_BasicReturn.Complete();                
                 _actionBlock_BasicNacks.Completion.Wait();                
                 _actionBlock_BasicAcks.Completion.Wait();
                 _actionBlock_BasicReturn.Completion.Wait();
 
-                stopwatch.Stop();
             }
             catch (Exception ex)
             {
@@ -451,12 +445,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
             //消费队列，并设置应答模式为程序主动应答
             _channel.BasicConsume(_queueName, false, consumer);
-
+        
             subscribeChannels.Add(_channel);
-
             return this;
-
-
         }
 
         public IEventBus Subscribe(

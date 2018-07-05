@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{28015912-7
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Core", "Hummingbird.Core\Hummingbird.Core.csproj", "{27915655-9459-4FC4-A6F5-E59EF7574162}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.UnitTest", "Hummingbird.EventBus.RabbitMQUnitTest\Hummingbird.UnitTest.csproj", "{B346AC19-7919-4550-850A-1866C522962F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extersions", "Extersions", "{DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extersions.ServiceRegistry", "Hummingbird.Extersions.ServiceRegistry\Hummingbird.Extersions.ServiceRegistry.csproj", "{C9862F54-4EC1-4D69-9775-A3DFB61862A9}"
@@ -33,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extersions.Even
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.BanchmarkTest", "Hummingbird.BanchmarkTest\Hummingbird.BanchmarkTest.csproj", "{D5EEF066-7167-4D31-AFDE-A3FCA545574F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.UnitTest", "Hummingbird.UnitTest\Hummingbird.UnitTest.csproj", "{8E1BB91E-356E-4EC5-8928-3C1220769C61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,10 +43,6 @@ Global
 		{27915655-9459-4FC4-A6F5-E59EF7574162}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27915655-9459-4FC4-A6F5-E59EF7574162}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27915655-9459-4FC4-A6F5-E59EF7574162}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B346AC19-7919-4550-850A-1866C522962F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B346AC19-7919-4550-850A-1866C522962F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B346AC19-7919-4550-850A-1866C522962F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B346AC19-7919-4550-850A-1866C522962F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C9862F54-4EC1-4D69-9775-A3DFB61862A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C9862F54-4EC1-4D69-9775-A3DFB61862A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9862F54-4EC1-4D69-9775-A3DFB61862A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -87,13 +83,16 @@ Global
 		{D5EEF066-7167-4D31-AFDE-A3FCA545574F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5EEF066-7167-4D31-AFDE-A3FCA545574F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5EEF066-7167-4D31-AFDE-A3FCA545574F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E1BB91E-356E-4EC5-8928-3C1220769C61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E1BB91E-356E-4EC5-8928-3C1220769C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E1BB91E-356E-4EC5-8928-3C1220769C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E1BB91E-356E-4EC5-8928-3C1220769C61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{27915655-9459-4FC4-A6F5-E59EF7574162} = {54CC6103-E558-4122-9147-B73F2265997E}
-		{B346AC19-7919-4550-850A-1866C522962F} = {28015912-782A-4B96-9F86-D54081CD7A97}
 		{DD64E829-CFBE-4FD8-8521-8BB2ADC886CC} = {54CC6103-E558-4122-9147-B73F2265997E}
 		{C9862F54-4EC1-4D69-9775-A3DFB61862A9} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{3C256830-F006-4C0C-B995-34CBA19A0154} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
@@ -105,6 +104,7 @@ Global
 		{DA121499-5DD1-4E2B-9592-554C0B2B4651} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{911FF03D-9AB3-479F-9744-48F1AC20C28F} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{D5EEF066-7167-4D31-AFDE-A3FCA545574F} = {28015912-782A-4B96-9F86-D54081CD7A97}
+		{8E1BB91E-356E-4EC5-8928-3C1220769C61} = {28015912-782A-4B96-9F86-D54081CD7A97}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
