@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Hummingbird.Extersions.Cache
 {
-    public interface IHummingbirdCacheOption
+    public interface IHummingbirdCacheConfig
     {
         /// <summary>
         /// 分区前缀(推荐使用服务名称)

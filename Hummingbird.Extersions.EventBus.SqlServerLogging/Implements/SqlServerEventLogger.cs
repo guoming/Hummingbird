@@ -32,23 +32,19 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
             {
                 throw new ArgumentNullException("transaction", $"A {typeof(DbTransaction).FullName} is required as a pre-requisite to save the event.");
             }
-            var LogEntrys = new List<EventLogEntry>();
-            foreach (var @event in events)
+            var LogEntrys = events.Select(@event => new EventLogEntry(@event)).ToList();
+
+            await transaction.Connection.ExecuteAsync("insert into EventLogs(EventId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
+            LogEntrys.Select(eventLogEntry => new
             {
-                var eventLogEntry = new EventLogEntry(@event);
+                EventId = eventLogEntry.EventId,
+                EventTypeName = eventLogEntry.EventTypeName,
+                State = eventLogEntry.State,
+                TimesSent = 0,
+                CreationTime = DateTime.Now,
+                Content = eventLogEntry.Content
+            }), transaction: transaction);
 
-                await transaction.Connection.ExecuteAsync("insert into EventLogs(EventId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)", new
-                {
-                    EventId = eventLogEntry.EventId,
-                    EventTypeName = eventLogEntry.EventTypeName,
-                    State = eventLogEntry.State,
-                    TimesSent = 0,
-                    CreationTime = DateTime.Now,
-                    Content = eventLogEntry.Content
-                },transaction: transaction);
-
-                LogEntrys.Add(eventLogEntry);
-            }
             return LogEntrys;
         }
 
@@ -67,7 +63,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                 }
                 using (var tran = db.BeginTransaction())
                 {
-                    await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", events.Select(EventId => new { EventId= EventId }).ToList(), transaction: tran);
+                    await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", events.Select(EventId => new { EventId = EventId }).ToList(), transaction: tran);
                     tran.Commit();
                 }
             }
@@ -93,7 +89,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                     using (var tran = db.BeginTransaction())
                     {
                         await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=2 where EventId=@EventId", events.Select(EventId => new { EventId = EventId }).ToList(), transaction: tran);
-                    
+
                         tran.Commit();
                     }
                 }
@@ -126,7 +122,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
 
                         await db.ExecuteAsync("insert into EventConsumeLogs(EventConsumeLogId,EventId,QueueName,State,TimesConsume,CreationTime) values(@EventConsumeLogId,@EventId,@QueueName,@State,0,@CreationTime)", new
                         {
-                            EventConsumeLogId=Guid.NewGuid().ToString("N"),
+                            EventConsumeLogId = Guid.NewGuid().ToString("N"),
                             EventId = EventId,
                             QueueName = QueueName,
                             State = State,

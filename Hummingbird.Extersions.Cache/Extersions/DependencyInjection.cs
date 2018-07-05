@@ -12,14 +12,14 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtersion
     {
-        public static IHummingbirdHostBuilder AddCache(this IHummingbirdHostBuilder hostBuilder, Action<IHummingbirdCacheOption> setupOption = null)
+        public static IHummingbirdHostBuilder AddCache(this IHummingbirdHostBuilder hostBuilder, Action<IHummingbirdCacheConfig> setupOption = null)
         {
-            var config = new HummingbirdCacheOption();
+            var config = new HummingbirdCacheConfig();
             if (setupOption != null)
             {
                 setupOption(config);
             }
-            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCacheOption), config);
+            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCacheConfig), config);
             hostBuilder.Services.AddSingleton(typeof(ICacheManager<object>), sp =>
             {
                 var Configuration = sp.GetRequiredService<IConfiguration>();

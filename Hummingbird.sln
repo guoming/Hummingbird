@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{28015912-7
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Core", "Hummingbird.Core\Hummingbird.Core.csproj", "{27915655-9459-4FC4-A6F5-E59EF7574162}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.EventBus.RabbitMQUnitTest", "Hummingbird.EventBus.RabbitMQUnitTest\Hummingbird.EventBus.RabbitMQUnitTest.csproj", "{B346AC19-7919-4550-850A-1866C522962F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.UnitTest", "Hummingbird.EventBus.RabbitMQUnitTest\Hummingbird.UnitTest.csproj", "{B346AC19-7919-4550-850A-1866C522962F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extersions", "Extersions", "{DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}"
 EndProject
@@ -30,6 +30,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extersions.Cache", "Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj", "{DA121499-5DD1-4E2B-9592-554C0B2B4651}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extersions.EventBus.SqlServerLogging", "Hummingbird.Extersions.EventBus.SqlServerLogging\Hummingbird.Extersions.EventBus.SqlServerLogging.csproj", "{911FF03D-9AB3-479F-9744-48F1AC20C28F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.BanchmarkTest", "Hummingbird.BanchmarkTest\Hummingbird.BanchmarkTest.csproj", "{D5EEF066-7167-4D31-AFDE-A3FCA545574F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,10 @@ Global
 		{911FF03D-9AB3-479F-9744-48F1AC20C28F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{911FF03D-9AB3-479F-9744-48F1AC20C28F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{911FF03D-9AB3-479F-9744-48F1AC20C28F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5EEF066-7167-4D31-AFDE-A3FCA545574F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5EEF066-7167-4D31-AFDE-A3FCA545574F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5EEF066-7167-4D31-AFDE-A3FCA545574F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5EEF066-7167-4D31-AFDE-A3FCA545574F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,6 +104,7 @@ Global
 		{930E6A8D-FD08-4A6E-A27D-36CDA4CD49EF} = {28015912-782A-4B96-9F86-D54081CD7A97}
 		{DA121499-5DD1-4E2B-9592-554C0B2B4651} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{911FF03D-9AB3-479F-9744-48F1AC20C28F} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{D5EEF066-7167-4D31-AFDE-A3FCA545574F} = {28015912-782A-4B96-9F86-D54081CD7A97}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

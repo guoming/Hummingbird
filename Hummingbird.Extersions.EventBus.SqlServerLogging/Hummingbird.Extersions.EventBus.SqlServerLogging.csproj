@@ -12,7 +12,7 @@
 <Product>Hummingbird.Extersions.EventBus.SqlServerLogging</Product>
 <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
 <RepositoryType>git</RepositoryType>
-<Description />
+<Description>一致性消息，基于SqlServer消息持久化</Description>
   </PropertyGroup>
 
   <ItemGroup>

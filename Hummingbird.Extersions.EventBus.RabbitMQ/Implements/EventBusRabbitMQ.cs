@@ -313,7 +313,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 _actionBlock_BasicReturn.Completion.Wait();
 
                 stopwatch.Stop();
-                Console.Write("take" + stopwatch.ElapsedMilliseconds + "mills");
             }
             catch (Exception ex)
             {

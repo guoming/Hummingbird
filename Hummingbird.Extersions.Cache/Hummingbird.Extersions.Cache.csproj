@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.11</Version>
+    <Version>1.0.19</Version>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Description>分布式缓存</Description>

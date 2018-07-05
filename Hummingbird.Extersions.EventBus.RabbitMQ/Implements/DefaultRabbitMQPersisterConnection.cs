@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
@@ -20,12 +21,20 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         bool _disposed;
 
         object sync_root = new object();
+        private ConnectionFactory factory;
+        private ConsoleLogger consoleLogger;
 
         public DefaultRabbitMQPersistentConnection(IConnectionFactory connectionFactory, ILogger<DefaultRabbitMQPersistentConnection> logger, int retryCount = 5)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _retryCount = retryCount;
+        }
+
+        public DefaultRabbitMQPersistentConnection(ConnectionFactory factory, ConsoleLogger consoleLogger)
+        {
+            this.factory = factory;
+            this.consoleLogger = consoleLogger;
         }
 
         public bool IsConnected

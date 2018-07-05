@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Hummingbird.Core
 {
-    public interface IHummingbirdHostBuilder
+    public  interface IHummingbirdHostBuilder
     {
         IServiceCollection Services { get; }
     }

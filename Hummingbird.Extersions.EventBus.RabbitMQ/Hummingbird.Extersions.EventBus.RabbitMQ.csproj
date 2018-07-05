@@ -9,6 +9,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <Description>一致性消息，Rabbitmq消息队列客户端</Description>
   </PropertyGroup>
 
   <ItemGroup>

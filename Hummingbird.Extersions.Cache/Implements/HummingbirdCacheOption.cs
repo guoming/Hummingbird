@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Hummingbird.Extersions.Cache
 {
-    public class HummingbirdCacheOption:IHummingbirdCacheOption
+    public class HummingbirdCacheConfig:IHummingbirdCacheConfig
     {
         /// <summary>
         /// 分区前缀

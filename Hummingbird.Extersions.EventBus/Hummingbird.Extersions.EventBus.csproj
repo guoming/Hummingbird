@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.0.19</Version>
+    <Description>一致性消息实现</Description>
   </PropertyGroup>
 
   <ItemGroup>

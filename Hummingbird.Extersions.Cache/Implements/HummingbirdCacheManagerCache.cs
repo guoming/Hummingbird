@@ -8,7 +8,7 @@ namespace Hummingbird.Extersions.Cache
     public class HummingbirdCacheManagerCache<T> : IHummingbirdCache<T>
     {
         private readonly ICacheManager<object> _cacheManager;
-        private readonly IHummingbirdCacheOption _option;
+        private readonly IHummingbirdCacheConfig _option;
 
         private string PaddingPrefix(string region)
         {
@@ -17,7 +17,7 @@ namespace Hummingbird.Extersions.Cache
 
         public HummingbirdCacheManagerCache(
             ICacheManager<object> cacheManager,
-            IHummingbirdCacheOption option)
+            IHummingbirdCacheConfig option)
         {
             _option = option;
             _cacheManager = cacheManager;
