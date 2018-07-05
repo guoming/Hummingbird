@@ -7,6 +7,7 @@ using Polly;
 using Polly.Retry;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -99,7 +100,6 @@ namespace Microsoft.Extensions.DependencyInjection
             setupSubscriberHandler(eventBus);
 
             return serviceProvider;
-
         }
 
 
@@ -115,17 +115,15 @@ namespace Microsoft.Extensions.DependencyInjection
         /// 作者：郭明
         /// 日期：2017年11月21日
         /// </summary>
-        public static IServiceProvider UseDispatcher(this IServiceProvider serviceProvider, int TakeCount = 1000)
+        public static async Task UseDispatcherAsync(this IServiceProvider serviceProvider, int TakeCount = 1000)
         {
-          
-
             var eventBus = serviceProvider.GetRequiredService<IEventBus>();
             var logger = serviceProvider.GetRequiredService<ILogger<IEventLogger>>();
             var eventLogService = serviceProvider.GetRequiredService<IEventLogger>();
             //获取没有发布的事件列表
             var unPublishedEventList = eventLogService.GetUnPublishedEventList(TakeCount);
             //通过消息总线发布消息
-            eventBus.Publish(unPublishedEventList, (events) =>
+            await eventBus.PublishAsync(unPublishedEventList, (events) =>
             {
                 eventLogService.MarkEventAsPublishedAsync(events);
 
@@ -137,8 +135,6 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 eventLogService.MarkEventAsPublishedFailedAsync(events);
             });
-
-            return serviceProvider;
         }
     }
 }

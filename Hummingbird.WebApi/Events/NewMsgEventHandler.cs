@@ -9,6 +9,8 @@ namespace Hummingbird.WebApi.Events
     {
         public Task<bool> Handle(NewMsgEvent @event)
         {
+
+            System.Threading.Thread.Sleep(30 * 1000);
             Console.WriteLine(@event.Time);
 
             return Task.FromResult(true);
