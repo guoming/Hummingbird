@@ -47,8 +47,13 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
             stopwatch.Start();
 
             await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>()
+<<<<<<< HEAD
                 {
                     new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new User{
+=======
+            {
+                new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new User{
+>>>>>>> 263016a9b0d8fabe9d567ce2426d809cd3568768
 
                          Name=Guid.NewGuid().ToString("N")
                     }),
