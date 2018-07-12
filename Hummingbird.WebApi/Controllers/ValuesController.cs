@@ -43,21 +43,23 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
         [HttpGet]
         public async Task<string> Get()
         {
+            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
 
             await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>()
-            {
-                new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new User{
+                {
+                    new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new User{
 
-                     Name=Guid.NewGuid().ToString("N")
-                }),
-                new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new Hummingbird.WebApi.Events.NewMsgEvent(){
-                    Time=DateTime.Now
-                })
+                         Name=Guid.NewGuid().ToString("N")
+                    }),
+                    new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new Hummingbird.WebApi.Events.NewMsgEvent(){
+                        Time=DateTime.Now
+                    })
 
-            });
+                });
+            stopwatch.Stop();
 
-            var result = await _httpClient.GetStringAsync("http://route.showapi.com/64-19?com=zhongtong&nul=535962308717");
-            return result;
+            return $"花费{stopwatch.ElapsedMilliseconds}毫秒";
 
         }
 

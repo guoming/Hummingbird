@@ -9,6 +9,8 @@ namespace Hummingbird.BanchmarkTest
         {
             EventLoggingBanchmarkTest eventLoggingBanchmarkTest = new EventLoggingBanchmarkTest();
             eventLoggingBanchmarkTest.Run();
+
+            
         }
     }
 }

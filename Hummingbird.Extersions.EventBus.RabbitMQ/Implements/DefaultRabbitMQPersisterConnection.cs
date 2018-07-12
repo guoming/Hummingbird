@@ -75,38 +75,52 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         {
             _logger.LogInformation("RabbitMQ Client is trying to connect");
 
-            lock (sync_root)
+            if (!IsConnected)
             {
-                var policy = RetryPolicy.Handle<SocketException>()
-                    .Or<BrokerUnreachableException>()
-                    .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+                lock (sync_root)
+                {
+                    if (!IsConnected)
                     {
-                        _logger.LogWarning(ex.ToString());
+                        var policy = RetryPolicy.Handle<SocketException>()
+                            .Or<BrokerUnreachableException>()
+                            .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+                            {
+                                _logger.LogWarning(ex.ToString());
+                            }
+                        );
+
+                        policy.Execute(() =>
+                        {
+                            _connection = _connectionFactory
+                                  .CreateConnection();
+                        });
+
+                        if (IsConnected)
+                        {
+                            _connection.ConnectionShutdown += OnConnectionShutdown;
+                            _connection.CallbackException += OnCallbackException;
+                            _connection.ConnectionBlocked += OnConnectionBlocked;
+
+                            _logger.LogInformation($"RabbitMQ persistent connection acquired a connection {_connection.Endpoint.HostName} and is subscribed to failure events");
+
+                            return true;
+                        }
+                        else
+                        {
+                            _logger.LogCritical("FATAL ERROR: RabbitMQ connections could not be created and opened");
+
+                            return false;
+                        }
                     }
-                );
-
-                policy.Execute(() =>
-                {
-                    _connection = _connectionFactory
-                          .CreateConnection();
-                });
-
-                if (IsConnected)
-                {
-                    _connection.ConnectionShutdown += OnConnectionShutdown;
-                    _connection.CallbackException += OnCallbackException;
-                    _connection.ConnectionBlocked += OnConnectionBlocked;
-
-                    _logger.LogInformation($"RabbitMQ persistent connection acquired a connection {_connection.Endpoint.HostName} and is subscribed to failure events");
-
-                    return true;
+                    else
+                    {
+                        return true;
+                    }
                 }
-                else
-                {
-                    _logger.LogCritical("FATAL ERROR: RabbitMQ connections could not be created and opened");
-
-                    return false;
-                }
+            }
+            else
+            {
+                return true;
             }
         }
 

@@ -19,6 +19,14 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Hummingbird.Extersions.EventBus.RabbitMQ
 {
+    public struct EventMessage
+    {
+        public string MessageId { get; set; }
+        public string Body { get; set; }
+
+        public string RouteKey { get; set; }
+    }
+
 
     /// <summary>
     /// 消息队列
@@ -41,7 +49,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private Func<string, string, Exception, dynamic, Task<bool>> _nackHandler = null;
         private static List<IModel> subscribeChannels = new List<IModel>();
         private readonly IHummingbirdCache<bool> _cacheManager;
-
+        private readonly RetryPolicy _policy = null;
 
         public EventBusRabbitMQ(
             IHummingbirdCache<bool> cacheManager,
@@ -63,6 +71,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             this._preFetch = preFetch;
             this._exchange = exchange;
             this._exchangeType = exchangeType;
+            this._policy = RetryPolicy.Handle<BrokerUnreachableException>()
+           .Or<SocketException>()
+           .Or<System.IO.IOException>()
+           .Or<AlreadyClosedException>()
+           .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+           {
+               _logger.LogWarning(ex.ToString());
+           });
         }
 
 
@@ -78,26 +94,26 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             int TimeoutMilliseconds = 500,
             int BatchSize=500)
         {
-            var evtDicts = Events.Where(a => a.EventId != null).ToDictionary(a => a.EventId, msg => new Dictionary<string, string>()
-            {
-                { "Body",msg.Content},
-                { "EventTypeName" ,msg.EventTypeName }
-            });
 
-            await Enqueue(evtDicts, ackHandler, nackHandler, returnHandler, EventDelaySeconds, TimeoutMilliseconds);
+            var evtDicts = Events.Where(a => a.EventId != null).Select(a => new EventMessage()
+            {
+                 Body= a.Content,
+                  MessageId= a.EventId,
+                   RouteKey=a.EventTypeName
+
+            }).ToList();
+
+            await Enqueue(evtDicts, ackHandler, nackHandler, returnHandler, EventDelaySeconds, TimeoutMilliseconds, BatchSize);
         }
 
-        /// <summary>
-        /// 发送消息
-        /// </summary>
         async Task Enqueue(
-            Dictionary<string, Dictionary<string, string>> Events,
-            Action<List<string>> ackHandler = null,
-            Action<List<string>> nackHandler = null,
-            Action<List<string>> returnHandler = null,
-            int EventDelaySeconds = 0,
-            int TimeoutMilliseconds = 500,
-            int BatchSize=500)
+          List<EventMessage> Events,
+          Action<List<string>> ackHandler,
+          Action<List<string>> nackHandler,
+          Action<List<string>> returnHandler,
+          int EventDelaySeconds,
+          int TimeoutMilliseconds,
+          int BatchSize)
         {
             try
             {
@@ -105,151 +121,176 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 {
                     _persistentConnection.TryConnect();
                 }
-
-                var policy = RetryPolicy.Handle<BrokerUnreachableException>()
-               .Or<SocketException>()
-               .Or<System.IO.IOException>()
-               .Or<AlreadyClosedException>()
-               .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
-               {
-                   _logger.LogWarning(ex.ToString());
-               });
-
                 //消息发送成功后回调后需要修改数据库状态，改成本地做组缓存后，再批量入库。（性能提升百倍）
                 var _batchBlock_BasicReturn = new BatchBlock<string>(BatchSize);
                 var _batchBlock_BasicAcks = new BatchBlock<string>(BatchSize);
                 var _batchBlock_BasicNacks = new BatchBlock<string>(BatchSize);
                 var _actionBlock_BasicReturn = new ActionBlock<string[]>(EventIDs =>
                 {
-                    if (returnHandler != null  && EventIDs.Length>0)
+                    if (returnHandler != null && EventIDs.Length > 0)
                     {
                         returnHandler(EventIDs.ToList());
                     }
+                }, new ExecutionDataflowBlockOptions()
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
                 });
+
                 var _actionBlock_BasicAcks = new ActionBlock<string[]>(EventIDs =>
-                 {
-                     if (ackHandler != null && EventIDs.Length > 0)
-                     {
-                         ackHandler(EventIDs.ToList());
-                     }
-                 });
+                {
+                    if (ackHandler != null && EventIDs.Length > 0)
+                    {
+                        ackHandler(EventIDs.ToList());
+                    }
+                }, new ExecutionDataflowBlockOptions()
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                });
+
                 var _actionBlock_BasicNacks = new ActionBlock<string[]>(EventIDs =>
                 {
-
                     if (nackHandler != null && EventIDs.Length > 0)
                     {
                         nackHandler(EventIDs.ToList());
                     }
+                }, new ExecutionDataflowBlockOptions()
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
                 });
-                
+
                 _batchBlock_BasicReturn.LinkTo(_actionBlock_BasicReturn);
                 _batchBlock_BasicAcks.LinkTo(_actionBlock_BasicAcks);
                 _batchBlock_BasicNacks.LinkTo(_actionBlock_BasicNacks);
 
-
                 using (var _channel = _persistentConnection.CreateModel())
                 {
                     //保存EventId和DeliveryTag 映射
-                    var deliveryTags = new Dictionary<ulong, string>();
-                    var returnEventIds = new System.Collections.Hashtable();
+                    var deliveryTags = new List<string>();
+                    var returnEventIds = new Dictionary<string, bool>();
+                    ulong lastDeliveryTag = 0;
 
                     //消息无法投递失被退回（如：队列找不到）
-                    _channel.BasicReturn += (object sender, BasicReturnEventArgs e) =>
+                    _channel.BasicReturn += async (object sender, BasicReturnEventArgs e) =>
                     {
+
                         if (!string.IsNullOrEmpty(e.BasicProperties.MessageId))
                         {
-                            _batchBlock_BasicReturn.Post(e.BasicProperties.MessageId);
                             returnEventIds.Add(e.BasicProperties.MessageId, false);
-                        }                    
+                            await _batchBlock_BasicReturn.SendAsync(e.BasicProperties.MessageId);
+                        }
                     };
 
                     //消息路由到队列并持久化后执行
-                    _channel.BasicAcks += (object sender, BasicAckEventArgs e) =>
+                    _channel.BasicAcks += async (object sender, BasicAckEventArgs e) =>
                     {
-                        var EventIDs = new List<string>();
                         if (e.Multiple)
                         {
-                            foreach (var EventID in deliveryTags.Where(a => a.Key < e.DeliveryTag + 1).Select(a => a.Value))
+                            for (var i = lastDeliveryTag; i < e.DeliveryTag; i++)
                             {
-                                if (!EventIDs.Contains(EventID) && !returnEventIds.ContainsKey(EventID))
+                                var eventId = deliveryTags[(int)i];
+
+                                if (returnEventIds.Count > 0)
                                 {
-                                    EventIDs.Add(EventID);
+                                    if (!returnEventIds.ContainsKey(eventId))
+                                    {
+                                        await _batchBlock_BasicAcks.SendAsync(eventId);
+                                    }
+                                }
+                                else
+                                {
+                                    await _batchBlock_BasicAcks.SendAsync(eventId);
                                 }
                             }
+
+                            // 批量回调，记录当期位置
+                            lastDeliveryTag = e.DeliveryTag;
                         }
                         else
                         {
-                            var EventID = deliveryTags[e.DeliveryTag];
+                            var eventId = deliveryTags[(int)e.DeliveryTag - 1];
 
-                            if (!EventIDs.Contains(EventID) && !returnEventIds.ContainsKey(EventID))
+                            if (returnEventIds.Count > 0)
                             {
-                                EventIDs.Add(deliveryTags[e.DeliveryTag]);
+                                if (!returnEventIds.ContainsKey(eventId))
+                                {
+                                    await _batchBlock_BasicAcks.SendAsync(eventId);
+                                }
+                            }
+                            else
+                            {
+                                await _batchBlock_BasicAcks.SendAsync(eventId);
                             }
                         }
-
-                        EventIDs.ForEach(eventId =>
-                        {
-                            _batchBlock_BasicAcks.Post(eventId);
-                        });                        
                     };
 
                     //消息投递失败
-                    _channel.BasicNacks += (object sender, BasicNackEventArgs e) =>
+                    _channel.BasicNacks += async (object sender, BasicNackEventArgs e) =>
                     {
-                        var EventIDs = new List<string>();
 
-                        //批量确认
                         if (e.Multiple)
                         {
-                            foreach (var EventID in deliveryTags.Where(a => a.Key < e.DeliveryTag + 1).Select(a => a.Value))
+                            for (var i = lastDeliveryTag; i < e.DeliveryTag; i++)
                             {
-                                if (!EventIDs.Contains(EventID))
+                                var eventId = deliveryTags[(int)i];
+
+                                if (returnEventIds.Count > 0)
                                 {
-                                    EventIDs.Add(EventID);
+                                    if (!returnEventIds.ContainsKey(eventId))
+                                    {
+                                        await _batchBlock_BasicNacks.SendAsync(eventId);
+                                    }
                                 }
+                                else
+                                {
+                                    await _batchBlock_BasicNacks.SendAsync(eventId);
+                                }
+
                             }
+
+                            // 批量回调，记录当期位置
+                            lastDeliveryTag = e.DeliveryTag;
                         }
                         else
                         {
-                            var EventID = deliveryTags[e.DeliveryTag];
-
-                            if (!EventIDs.Contains(EventID))
+                            var eventId = deliveryTags[(int)e.DeliveryTag - 1];
+                            if (returnEventIds.Count > 0)
                             {
-                                EventIDs.Add(EventID);
+                                if (!returnEventIds.ContainsKey(eventId))
+                                {
+                                    await _batchBlock_BasicNacks.SendAsync(eventId);
+                                }
                             }
-                        }
+                            else
+                            {
+                                await _batchBlock_BasicNacks.SendAsync(eventId);
+                            }
 
-                        EventIDs.ForEach(eventId =>
-                        {
-                           _batchBlock_BasicNacks.Post(eventId);
-                        });
+                        }
                     };
 
-                    policy.Execute(() =>
+                    _policy.Execute(() =>
                     {
                         _channel.ConfirmSelect();
                     });
 
-                    foreach (var msg in Events)
+                    // 提交走批量通道
+                    var _batchPublish = _channel.CreateBasicPublishBatch();
+                    
+
+                    for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
                     {
-                        policy.Execute(() =>
+                        _policy.Execute(() =>
                         {
-                            var EventId = msg.Key;
-                            var json = msg.Value["Body"];
-                            var routeKey = msg.Value["EventTypeName"];
-
+                            var MessageId = Events[eventIndex].MessageId;
+                            var json = Events[eventIndex].Body;
+                            var routeKey = Events[eventIndex].RouteKey;
                             byte[] bytes = Encoding.UTF8.GetBytes(json);
-
-
                             //设置消息持久化
                             IBasicProperties properties = _channel.CreateBasicProperties();
                             properties.DeliveryMode = 2;
-                            properties.MessageId = msg.Key;
+                            properties.MessageId = MessageId;
 
-                            if (!deliveryTags.ContainsValue(EventId))
-                            {
-                                deliveryTags.Add((ulong)deliveryTags.Count + 1, EventId);
-                            }
+                            deliveryTags.Add(MessageId);
 
                             //需要发送延时消息
                             if (EventDelaySeconds > 0)
@@ -263,50 +304,52 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                 //创建一个队列                         
                                 _channel.QueueDeclare(
-                                        queue: routeKey,
-                                        durable: true,
-                                        exclusive: false,
-                                        autoDelete: false,
-                                        arguments: dic);
-                                
-                                _channel.BasicPublish(
+                                       queue: routeKey,
+                                       durable: true,
+                                       exclusive: false,
+                                       autoDelete: false,
+                                       arguments: dic);
+
+                                _batchPublish.Add(
                                     exchange: "",
                                     mandatory: true,
                                     routingKey: routeKey,
-                                    basicProperties: properties,
+                                    properties: properties,
                                     body: bytes);
 
                             }
                             else
                             {
-
-                                _channel.BasicPublish(
+                                _batchPublish.Add(
                                     exchange: _exchange,
                                     mandatory: true,
                                     routingKey: routeKey,
-                                    basicProperties: properties,
+                                    properties: properties,
                                     body: bytes);
                             }
                         });
-                    }
+                    };
 
-                    policy.Execute(() =>
+                    _policy.Execute(() =>
                     {
-                        _channel.WaitForConfirms(TimeSpan.FromSeconds(TimeoutMilliseconds));
+                        //批量提交
+                        _batchPublish.Publish();
+                        _channel.WaitForConfirms(TimeSpan.FromMilliseconds(TimeoutMilliseconds));
                     });
                 }
 
-              
                 _batchBlock_BasicAcks.Complete();
                 _batchBlock_BasicNacks.Complete();
                 _batchBlock_BasicReturn.Complete();
-                _batchBlock_BasicReturn.Completion.ContinueWith(delegate { _actionBlock_BasicReturn.Complete(); }).Wait();
-                _batchBlock_BasicAcks.Completion.ContinueWith(delegate { _actionBlock_BasicAcks.Complete(); }).Wait();
-                _batchBlock_BasicNacks.Completion.ContinueWith(delegate { _actionBlock_BasicNacks.Complete(); }).Wait();
+
+                await _batchBlock_BasicReturn.Completion.ContinueWith(delegate { _actionBlock_BasicReturn.Complete(); });
+                await _batchBlock_BasicAcks.Completion.ContinueWith(delegate { _actionBlock_BasicAcks.Complete(); });
+                await _batchBlock_BasicNacks.Completion.ContinueWith(delegate { _actionBlock_BasicNacks.Complete(); });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
+
             }
         }
 
