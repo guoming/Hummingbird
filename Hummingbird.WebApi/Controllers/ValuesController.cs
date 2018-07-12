@@ -46,22 +46,17 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
 
-            await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>()
-<<<<<<< HEAD
-                {
-                    new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new User{
-=======
-            {
-                new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new User{
->>>>>>> 263016a9b0d8fabe9d567ce2426d809cd3568768
+            await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
 
-                         Name=Guid.NewGuid().ToString("N")
-                    }),
-                    new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new Hummingbird.WebApi.Events.NewMsgEvent(){
-                        Time=DateTime.Now
-                    })
+                        new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new User{
 
-                });
+                                 Name=Guid.NewGuid().ToString("N")
+                            }),
+                            new Hummingbird.Extersions.EventBus.Models.EventLogEntry(new Hummingbird.WebApi.Events.NewMsgEvent(){
+                                Time=DateTime.Now
+                            })
+            });
+
             stopwatch.Stop();
 
             return $"花费{stopwatch.ElapsedMilliseconds}毫秒";

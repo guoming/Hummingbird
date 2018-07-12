@@ -103,7 +103,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
             }).ToList();
 
-<<<<<<< HEAD
             await Enqueue(evtDicts, ackHandler, nackHandler, returnHandler, EventDelaySeconds, TimeoutMilliseconds, BatchSize);
         }
 
@@ -115,22 +114,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
           int EventDelaySeconds,
           int TimeoutMilliseconds,
           int BatchSize)
-=======
-            await Enqueue(evtDicts, ackHandler, nackHandler, returnHandler, EventDelaySeconds, TimeoutMilliseconds);
-        }
-
-        /// <summary>
-        /// 发送消息
-        /// </summary>
-        async Task Enqueue(
-            Dictionary<string, Dictionary<string, string>> Events,
-            Action<List<string>> ackHandler = null,
-            Action<List<string>> nackHandler = null,
-            Action<List<string>> returnHandler = null,
-            int EventDelaySeconds = 0,
-            int TimeoutMilliseconds = 500,
-            int BatchSize=500)
->>>>>>> 263016a9b0d8fabe9d567ce2426d809cd3568768
         {
             try
             {
@@ -179,13 +162,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 _batchBlock_BasicAcks.LinkTo(_actionBlock_BasicAcks);
                 _batchBlock_BasicNacks.LinkTo(_actionBlock_BasicNacks);
 
-<<<<<<< HEAD
-=======
-                _batchBlock_BasicReturn.Completion.ContinueWith(delegate { _actionBlock_BasicReturn.Complete(); });
-                _batchBlock_BasicAcks.Completion.ContinueWith(delegate { _actionBlock_BasicAcks.Complete(); });
-                _batchBlock_BasicNacks.Completion.ContinueWith(delegate { _actionBlock_BasicNacks.Complete(); });
-
->>>>>>> 263016a9b0d8fabe9d567ce2426d809cd3568768
                 using (var _channel = _persistentConnection.CreateModel())
                 {
                     //保存EventId和DeliveryTag 映射
@@ -328,7 +304,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                 //创建一个队列                         
                                 _channel.QueueDeclare(
-<<<<<<< HEAD
                                        queue: routeKey,
                                        durable: true,
                                        exclusive: false,
@@ -336,15 +311,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                        arguments: dic);
 
                                 _batchPublish.Add(
-=======
-                                        queue: routeKey,
-                                        durable: true,
-                                        exclusive: false,
-                                        autoDelete: false,
-                                        arguments: dic);
-                                
-                                _channel.BasicPublish(
->>>>>>> 263016a9b0d8fabe9d567ce2426d809cd3568768
                                     exchange: "",
                                     mandatory: true,
                                     routingKey: routeKey,
@@ -374,19 +340,12 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                 _batchBlock_BasicAcks.Complete();
                 _batchBlock_BasicNacks.Complete();
-<<<<<<< HEAD
                 _batchBlock_BasicReturn.Complete();
 
                 await _batchBlock_BasicReturn.Completion.ContinueWith(delegate { _actionBlock_BasicReturn.Complete(); });
                 await _batchBlock_BasicAcks.Completion.ContinueWith(delegate { _actionBlock_BasicAcks.Complete(); });
                 await _batchBlock_BasicNacks.Completion.ContinueWith(delegate { _actionBlock_BasicNacks.Complete(); });
-=======
-                _batchBlock_BasicReturn.Complete();                
-                _actionBlock_BasicNacks.Completion.Wait();                
-                _actionBlock_BasicAcks.Completion.Wait();
-                _actionBlock_BasicReturn.Completion.Wait();
 
->>>>>>> 263016a9b0d8fabe9d567ce2426d809cd3568768
             }
             catch (Exception ex)
             {

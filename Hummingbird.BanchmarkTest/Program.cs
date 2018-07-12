@@ -1,4 +1,6 @@
 ﻿using Hummingbird.Extersions.EventBus.SqlServerLogging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Hummingbird.BanchmarkTest
