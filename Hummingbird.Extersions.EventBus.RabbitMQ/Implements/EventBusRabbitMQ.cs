@@ -157,7 +157,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 {
                     MaxDegreeOfParallelism = Environment.ProcessorCount
                 });
-
+                
                 _batchBlock_BasicReturn.LinkTo(_actionBlock_BasicReturn);
                 _batchBlock_BasicAcks.LinkTo(_actionBlock_BasicAcks);
                 _batchBlock_BasicNacks.LinkTo(_actionBlock_BasicNacks);
