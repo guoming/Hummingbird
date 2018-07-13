@@ -165,7 +165,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 using (var _channel = _persistentConnection.CreateModel())
                 {
                     //保存EventId和DeliveryTag 映射
-                    var deliveryTags = new List<string>();
+                    var unconfirmEventIds = new string[Events.Count];
                     var returnEventIds = new Dictionary<string, bool>();
                     ulong lastDeliveryTag = 0;
 
@@ -187,8 +187,35 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         {
                             for (var i = lastDeliveryTag; i < e.DeliveryTag; i++)
                             {
-                                var eventId = deliveryTags[(int)i];
+                                var eventId = unconfirmEventIds[i];
+                                if (!string.IsNullOrEmpty(eventId))
+                                {
+                                    unconfirmEventIds[i] = "";
 
+                                    if (returnEventIds.Count > 0)
+                                    {
+                                        if (!returnEventIds.ContainsKey(eventId))
+                                        {
+                                            await _batchBlock_BasicAcks.SendAsync(eventId);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        await _batchBlock_BasicAcks.SendAsync(eventId);
+                                    }
+                                }
+                            }
+
+                            // 批量回调，记录当期位置
+                            lastDeliveryTag = e.DeliveryTag;
+                        }
+                        else
+                        {
+                            var eventId = unconfirmEventIds[e.DeliveryTag - 1];
+
+                            if (!string.IsNullOrEmpty(eventId))
+                            {
+                                unconfirmEventIds[e.DeliveryTag - 1] = "";
                                 if (returnEventIds.Count > 0)
                                 {
                                     if (!returnEventIds.ContainsKey(eventId))
@@ -201,25 +228,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     await _batchBlock_BasicAcks.SendAsync(eventId);
                                 }
                             }
-
-                            // 批量回调，记录当期位置
-                            lastDeliveryTag = e.DeliveryTag;
-                        }
-                        else
-                        {
-                            var eventId = deliveryTags[(int)e.DeliveryTag - 1];
-
-                            if (returnEventIds.Count > 0)
-                            {
-                                if (!returnEventIds.ContainsKey(eventId))
-                                {
-                                    await _batchBlock_BasicAcks.SendAsync(eventId);
-                                }
-                            }
-                            else
-                            {
-                                await _batchBlock_BasicAcks.SendAsync(eventId);
-                            }
                         }
                     };
 
@@ -231,7 +239,34 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         {
                             for (var i = lastDeliveryTag; i < e.DeliveryTag; i++)
                             {
-                                var eventId = deliveryTags[(int)i];
+                                var eventId = unconfirmEventIds[i];
+                                if (!string.IsNullOrEmpty(eventId))
+                                {
+                                    unconfirmEventIds[i] = "";
+
+                                    if (returnEventIds.Count > 0)
+                                    {
+                                        if (!returnEventIds.ContainsKey(eventId))
+                                        {
+                                            await _batchBlock_BasicNacks.SendAsync(eventId);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        await _batchBlock_BasicNacks.SendAsync(eventId);
+                                    }
+                                }
+                            }
+
+                            // 批量回调，记录当期位置
+                            lastDeliveryTag = e.DeliveryTag;
+                        }
+                        else
+                        {
+                            var eventId = unconfirmEventIds[e.DeliveryTag - 1];
+                            if (string.IsNullOrEmpty(eventId))
+                            {
+                                unconfirmEventIds[e.DeliveryTag - 1] = "";
 
                                 if (returnEventIds.Count > 0)
                                 {
@@ -244,25 +279,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 {
                                     await _batchBlock_BasicNacks.SendAsync(eventId);
                                 }
-
-                            }
-
-                            // 批量回调，记录当期位置
-                            lastDeliveryTag = e.DeliveryTag;
-                        }
-                        else
-                        {
-                            var eventId = deliveryTags[(int)e.DeliveryTag - 1];
-                            if (returnEventIds.Count > 0)
-                            {
-                                if (!returnEventIds.ContainsKey(eventId))
-                                {
-                                    await _batchBlock_BasicNacks.SendAsync(eventId);
-                                }
-                            }
-                            else
-                            {
-                                await _batchBlock_BasicNacks.SendAsync(eventId);
                             }
 
                         }
@@ -290,7 +306,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             properties.DeliveryMode = 2;
                             properties.MessageId = MessageId;
 
-                            deliveryTags.Add(MessageId);
+                            unconfirmEventIds[eventIndex]=MessageId;
 
                             //需要发送延时消息
                             if (EventDelaySeconds > 0)
@@ -330,11 +346,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         });
                     };
 
-                    _policy.Execute(() =>
+                    await _policy.Execute(async () =>
                     {
-                        //批量提交
-                        _batchPublish.Publish();
-                        _channel.WaitForConfirms(TimeSpan.FromMilliseconds(TimeoutMilliseconds));
+                        await Task.Run(() =>
+                        {
+                            //批量提交
+                            _batchPublish.Publish();
+                            _channel.WaitForConfirms(TimeSpan.FromMilliseconds(TimeoutMilliseconds));
+                        });
                     });
                 }
 
