@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Threading;
 
 namespace Hummingbird.Extersions.EventBus.SqlServerLogging
 {
@@ -34,16 +35,23 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
             }
             var LogEntrys = events.Select(@event => new EventLogEntry(@event)).ToList();
 
-            await transaction.Connection.ExecuteAsync("insert into EventLogs(EventId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
-            LogEntrys.Select(eventLogEntry => new
+            var sqlParamtersList = new List<DynamicParameters>();
+            foreach(var eventLogEntry in LogEntrys)
             {
-                EventId = eventLogEntry.EventId,
-                EventTypeName = eventLogEntry.EventTypeName,
-                State = eventLogEntry.State,
-                TimesSent = 0,
-                CreationTime = DateTime.Now,
-                Content = eventLogEntry.Content
-            }), transaction: transaction);
+                var sqlParamters = new DynamicParameters();
+                sqlParamters.Add("EventId", eventLogEntry.EventId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 32);
+                sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
+                sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("TimesSent", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("CreationTime", DateTime.Now, System.Data.DbType.DateTimeOffset, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("Content", eventLogEntry.Content, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
+                sqlParamtersList.Add(sqlParamters);
+            }
+
+            await transaction.Connection.ExecuteAsync("insert into EventLogs(EventId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
+            sqlParamtersList, 
+            transaction: transaction
+            );
 
             return LogEntrys;
         }
@@ -53,19 +61,31 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         /// </summary>
         /// <param name="events"></param>
         /// <returns></returns>
-        public async Task MarkEventAsPublishedAsync(List<string> events)
+        public async Task MarkEventAsPublishedAsync(List<string> events, CancellationToken cancellationToken)
         {
-            using (var db = _dbConnection.GetDbConnection())
+            if (events != null)
             {
-                if (db.State != System.Data.ConnectionState.Open)
+                var sqlParamtersList = new List<DynamicParameters>();
+                foreach (var eventId in events)
                 {
-                    db.Open();
+                    var sqlParamters = new DynamicParameters();
+                    sqlParamters.Add("EventId", eventId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 32);
+                    sqlParamtersList.Add(sqlParamters);
                 }
-                using (var tran = db.BeginTransaction())
+
+                using (var db = _dbConnection.GetDbConnection())
                 {
-                    await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", events.Select(EventId => new { EventId = EventId }).ToList(), transaction: tran);
-                    tran.Commit();
+                    if (db.State != System.Data.ConnectionState.Open)
+                    {
+                        await db.OpenAsync(cancellationToken);
+                    }
+                    using (var tran = db.BeginTransaction())
+                    {
+                        await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", sqlParamtersList, transaction: tran);
+                        tran.Commit();
+                    }
                 }
+
             }
         }
 
@@ -76,19 +96,27 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         /// </summary>
         /// <param name="events"></param>
         /// <returns></returns>
-        public async Task MarkEventAsPublishedFailedAsync(List<string> events)
+        public async Task MarkEventAsPublishedFailedAsync(List<string> events, CancellationToken cancellationToken)
         {
             if (events != null)
             {
+                var sqlParamtersList = new List<DynamicParameters>();
+                foreach (var eventId in events)
+                {
+                    var sqlParamters = new DynamicParameters();
+                    sqlParamters.Add("EventId", eventId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 32);
+                    sqlParamtersList.Add(sqlParamters);
+                }
+
                 using (var db = _dbConnection.GetDbConnection())
                 {
                     if (db.State != System.Data.ConnectionState.Open)
                     {
-                        db.Open();
+                        await db.OpenAsync(cancellationToken);
                     }
                     using (var tran = db.BeginTransaction())
                     {
-                        await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=2 where EventId=@EventId", events.Select(EventId => new { EventId = EventId }).ToList(), transaction: tran);
+                        await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=2 where EventId=@EventId", sqlParamtersList, transaction: tran);
 
                         tran.Commit();
                     }
@@ -98,37 +126,47 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
             return;
         }
 
-        async Task<int> MarkEventConsumeAsync(string EventId, string QueueName, int State)
+        async Task<int> MarkEventConsumeAsync(string[] EventIds, string QueueName, int State, CancellationToken cancellationToken)
         {
+            var sqlQueryParamtersList = new List<DynamicParameters>();
+            for(int i=0;i< EventIds.Length; i++)
+            {
+                var sqlParamters = new DynamicParameters();
+                sqlParamters.Add("EventId", EventIds[i], System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 32);
+                sqlParamters.Add("QueueName", QueueName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 32);
+                sqlParamters.Add("State", State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
+                sqlQueryParamtersList.Add(sqlParamters);
+            }
+
+            var sqlInsertLogParamtersList = new List<DynamicParameters>();
+            for (int i = 0; i < EventIds.Length; i++)
+            {
+                var sqlParamters = new DynamicParameters();
+                sqlParamters.Add("EventConsumeLogId", Guid.NewGuid().ToString("N"), System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 32);
+                sqlParamters.Add("EventId", EventIds[i], System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 32);
+                sqlParamters.Add("QueueName", QueueName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 32);
+                sqlParamters.Add("State", State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("CreationTime", DateTime.Now, System.Data.DbType.DateTimeOffset, System.Data.ParameterDirection.Input, 4);
+                sqlInsertLogParamtersList.Add(sqlParamters);
+            }
+
+
             using (var db = _dbConnection.GetDbConnection())
             {
                 if (db.State != System.Data.ConnectionState.Open)
                 {
-                    db.Open();
+                    await db.OpenAsync(cancellationToken);
                 }
 
                 using (var tran = db.BeginTransaction())
                 {
                     var times = await db.ExecuteScalarAsync<int?>("update EventConsumeLogs set TimesConsume=TimesConsume+1,State=@State where EventId=@EventId and QueueName=@QueueName; " +
-                                    "select TimesConsume from EventConsumeLogs where EventId=@EventId and QueueName=@QueueName;", new
-                                    {
-                                        EventId = EventId,
-                                        QueueName = QueueName,
-                                        State = State
-                                    }, transaction: tran);
+                                                                "select TimesConsume from EventConsumeLogs where EventId=@EventId and QueueName=@QueueName;",
+                                    sqlQueryParamtersList, transaction: tran);
 
                     if (!times.HasValue)
                     {
-
-                        await db.ExecuteAsync("insert into EventConsumeLogs(EventConsumeLogId,EventId,QueueName,State,TimesConsume,CreationTime) values(@EventConsumeLogId,@EventId,@QueueName,@State,0,@CreationTime)", new
-                        {
-                            EventConsumeLogId = Guid.NewGuid().ToString("N"),
-                            EventId = EventId,
-                            QueueName = QueueName,
-                            State = State,
-                            CreationTime = DateTime.Now
-                        }, transaction: tran);
-
+                        await db.ExecuteAsync("insert into EventConsumeLogs(EventConsumeLogId,EventId,QueueName,State,TimesConsume,CreationTime) values(@EventConsumeLogId,@EventId,@QueueName,@State,0,@CreationTime)", sqlInsertLogParamtersList, transaction: tran);
                         times = 0;
                     }
 
@@ -147,9 +185,9 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         /// <param name="eventId"></param>
         /// <param name="queueName"></param>
         /// <returns></returns>
-        public async Task MarkEventConsumeAsRecivedAsync(string EventId, string QueueName)
+        public async Task MarkEventConsumeAsRecivedAsync(string[] EventIds, string QueueName, CancellationToken cancellationToken)
         {
-            await MarkEventConsumeAsync(EventId, QueueName, 1);
+            await MarkEventConsumeAsync(EventIds, QueueName, 1,cancellationToken);
         }
 
         /// <summary>
@@ -160,9 +198,9 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         /// <param name="eventId"></param>
         /// <param name="queueName"></param>
         /// <returns></returns>
-        public async Task<int> MarkEventConsumeAsFailedAsync(string EventId, string QueueName)
+        public async Task<int> MarkEventConsumeAsFailedAsync(string[] EventIds, string QueueName, CancellationToken cancellationToken)
         {
-            return await MarkEventConsumeAsync(EventId, QueueName, 2);
+            return await MarkEventConsumeAsync(EventIds, QueueName, 2,cancellationToken);
         }
 
         /// <summary>

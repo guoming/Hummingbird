@@ -6,14 +6,17 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
+using Polly.Timeout;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
@@ -45,11 +48,11 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly int _retryCount = 3;
         private readonly int _IdempotencyDuration;
 
-        private Action<string, string> _ackHandler = null;
-        private Func<string, string, Exception, dynamic, Task<bool>> _nackHandler = null;
-        private static List<IModel> subscribeChannels = new List<IModel>();
+        private Action<string[], string> _subscribeAckHandler = null;
+        private Func<string[], string, Exception, dynamic[], Task<bool>> _subscribeNackHandler = null;
+        private static List<IModel> _subscribeChannels = new List<IModel>();
         private readonly IHummingbirdCache<bool> _cacheManager;
-        private readonly RetryPolicy _policy = null;
+        private readonly RetryPolicy _eventBusRetryPolicy = null;
 
         public EventBusRabbitMQ(
             IHummingbirdCache<bool> cacheManager,
@@ -71,7 +74,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             this._preFetch = preFetch;
             this._exchange = exchange;
             this._exchangeType = exchangeType;
-            this._policy = RetryPolicy.Handle<BrokerUnreachableException>()
+            this._eventBusRetryPolicy = RetryPolicy.Handle<BrokerUnreachableException>()
            .Or<SocketException>()
            .Or<System.IO.IOException>()
            .Or<AlreadyClosedException>()
@@ -92,14 +95,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             Action<List<string>> returnHandler = null,
             int EventDelaySeconds = 0,
             int TimeoutMilliseconds = 500,
-            int BatchSize=500)
+            int BatchSize = 500)
         {
 
             var evtDicts = Events.Where(a => a.EventId != null).Select(a => new EventMessage()
             {
-                 Body= a.Content,
-                  MessageId= a.EventId,
-                   RouteKey=a.EventTypeName
+                Body = a.Content,
+                MessageId = a.EventId,
+                RouteKey = a.EventTypeName
 
             }).ToList();
 
@@ -157,7 +160,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 {
                     MaxDegreeOfParallelism = Environment.ProcessorCount
                 });
-                
+
                 _batchBlock_BasicReturn.LinkTo(_actionBlock_BasicReturn);
                 _batchBlock_BasicAcks.LinkTo(_actionBlock_BasicAcks);
                 _batchBlock_BasicNacks.LinkTo(_actionBlock_BasicNacks);
@@ -284,18 +287,18 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         }
                     };
 
-                    _policy.Execute(() =>
+                    _eventBusRetryPolicy.Execute(() =>
                     {
                         _channel.ConfirmSelect();
                     });
 
                     // 提交走批量通道
                     var _batchPublish = _channel.CreateBasicPublishBatch();
-                    
+
 
                     for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
                     {
-                        _policy.Execute(() =>
+                        _eventBusRetryPolicy.Execute(() =>
                         {
                             var MessageId = Events[eventIndex].MessageId;
                             var json = Events[eventIndex].Body;
@@ -306,7 +309,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             properties.DeliveryMode = 2;
                             properties.MessageId = MessageId;
 
-                            unconfirmEventIds[eventIndex]=MessageId;
+                            unconfirmEventIds[eventIndex] = MessageId;
 
                             //需要发送延时消息
                             if (EventDelaySeconds > 0)
@@ -346,7 +349,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         });
                     };
 
-                    await _policy.Execute(async () =>
+                    await _eventBusRetryPolicy.Execute(async () =>
                     {
                         await Task.Run(() =>
                         {
@@ -390,8 +393,11 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             {
                 _persistentConnection.TryConnect();
             }
-
+           
             var _channel = _persistentConnection.CreateModel();
+            var policy = createPolicy();
+            var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false)
+                .WrapAsync(policy);
 
             var _queueName = typeof(TH).FullName;
             var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
@@ -399,7 +405,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
             if (EventAction == null)
             {
-
                 EventAction = System.Activator.CreateInstance(typeof(TH)) as IEventHandler<TD>;
             }
 
@@ -432,13 +437,18 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         bytes = ea.Body;
                         str = Encoding.UTF8.GetString(bytes);
                         msg = JsonConvert.DeserializeObject<TD>(str);
-                        var handlerOK = await EventAction.Handle(msg);
+
+                        var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
+                        {
+                            return await EventAction.Handle(msg,cancellationToken);
+
+                        },CancellationToken.None);
 
                         if (handlerOK)
                         {
-                            if (_ackHandler != null)
+                            if (_subscribeAckHandler != null)
                             {
-                                _ackHandler(EventId, _queueName);
+                                _subscribeAckHandler(new string[] { EventId }, _queueName);
                             }
 
                             //回复确认
@@ -454,9 +464,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         {
                             var requeue = true;
 
-                            if (_nackHandler != null)
+                            if (_subscribeNackHandler != null)
                             {
-                                requeue = await _nackHandler(EventId, _queueName, null, msg);
+                                requeue = await _subscribeNackHandler(new string[] { EventId }, _queueName, null, new dynamic[] { msg });
+
                             }
 
                             //拒绝重新写入队列，处理
@@ -468,9 +479,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     {
                         var requeue = true;
 
-                        if (_nackHandler != null)
+                        if (_subscribeNackHandler != null)
                         {
-                            requeue = await _nackHandler(EventId, _queueName, ex, msg);
+                            requeue = await _subscribeNackHandler(new string[] { EventId }, _queueName, ex, new dynamic[] { msg });
+
                         }
                         _channel.BasicReject(ea.DeliveryTag, requeue);
                     }
@@ -504,17 +516,214 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
             //消费队列，并设置应答模式为程序主动应答
             _channel.BasicConsume(_queueName, false, consumer);
-        
-            subscribeChannels.Add(_channel);
+
+            _subscribeChannels.Add(_channel);
+            return this;
+        }
+
+        private IAsyncPolicy createPolicy() {
+
+            IAsyncPolicy policy = Policy.NoOpAsync();//创建一个空的Policy
+
+            //设置熔断策略
+            policy = policy.WrapAsync(Policy.Handle<Exception>()
+                .AdvancedCircuitBreakerAsync(
+                    failureThreshold: 0.5, // Break on >=50% actions result in handled exceptions...
+                    samplingDuration: TimeSpan.FromSeconds(10), // ... over any 10 second period
+                    minimumThroughput: 8, // ... provided at least 8 actions in the 10 second period.
+                    durationOfBreak: TimeSpan.FromSeconds(30), // Break for 30 seconds.
+                    onBreak: (Exception exception, TimeSpan timeSpan) =>
+                    {
+                        Console.WriteLine("onBreak!");
+                    },
+                    onHalfOpen: () =>
+                    {
+                        Console.WriteLine("onReset!");
+                    },
+                    onReset: () =>
+                    {
+                        Console.WriteLine("onReset!");
+                    }));
+
+            //设置重试策略
+            policy = policy.WrapAsync(Policy.Handle<Exception>()
+                   .RetryAsync(3, (ex, time) =>
+                   {
+                       _logger.LogError(ex, ex.ToString());
+                   }));
+
+
+            // 设置超时
+            policy = policy.WrapAsync(Policy.TimeoutAsync(
+                TimeSpan.FromSeconds(2),
+                TimeoutStrategy.Pessimistic,
+                (context, timespan, task) =>
+                {
+                    Console.WriteLine("Timeout!");
+
+                    return Task.FromResult(true);
+                }));
+
+     
+
+            return policy;
+
+        }
+
+        /// <summary>
+        /// 订阅消息（同一类消息可以重复订阅）
+        /// 作者：郭明
+        /// 日期：2017年4月3日
+        /// </summary>
+        /// <typeparam name="TD"></typeparam>
+        /// <typeparam name="TH"></typeparam>
+        /// <param name="EventTypeName">消息类型名称</param>        
+        /// <returns></returns>
+        public IEventBus RegisterBatch<TD, TH>(string EventTypeName = "", int BatchSize =50)
+                where TD : class
+                where TH : IEventBatchHandler<TD>
+        {
+            if (!_persistentConnection.IsConnected)
+            {
+                _persistentConnection.TryConnect();
+            }
+
+            var _channel = _persistentConnection.CreateModel();
+            var policy = createPolicy();
+            var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false)
+                .WrapAsync(policy);
+            var _queueName = typeof(TH).FullName;
+            var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
+            var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventBatchHandler<TD>;
+
+            if (EventAction == null)
+            {
+                EventAction = System.Activator.CreateInstance(typeof(TH)) as IEventBatchHandler<TD>;
+            }
+
+            //direct fanout topic  
+            _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
+
+            //在MQ上定义一个持久化队列，如果名称相同不会重复创建
+            _channel.QueueDeclare(_queueName, true, false, false, null);
+            //绑定交换器和队列
+            _channel.QueueBind(_queueName, _exchange, _routeKey);
+            //输入1，那如果接收一个消息，但是没有应答，则客户端不会收到下一个消息
+            _channel.BasicQos(0,(ushort)BatchSize, false);
+
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    var batchPool = new ConcurrentDictionary<string, TD>();
+                    ulong batchLastDeliveryTag = 0;     
+                    var _insertPoolBlock = new ActionBlock<BasicGetResult>(ea =>
+                    {
+                        if (string.IsNullOrEmpty(ea.BasicProperties.MessageId) || _IdempotencyDuration == 0 || !_cacheManager.Exists(ea.BasicProperties.MessageId, "Events"))
+                        {
+                            batchPool.TryAdd(ea.BasicProperties.MessageId, JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)));
+                            batchLastDeliveryTag = ea.DeliveryTag;
+                        }
+                        else
+                        {
+                            _channel.BasicNack(ea.DeliveryTag, false, false);
+                        }
+                    });
+
+                    #region batch Pull
+                    for (var i = 0; i < BatchSize; i++)
+                    {
+                        var ea = _channel.BasicGet(_queueName, false);
+                        if (ea != null)
+                        {
+                            _insertPoolBlock.Post(ea);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                   
+                    #endregion
+
+                    _insertPoolBlock.Complete();
+                    await _insertPoolBlock.Completion;
+
+                    if (batchPool.Count > 0)
+                    {
+                        var eventIds = batchPool.Select(a => a.Key).ToArray();
+                        var bodys = batchPool.Select(a => a.Value).ToArray();
+
+                        try
+                        {
+                            var handlerOK= await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
+                            {
+                                return await EventAction.Handle(bodys, cancellationToken);
+
+                            }, CancellationToken.None);
+
+                            if (handlerOK)
+                            {
+                                #region 消息处理成功
+                                if (_subscribeAckHandler != null)
+                                {
+                                    _subscribeAckHandler(eventIds, _queueName);
+                                }
+                                //回复确认
+                                _channel.BasicAck(batchLastDeliveryTag, true);
+
+                                //消息幂等
+                                if (_IdempotencyDuration > 0)
+                                {
+                                    for (int i = 0; i < eventIds.Length; i++)
+                                    {
+                                        _cacheManager.Add(eventIds[i], true, TimeSpan.FromSeconds(_IdempotencyDuration), "Events");
+                                    }
+                                }
+
+                                #endregion
+                            }
+                            else
+                            {
+                                #region 消息处理失败
+                                var requeue = true;
+
+                                if (_subscribeNackHandler != null)
+                                {
+                                    requeue = await _subscribeNackHandler(eventIds, _queueName, null, bodys);
+                                }
+
+                                _channel.BasicNack(batchLastDeliveryTag, true, requeue);
+
+                                #endregion
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            #region 业务处理消息出现异常，消息重新写入队列，超过最大重试次数后不再写入队列
+                            var requeue = true;
+
+                            if (_subscribeNackHandler != null)
+                            {
+                                requeue = await _subscribeNackHandler(eventIds, _queueName, ex, bodys);
+                            }
+                            _channel.BasicNack(batchLastDeliveryTag, true, requeue);
+
+                            #endregion
+                        }
+                    }
+                }
+            });
+            _subscribeChannels.Add(_channel);
             return this;
         }
 
         public IEventBus Subscribe(
-            Action<string, string> ackHandler,
-            Func<string, string, Exception, dynamic, Task<bool>> nackHandler)
+            Action<string[], string> ackHandler,
+            Func<string[], string, Exception, dynamic[], Task<bool>> nackHandler)
         {
-            _ackHandler = ackHandler;
-            _nackHandler = nackHandler;
+            _subscribeAckHandler = ackHandler;
+            _subscribeNackHandler = nackHandler;
             return this;
         }
     }

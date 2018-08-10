@@ -1,4 +1,5 @@
 using Hummingbird.Extersions.EventBus.SqlServerLogging;
+using System.Threading;
 using Xunit;
 namespace Hummingbird.UnitTest
 {
@@ -22,27 +23,27 @@ namespace Hummingbird.UnitTest
         [Fact]
         public void MarkEventAsPublishedAsyncTest()
         {
-            var list = eventLogger.MarkEventAsPublishedAsync(new System.Collections.Generic.List<string>() { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" });
+            var list = eventLogger.MarkEventAsPublishedAsync(new System.Collections.Generic.List<string>() { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" }, CancellationToken.None);
         }
 
 
         [Fact]
         public void MarkEventAsPublishedFailedAsync()
         {
-            var list = eventLogger.MarkEventAsPublishedFailedAsync(new System.Collections.Generic.List<string>() { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" });
+            var list = eventLogger.MarkEventAsPublishedFailedAsync(new System.Collections.Generic.List<string>() { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" }, CancellationToken.None);
         }
 
 
         [Fact]
         public void MarkEventConsumeAsFailedAsync()
         {
-            eventLogger.MarkEventConsumeAsFailedAsync("fbdd9768-f79b-4fc5-a69f-37fc4ea3a332", "Test").Wait();
+            eventLogger.MarkEventConsumeAsFailedAsync(new[] { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" }, "Test",CancellationToken.None).Wait();
         }
 
         [Fact]
         public void MarkEventConsumeAsRecivedAsync()
         {
-            eventLogger.MarkEventConsumeAsRecivedAsync("fbdd9768-f79b-4fc5-a69f-37fc4ea3a332", "Test").Wait();
+            eventLogger.MarkEventConsumeAsRecivedAsync(new[] { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" }, "Test", CancellationToken.None).Wait();
         }
 
         [Fact]

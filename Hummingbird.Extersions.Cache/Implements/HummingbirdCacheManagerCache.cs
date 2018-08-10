@@ -25,7 +25,7 @@ namespace Hummingbird.Extersions.Cache
 
         public void Add(string key, T value, TimeSpan ttl, string region)
         {
-            _cacheManager.Add(new CacheItem<object>(key, PaddingPrefix(region), value, ExpirationMode.Absolute, ttl));
+            _cacheManager.Put(new CacheItem<object>(key, PaddingPrefix(region), value, ExpirationMode.Absolute, ttl));
         }
 
         public bool Exists(string key, string region)

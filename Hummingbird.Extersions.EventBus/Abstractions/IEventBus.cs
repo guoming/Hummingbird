@@ -35,6 +35,10 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
               where TD : class
               where TH : IEventHandler<TD>;
 
+        IEventBus RegisterBatch<TD, TH>(string EventTypeName = "",int BatchSize=50)
+               where TD : class
+                 where TH : IEventBatchHandler<TD>;
+
         /// <summary>
         /// 订阅消息
         /// </summary>
@@ -42,8 +46,8 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         /// <param name="nackHandler"></param>
         /// <returns></returns>
         IEventBus Subscribe(
-        Action<string, string> ackHandler,
-        Func<string, string, Exception, dynamic, Task<bool>> nackHandler);
+        Action<string[], string> ackHandler,
+        Func<string[], string, Exception, dynamic[], Task<bool>> nackHandler);
 
     }
 }

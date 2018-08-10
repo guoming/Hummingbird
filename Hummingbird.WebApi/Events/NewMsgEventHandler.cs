@@ -5,14 +5,10 @@ using System.Threading.Tasks;
 
 namespace Hummingbird.WebApi.Events
 {
-    public class NewMsgEventHandler : Hummingbird.Extersions.EventBus.Abstractions.IEventHandler<NewMsgEvent>
+    public class NewMsgEventHandler : Hummingbird.Extersions.EventBus.Abstractions.IEventBatchHandler<NewMsgEvent>
     {
-        public Task<bool> Handle(NewMsgEvent @event)
-        {
-
-            System.Threading.Thread.Sleep(30 * 1000);
-            Console.WriteLine(@event.Time);
-
+        public Task<bool> Handle(NewMsgEvent[] @event, System.Threading.CancellationToken cancellationToken)
+        {   
             return Task.FromResult(true);
         }
     }

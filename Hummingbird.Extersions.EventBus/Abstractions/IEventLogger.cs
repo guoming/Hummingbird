@@ -1,6 +1,7 @@
 ﻿using Hummingbird.Extersions.EventBus.Models;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Hummingbird.Extersions.EventBus.Abstractions
@@ -21,7 +22,7 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         /// </summary>
         /// <param name="events"></param>
         /// <returns></returns>
-        Task MarkEventAsPublishedAsync(List<string> events);
+        Task MarkEventAsPublishedAsync(List<string> events, CancellationToken cancellationToken);
 
         /// <summary>
         /// 事件发布失败
@@ -30,24 +31,22 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         /// </summary>
         /// <param name="events"></param>
         /// <returns></returns>
-        Task MarkEventAsPublishedFailedAsync(List<string> events);
+        Task MarkEventAsPublishedFailedAsync(List<string> events, CancellationToken cancellationToken);
 
         /// <summary>
         /// 消费成功
         /// </summary>
         /// <param name="events"></param>
         /// <returns></returns>
-        Task MarkEventConsumeAsRecivedAsync(string @event,string queueName);
+        Task MarkEventConsumeAsRecivedAsync(string[] @event,string queueName, CancellationToken cancellationToken);
 
         /// <summary>
         /// 消费失败
         /// </summary>
         /// <param name="events"></param>
         /// <returns></returns>
-        Task<int> MarkEventConsumeAsFailedAsync(string @event, string queueName);
+        Task<int> MarkEventConsumeAsFailedAsync(string[] @event, string queueName, CancellationToken cancellationToken);
 
-
-        //Dictionary<string,Dictionary<string,string>> GetUnPublishedEventList(int Take);
 
         List<EventLogEntry> GetUnPublishedEventList(int Take);
 

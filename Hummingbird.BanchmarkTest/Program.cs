@@ -1,4 +1,5 @@
-﻿using Hummingbird.Extersions.EventBus.SqlServerLogging;
+﻿using BenchmarkDotNet.Running;
+using Hummingbird.Extersions.EventBus.SqlServerLogging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -9,10 +10,7 @@ namespace Hummingbird.BanchmarkTest
     {
         static void Main(string[] args)
         {
-            EventLoggingBanchmarkTest eventLoggingBanchmarkTest = new EventLoggingBanchmarkTest();
-            eventLoggingBanchmarkTest.Run();
-
-            
+            BenchmarkRunner.Run<EventLoggingBanchmarkTest>();
         }
     }
 }

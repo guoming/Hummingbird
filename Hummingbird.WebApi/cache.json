@@ -4,7 +4,7 @@
     {
       "key": "redis",
       "database": 0,
-      "connectionString": "10.2.21.216:6380,password=,allowAdmin=true,ssl=false,abortConnect=false,connectTimeout=5000"
+      "connectionString": "132.232.7.203:6379,password=,allowAdmin=true,ssl=false,abortConnect=false,connectTimeout=5000"
     }
   ],
   "cacheManagers": [
