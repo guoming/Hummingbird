@@ -1,7 +1,17 @@
 ﻿using System;
+using Hummingbird.Extersions.DistributedLock.StackExchangeImplement;
 using Polly;
 namespace Hummingbird.Extersions.DistributedLock
 {
+    public static class DistributedLockFactory {
+
+        public static IDistributedLock CreateRedisDistributedLock(string LockName, string LockToken, RedisCacheConfig config)
+        {
+            var cacheManager = RedisCacheManage.Create(config);
+            return new RedisDistributedLock(cacheManager, LockName, LockToken);
+        }
+    }
+
     public class RedisDistributedLock : IDistributedLock
     {
         private readonly ICacheManager _cacheManager;
@@ -44,10 +54,12 @@ namespace Hummingbird.Extersions.DistributedLock
                             return false;
                         }
 
-                        Console.WriteLine($"Wait Lock {_lockName} to {retryAttemptMillseconds} millseconds");
-
-                        //获取锁失败则进行锁等待
-                        System.Threading.Thread.Sleep(retryAttemptMillseconds);
+                        if (retryAttemptMillseconds > 0)
+                        {
+                            Console.WriteLine($"Wait Lock {_lockName} to {retryAttemptMillseconds} millseconds");
+                            //获取锁失败则进行锁等待
+                            System.Threading.Thread.Sleep(retryAttemptMillseconds);
+                        }
                     }
                     else
                     {

@@ -11,9 +11,11 @@ namespace Hummingbird.Extersions.Cache
         /// </summary>
         string CacheRegion { get; set; }
 
+        #if NETCORE
         /// <summary>
         /// 配置名称（默认：HummingbirdCache）
         /// </summary>
-        string ConfigName { get; set; } 
+        string ConfigName { get; set; }
+        #endif
     }
 }

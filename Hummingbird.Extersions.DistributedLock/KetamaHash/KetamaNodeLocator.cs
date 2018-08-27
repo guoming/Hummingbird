@@ -7,8 +7,7 @@ namespace Hummingbird.Extersions.DistributedLock.KetamaHash
 {
     class KetamaNodeLocator
     {
-        private SortedList<long, string> ketamaNodes = new SortedList<long, string>();
-        private HashAlgorithm hashAlg;
+        private SortedList<long, string> ketamaNodes = new SortedList<long, string>();        
         private int numReps = 160;
 
         public KetamaNodeLocator(List<string> nodes, int nodeCopies)

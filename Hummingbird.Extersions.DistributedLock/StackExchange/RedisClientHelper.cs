@@ -916,8 +916,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
         public bool KeyDelete(string key)
         {
             key = AddSysCustomKey(key);
-            return Do(db => db.KeyDelete(key));
-            return Do(db => db.KeyDelete(key));
+            return Do(db => db.KeyDelete(key));            
         }
 
         /// <summary>
@@ -1139,7 +1138,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                 else
                     return default(T);
             }
-            catch (Exception E)
+            catch //(Exception E)
             {   
                 return default(T);
             }

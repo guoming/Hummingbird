@@ -59,8 +59,8 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                             //Redis服务器相关配置
                             string writeServerList = config.WriteServerList;
                             string readServerList = config.ReadServerList;
-                            var writeServerArray = CacheConfigHelper.SplitString(writeServerList, ",").ToList();
-                            var readServerArray = CacheConfigHelper.SplitString(readServerList, ",").ToList();
+                            var writeServerArray = RedisCacheConfigHelper.SplitString(writeServerList, ",").ToList();
+                            var readServerArray = RedisCacheConfigHelper.SplitString(readServerList, ",").ToList();
                             var Nodes = new List<string>();
 
                             //只有一个写,多个读的情况
@@ -105,14 +105,14 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                                     if (writeServerArray[i].IndexOf("@") > 0)
                                     {
                                         //集群名称()
-                                        var NodeName = CacheConfigHelper.GetServerClusterName(writeServerArray[i]);
+                                        var NodeName = RedisCacheConfigHelper.GetServerClusterName(writeServerArray[i]);
                                         //主服务器名称
-                                        var masterServer = CacheConfigHelper.GetServerHost(writeServerArray[i]);
+                                        var masterServer = RedisCacheConfigHelper.GetServerHost(writeServerArray[i]);
 
                                         //主服务器列表
-                                        var masterServerIPAndPortArray = CacheConfigHelper.GetServerList(config.WriteServerList, NodeName);
+                                        var masterServerIPAndPortArray = RedisCacheConfigHelper.GetServerList(config.WriteServerList, NodeName);
                                         //从服务器列表
-                                        var slaveServerIPAndPortArray = CacheConfigHelper.GetServerList(config.ReadServerList, NodeName);
+                                        var slaveServerIPAndPortArray = RedisCacheConfigHelper.GetServerList(config.ReadServerList, NodeName);
 
                                         //当前集群的配置不存在
                                         if (!_clusterConfigOptions.ContainsKey(NodeName))
@@ -125,7 +125,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                                             configOption.Ssl = config.Ssl;
                                             foreach (var ipAndPort in masterServerIPAndPortArray.Union(slaveServerIPAndPortArray).Distinct())
                                             {
-                                                configOption.EndPoints.Add(CacheConfigHelper.GetIP(ipAndPort), CacheConfigHelper.GetPort(ipAndPort));
+                                                configOption.EndPoints.Add(RedisCacheConfigHelper.GetIP(ipAndPort), RedisCacheConfigHelper.GetPort(ipAndPort));
                                             }
 
                                             _clusterConfigOptions.Add(NodeName, configOption);
@@ -146,7 +146,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                                             configOption.AbortOnConnectFail = false;
                                             configOption.DefaultDatabase = config.DBNum;
                                             configOption.Ssl = config.Ssl;
-                                            configOption.EndPoints.Add(CacheConfigHelper.GetIP(NodeName), CacheConfigHelper.GetPort(NodeName));
+                                            configOption.EndPoints.Add(RedisCacheConfigHelper.GetIP(NodeName), RedisCacheConfigHelper.GetPort(NodeName));
                                             _clusterConfigOptions.Add(NodeName, configOption);
                                         }
 
@@ -161,14 +161,14 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                         {
                             List<string> sentinelMasterNameList = new List<string>();
                             List<string> sentinelServerHostList = new List<string>();
-                            var SentineList = CacheConfigHelper.SplitString(config.SentineList, ",").ToList();
+                            var SentineList = RedisCacheConfigHelper.SplitString(config.SentineList, ",").ToList();
                             for (int i = 0; i < SentineList.Count; i++)
                             {
-                                var args = CacheConfigHelper.SplitString(SentineList[i], "@").ToList();
+                                var args = RedisCacheConfigHelper.SplitString(SentineList[i], "@").ToList();
 
                                 var ServiceName = args[0];
                                 var hostName = args[1];
-                                var endPoint = CacheConfigHelper.SplitString(hostName, ":").ToList();
+                                var endPoint = RedisCacheConfigHelper.SplitString(hostName, ":").ToList();
                                 var ip = endPoint[0]; //IP
                                 var port = int.Parse(endPoint[1]); //端口 
 

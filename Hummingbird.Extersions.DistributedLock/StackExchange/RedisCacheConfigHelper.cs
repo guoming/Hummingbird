@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
 { 
-    static class CacheConfigHelper
+    static class RedisCacheConfigHelper
     {
         /// <summary>
         /// 分割服务器列表
@@ -64,7 +64,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
 
         public static string GetIP(string IPAndPort)
         {
-            var endPoint = CacheConfigHelper.SplitString(IPAndPort, ":").ToList();
+            var endPoint = RedisCacheConfigHelper.SplitString(IPAndPort, ":").ToList();
             var ip = endPoint[0]; //IP
             var port = int.Parse(endPoint[1]); //端口 
 
@@ -73,7 +73,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
 
         public static int GetPort(string IPAndPort)
         {
-            var endPoint = CacheConfigHelper.SplitString(IPAndPort, ":").ToList();
+            var endPoint = RedisCacheConfigHelper.SplitString(IPAndPort, ":").ToList();
             var ip = endPoint[0]; //IP
             var port = int.Parse(endPoint[1]); //端口 
 

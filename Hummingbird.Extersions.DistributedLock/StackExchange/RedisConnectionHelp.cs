@@ -11,8 +11,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
     class RedisConnectionHelp
     {
 
-        private static readonly object Locker = new object();
-        private static ConnectionMultiplexer _instance;
+        private static readonly object Locker = new object();        
         private static readonly ConcurrentDictionary<string, ConnectionMultiplexer> ConnectionCache = new ConcurrentDictionary<string, ConnectionMultiplexer>();
         private RedisConnectionHelp()
         { }

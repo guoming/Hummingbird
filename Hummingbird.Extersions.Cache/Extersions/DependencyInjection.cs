@@ -1,38 +1,157 @@
-﻿using CacheManager.Core;
-using Hummingbird.Core;
+﻿using System;
 using Hummingbird.Extersions.Cache;
-using Microsoft.Extensions.Configuration;
+using CacheManager.Core;
+using CacheManager.Redis;
+
+#if NETCORE
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.Extensions.Configuration;
+using CacheManager.MicrosoftCachingMemory;
+using Hummingbird.Core;
+#endif
+
+#if NET45
+using CacheManager.SystemRuntimeCaching;
+#endif
+
 
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtersion
     {
-        public static IHummingbirdHostBuilder AddCache(this IHummingbirdHostBuilder hostBuilder, Action<IHummingbirdCacheConfig> setupOption = null)
+        #if NETCORE
+                public static IHummingbirdHostBuilder AddCache(this IHummingbirdHostBuilder hostBuilder, Action<IHummingbirdCacheConfig> setupOption = null)
+                {
+                    var config = new HummingbirdCacheConfig();
+                    if (setupOption != null)
+                    {
+                        setupOption(config);
+                    }
+                    hostBuilder.Services.AddSingleton(typeof(IHummingbirdCacheConfig), config);
+                    hostBuilder.Services.AddSingleton(typeof(ICacheManager<object>), sp =>
+                    {
+                        var Configuration = sp.GetRequiredService<IConfiguration>();
+                        var cacheConfiguration = Configuration.GetCacheConfiguration(config.ConfigName).Builder.Build();
+                        var cacheManager = CacheManager.Core.CacheFactory.FromConfiguration<object>(config.ConfigName, cacheConfiguration);
+
+
+
+                        return cacheManager;
+                    });
+                    hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<object>), typeof(HummingbirdCacheManagerCache<object>));
+                    hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<>), typeof(HummingbirdCacheManagerCache<>));
+                    return hostBuilder;
+                }
+        #endif
+    }
+}
+namespace Hummingbird.Extersions.Cache
+{
+
+    public class RedisConfigurationBuilder
+    {
+        private int ConnectionTimeout { get; set; } = 0;
+        private bool AllowAdmin { get; set; } = true;
+        private string Password { get; set; } = "";
+        private string Host { get; set; } = "localhost";
+        private int Port { get; set; } = 6378;
+        private int Database { get; set; } = 0;
+
+        public bool Ssl { get; set; } = false;
+
+        public RedisConfigurationBuilder WithAllowAdmin()
         {
-            var config = new HummingbirdCacheConfig();
+            this.AllowAdmin = true;
+            return this;
+        }
+
+        public RedisConfigurationBuilder WithSsl()
+        {
+            this.Ssl = true;
+            return this;
+        }
+
+        public RedisConfigurationBuilder WithDatabase(int database)
+        {
+            this.Database = database;
+            return this;
+        }
+        public RedisConfigurationBuilder WithPassword(string password)
+        {
+            this.Password = password;
+            return this;
+        }
+        public RedisConfigurationBuilder WithEndpoint(string host, int port)
+        {
+            this.Host = host;
+            this.Port = port;
+            return this;
+        }
+
+        public RedisConfigurationBuilder WithConnectionTimeout(int timeout)
+        {
+            this.ConnectionTimeout = timeout;
+            return this;
+        }
+
+        public Action<CacheManager.Redis.RedisConfigurationBuilder> Build() {
+
+            return (redis) =>
+            {
+                if (AllowAdmin)
+                {
+                    redis.WithAllowAdmin();
+                }
+
+                if (Ssl)
+                {
+                    redis.WithSsl(this.Host);
+                }
+
+                if (ConnectionTimeout > 0)
+                {
+                    redis.WithConnectionTimeout(ConnectionTimeout);
+                }
+
+                redis.WithDatabase(Database)
+                .WithEndpoint(Host, Port)
+                .WithPassword(Password);
+            };
+        }
+
+    }
+
+    public static class CacheFactory
+    {
+#if NET45
+        public static IHummingbirdCache<T> Build<T>(Action<RedisConfigurationBuilder> configuration, Action<IHummingbirdCacheConfig> setupOption = null)
+        {
+            var _cacheConfig = new HummingbirdCacheConfig();
+            var _builder = new RedisConfigurationBuilder();
+            configuration(_builder);
+            
             if (setupOption != null)
             {
-                setupOption(config);
+                setupOption(_cacheConfig);
             }
-            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCacheConfig), config);
-            hostBuilder.Services.AddSingleton(typeof(ICacheManager<object>), sp =>
+
+            var cacheManager = CacheManager.Core.CacheFactory.Build<T>("getStartedCache", settings =>
             {
-                var Configuration = sp.GetRequiredService<IConfiguration>();
-                var cacheConfiguration = Configuration.GetCacheConfiguration(config.ConfigName).Builder.Build();
-                var cacheManager = CacheFactory.FromConfiguration<object>(config.ConfigName, cacheConfiguration);
-
-                
-
-                return cacheManager;
+                settings.WithJsonSerializer();
+                settings.WithSystemRuntimeCacheHandle("handleName")
+                .And
+                .WithRedisConfiguration("redis",_builder.Build())
+                .WithMaxRetries(100)
+                .WithRetryTimeout(50)
+                .WithRedisBackplane("redis")
+                .WithRedisCacheHandle("redis", true);
             });
-            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<object>), typeof(HummingbirdCacheManagerCache<object>));
-            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<>), typeof(HummingbirdCacheManagerCache<>));
-            return hostBuilder;
-        }
+
+            Hummingbird.Extersions.Cache.IHummingbirdCache<T> cache = new Hummingbird.Extersions.Cache.HummingbirdCacheManagerCache<T>(cacheManager, _cacheConfig);
+            return cache;
+        }    
+#endif
     }
+
 }

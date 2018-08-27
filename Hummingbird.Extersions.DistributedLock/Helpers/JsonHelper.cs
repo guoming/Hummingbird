@@ -64,7 +64,7 @@ namespace Hummingbird.Extersions.DistributedLock
             {
                 return JsonConvert.DeserializeObject<T>(json);
             }
-            catch (Exception e)
+            catch// (Exception e)
             {
                 return defValue;
             }

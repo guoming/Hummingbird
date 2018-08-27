@@ -9,5 +9,6 @@ namespace Hummingbird.Extersions.Cache
         bool Exists(string key, string region);
         T Get(string key, string region);
         void ClearRegion(string region);
+        bool Delete(string key, string region);
     }
 }
