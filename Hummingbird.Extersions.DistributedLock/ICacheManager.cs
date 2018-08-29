@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Hummingbird.Extersions.DistributedLock
 {
-    public interface ICacheManager
+    interface ICacheManager
     {
 
         /// <summary>

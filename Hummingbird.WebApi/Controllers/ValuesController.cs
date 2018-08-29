@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Hummingbird.Extersions.Cache;
 using Hummingbird.Extersions.EventBus.Abstractions;
 using Hummingbird.Extersions.Resilience.Http;
+
 using Microsoft.AspNetCore.Mvc;
 namespace DotNetCore.Resilience.HttpSample.Controllers
 {

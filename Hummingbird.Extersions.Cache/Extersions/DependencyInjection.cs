@@ -8,9 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using CacheManager.MicrosoftCachingMemory;
 using Hummingbird.Core;
-#endif
-
-#if NET45
+#else
 using CacheManager.SystemRuntimeCaching;
 #endif
 
@@ -124,7 +122,9 @@ namespace Hummingbird.Extersions.Cache
 
     public static class CacheFactory
     {
-#if NET45
+        #if NETCORE
+
+        #else
         public static IHummingbirdCache<T> Build<T>(Action<RedisConfigurationBuilder> configuration, Action<IHummingbirdCacheConfig> setupOption = null)
         {
             var _cacheConfig = new HummingbirdCacheConfig();

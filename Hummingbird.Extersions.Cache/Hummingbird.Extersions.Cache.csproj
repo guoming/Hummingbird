@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net4.5</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;net4.0;net4.5</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.21</Version>
+    <Version>1.0.22</Version>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Description>分布式缓存</Description>
     <Authors>GUOMING</Authors>
   </PropertyGroup>
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
     <PackageReference Include="CacheManager.Core" Version="1.1.2" />
@@ -18,7 +19,6 @@
     <PackageReference Include="CacheManager.Serialization.Json" Version="1.1.2" />
     <PackageReference Include="CacheManager.StackExchange.Redis" Version="1.1.2" />    
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <Reference Include="System.Runtime">
       <HintPath>..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0\System.Runtime.dll</HintPath>
@@ -36,12 +36,18 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net4.0' ">
+    <PackageReference Include="CacheManager.Core" Version="1.1.2" />
+    <PackageReference Include="CacheManager.SystemRuntimeCaching" Version="1.1.2" />
+    <PackageReference Include="CacheManager.Serialization.Json" Version="1.1.2" />
+    <PackageReference Include="CacheManager.StackExchange.Redis" Version="0.9.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>NETCORE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net4.5' ">
     <DefineConstants>NET45</DefineConstants>
-  </PropertyGroup>
-  
+  </PropertyGroup>  
 </Project>

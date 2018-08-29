@@ -12,7 +12,7 @@ namespace Hummingbird.Extersions.DistributedLock
         }
     }
 
-    public class RedisDistributedLock : IDistributedLock
+    class RedisDistributedLock : IDistributedLock
     {
         private readonly ICacheManager _cacheManager;
         private readonly string _lockName;
@@ -83,10 +83,9 @@ namespace Hummingbird.Extersions.DistributedLock
         {
             if (_cacheManager != null)
             {
-                var polly = Polly.Policy.NoOp();
-
-                Polly.Retry.RetryPolicy.Handle<Exception>()
-                    .WaitAndRetry(10,retryAttempt => TimeSpan.FromSeconds(Math.Pow(1, retryAttempt)),(exception, timespan, retryCount, context) =>
+                
+                var polly = Policy.Handle<Exception>()
+                    .WaitAndRetry(10, retryAttempt => TimeSpan.FromSeconds(Math.Pow(1, retryAttempt)), (exception, timespan, retryCount, context) =>
                     {
                         Console.WriteLine($"执行异常,重试次数：{retryCount},【异常来自：{exception.GetType().Name}】.");
                     });

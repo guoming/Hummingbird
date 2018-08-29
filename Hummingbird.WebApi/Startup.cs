@@ -28,7 +28,7 @@ namespace Hummingbird.WebApi
           
             services.AddHummingbird(hummingbird =>
             {
-                hummingbird
+                hummingbird                
                  .AddResilientHttpClient(option =>
                  {
                      option.DurationSecondsOfBreak = int.Parse(Configuration["HttpClient:DurationSecondsOfBreak"]);

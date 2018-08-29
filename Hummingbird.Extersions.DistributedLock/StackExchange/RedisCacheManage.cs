@@ -8,7 +8,7 @@ using System.Configuration;
 namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
 {
 
-    public class RedisCacheManage : ICacheManager
+    class RedisCacheManage : ICacheManager
     {
         #region private
 
@@ -140,6 +140,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
 
                                         if (!_clusterConfigOptions.ContainsKey(NodeName))
                                         {
+                                            
                                             StackExchange.Redis.ConfigurationOptions configOption = new StackExchange.Redis.ConfigurationOptions();
                                             configOption.ServiceName = NodeName;
                                             configOption.Password = config.Password;

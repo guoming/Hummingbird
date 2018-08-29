@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +15,9 @@ namespace Hummingbird.NFX46
     {
         static void Main(string[] args)
         {
+            var distributedLock = Hummingbird.Extersions.DistributedLock.DistributedLockFactory.CreateRedisDistributedLock("", "", new Extersions.DistributedLock.RedisCacheConfig("", "", ""));
+            
+
             Action<Extersions.Cache.RedisConfigurationBuilder> setting = (config) =>
             {
 
