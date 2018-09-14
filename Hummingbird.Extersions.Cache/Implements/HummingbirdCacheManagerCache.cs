@@ -8,18 +8,18 @@ namespace Hummingbird.Extersions.Cache
     public class HummingbirdCacheManagerCache<T> : IHummingbirdCache<T>
     {
         private readonly ICacheManager<T> _cacheManager;
-        private readonly IHummingbirdCacheConfig _option;
+        private readonly string _CacheRegion;
 
         private string PaddingPrefix(string region)
         {
-            return $"{_option.CacheRegion}:{region}";
+            return $"{_CacheRegion}:{region}";
         }
 
         public HummingbirdCacheManagerCache(
             ICacheManager<T> cacheManager,
-            IHummingbirdCacheConfig option)
+            string CacheRegion)
         {
-            _option = option;
+            _CacheRegion = CacheRegion;
             _cacheManager = cacheManager;
         }
 

@@ -85,7 +85,7 @@ namespace Hummingbird.Extersions.DistributedLock
             {
                 
                 var polly = Policy.Handle<Exception>()
-                    .WaitAndRetry(10, retryAttempt => TimeSpan.FromSeconds(Math.Pow(1, retryAttempt)), (exception, timespan, retryCount, context) =>
+                    .WaitAndRetry(10, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)), (exception, timespan, retryCount, context) =>
                     {
                         Console.WriteLine($"执行异常,重试次数：{retryCount},【异常来自：{exception.GetType().Name}】.");
                     });
