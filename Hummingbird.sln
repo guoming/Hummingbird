@@ -39,6 +39,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.NET46", "Hummin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.NET40", "Hummingbird.NET40\Hummingbird.NET40.csproj", "{CDAFBEAC-2AF9-43AA-95F6-DE93A2E47544}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.HealthChecks.MongoDb", "..\Microsoft.Extensions.HealthChecks\Microsoft.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj", "{C7D93F39-5D28-4EDB-A31F-EE6079B4A5F8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.HealthChecks.Redis", "..\Microsoft.Extensions.HealthChecks\Microsoft.Extensions.HealthChecks.Redis\Hummingbird.Extensions.HealthChecks.Redis.csproj", "{9CF1787D-C8CF-4775-9ED2-7ED5B1FB30E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +109,14 @@ Global
 		{CDAFBEAC-2AF9-43AA-95F6-DE93A2E47544}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDAFBEAC-2AF9-43AA-95F6-DE93A2E47544}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDAFBEAC-2AF9-43AA-95F6-DE93A2E47544}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7D93F39-5D28-4EDB-A31F-EE6079B4A5F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7D93F39-5D28-4EDB-A31F-EE6079B4A5F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7D93F39-5D28-4EDB-A31F-EE6079B4A5F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7D93F39-5D28-4EDB-A31F-EE6079B4A5F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CF1787D-C8CF-4775-9ED2-7ED5B1FB30E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CF1787D-C8CF-4775-9ED2-7ED5B1FB30E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CF1787D-C8CF-4775-9ED2-7ED5B1FB30E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CF1787D-C8CF-4775-9ED2-7ED5B1FB30E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -126,6 +138,8 @@ Global
 		{7F45F220-2CD5-44A2-B0F8-7C54E23C3E5B} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{CDF3BE6D-0CFF-40D8-81EE-FA86D530CA28} = {28015912-782A-4B96-9F86-D54081CD7A97}
 		{CDAFBEAC-2AF9-43AA-95F6-DE93A2E47544} = {28015912-782A-4B96-9F86-D54081CD7A97}
+		{C7D93F39-5D28-4EDB-A31F-EE6079B4A5F8} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{9CF1787D-C8CF-4775-9ED2-7ED5B1FB30E2} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
