@@ -4,13 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CDAFBEAC-2AF9-43AA-95F6-DE93A2E47544}</ProjectGuid>
+    <ProjectGuid>{CDF3BE6D-0CFF-40D8-81EE-FA86D530CA28}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Hummingbird.NET40</RootNamespace>
-    <AssemblyName>Hummingbird.NET40</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <RootNamespace>Hummingbird.NFX46</RootNamespace>
+    <AssemblyName>Hummingbird.NFX46</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -21,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -30,9 +33,18 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
+      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.configuration.abstractions\2.1.1\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Polly, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Polly.4.3.0\lib\net40\Polly.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -45,11 +57,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj">
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj">
       <Project>{da121499-5dd1-4e2b-9592-554c0b2b4651}</Project>
       <Name>Hummingbird.Extersions.Cache</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hummingbird.Extersions.DistributedLock\Hummingbird.Extersions.DistributedLock.csproj">
+    <ProjectReference Include="..\..\Hummingbird.Extersions.DistributedLock\Hummingbird.Extersions.DistributedLock.csproj">
       <Project>{7f45f220-2cd5-44a2-b0f8-7c54e23c3e5b}</Project>
       <Name>Hummingbird.Extersions.DistributedLock</Name>
     </ProjectReference>

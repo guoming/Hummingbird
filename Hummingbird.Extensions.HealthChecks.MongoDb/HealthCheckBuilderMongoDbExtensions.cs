@@ -25,17 +25,19 @@ namespace Microsoft.Extensions.HealthChecks
                     var client = new MongoClient(connectionString);
                     IMongoDatabase database = client.GetDatabase(databaseName);
 
-                    ServerState serverState = client.Cluster.Description.Servers.FirstOrDefault()?.State
-                                              ?? ServerState.Disconnected;
+                    BsonDocument result = await database.RunCommandAsync((Command<BsonDocument>)"{ping:1}").ConfigureAwait(false);
 
+                    ServerState serverState = client.Cluster.Description.Servers.FirstOrDefault()?.State
+                                          ?? ServerState.Disconnected;
                     if (serverState == ServerState.Disconnected)
                     {
                         return HealthCheckResult.Unhealthy($"MongoDbCheck({name}): Unhealthy");
                     }
+                    else
+                    {
 
-                    BsonDocument result = await database.RunCommandAsync((Command<BsonDocument>)"{ping:1}").ConfigureAwait(false);
-
-                    return HealthCheckResult.Healthy($"MongoDbCheck({name}): Healthy");
+                        return HealthCheckResult.Healthy($"MongoDbCheck({name}): Healthy");
+                    }
                 }
                 catch (Exception ex)
                 {
