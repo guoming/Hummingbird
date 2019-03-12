@@ -55,7 +55,26 @@ namespace Microsoft.Extensions.DependencyInjection
                 return GetCacheManager<object>(sp, config.ConfigName);
             });
 
-            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<>), typeof(HummingbirdCacheManagerCache<>));
+            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<int>), sp => {
+                var cacheManager = sp.GetRequiredService<ICacheManager<int>>();
+                return new Hummingbird.Extersions.Cache.HummingbirdCacheManagerCache<int>(cacheManager, config.CacheRegion);
+            });
+            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<long>), sp => {
+                var cacheManager = sp.GetRequiredService<ICacheManager<long>>();
+                return new Hummingbird.Extersions.Cache.HummingbirdCacheManagerCache<long>(cacheManager, config.CacheRegion);
+            });
+            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<string>), sp => {
+                var cacheManager = sp.GetRequiredService<ICacheManager<string>>();
+                return new Hummingbird.Extersions.Cache.HummingbirdCacheManagerCache<string>(cacheManager, config.CacheRegion);
+            });
+            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<bool>), sp => {
+                var cacheManager = sp.GetRequiredService<ICacheManager<bool>>();
+                return new Hummingbird.Extersions.Cache.HummingbirdCacheManagerCache<bool>(cacheManager, config.CacheRegion);
+            });
+            hostBuilder.Services.AddSingleton(typeof(IHummingbirdCache<object>), sp => {
+                var cacheManager = sp.GetRequiredService<ICacheManager<object>>();
+                return new Hummingbird.Extersions.Cache.HummingbirdCacheManagerCache<object>(cacheManager, config.CacheRegion);
+            });
             return hostBuilder;
         }
 
