@@ -10,10 +10,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.EventBus.RabbitMQ\Hummingbird.Extersions.EventBus.RabbitMQ.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.EventBus.SqlServerLogging\Hummingbird.Extersions.EventBus.SqlServerLogging.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.DistributedLock\Hummingbird.Extersions.DistributedLock.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.RabbitMQ\Hummingbird.Extersions.EventBus.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.SqlServerLogging\Hummingbird.Extersions.EventBus.SqlServerLogging.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <Compile Remove="wwwroot\**" />
+    <Content Remove="wwwroot\**" />
+    <EmbeddedResource Remove="wwwroot\**" />
+    <None Remove="wwwroot\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -14,15 +17,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.EventBus.RabbitMQ\Hummingbird.Extersions.EventBus.RabbitMQ.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.EventBus.SqlServerLogging\Hummingbird.Extersions.EventBus.SqlServerLogging.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.Idempotency\Hummingbird.Extersions.Idempotency.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.Resilience.Http\Hummingbird.Extersions.Resilience.Http.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.ServiceRegistry\Hummingbird.Extersions.ServiceRegistry.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.UidGenerator\Hummingbird.Extersions.UidGenerator.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.Redis\Hummingbird.Extensions.HealthChecks.Redis.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.DistributedLock\Hummingbird.Extersions.DistributedLock.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.RabbitMQ\Hummingbird.Extersions.EventBus.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.SqlServerLogging\Hummingbird.Extersions.EventBus.SqlServerLogging.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.Idempotency\Hummingbird.Extersions.Idempotency.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.Resilience.Http\Hummingbird.Extersions.Resilience.Http.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.ServiceRegistry\Hummingbird.Extersions.ServiceRegistry.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.UidGenerator\Hummingbird.Extersions.UidGenerator.csproj" />
+    <ProjectReference Include="..\..\Test\Hummingbird.Extensions.HealthChecks.MongoDbUnitTest\Hummingbird.Extensions.HealthChecks.MongoDbUnitTest.csproj" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
