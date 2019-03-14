@@ -2,9 +2,9 @@
 
   <PropertyGroup>
  <TargetFramework>netcoreapp2.1</TargetFramework>
-<Version>1.2.0</Version>
-<AssemblyName>Hummingbird.EventBus.EntityframeworkSqlServer</AssemblyName>
-<RootNamespace>Hummingbird.EventBus.EntityframeworkSqlServer</RootNamespace>
+<Version>1.3.0</Version>
+<AssemblyName>Hummingbird.Extersions.EventBus.SqlServerLogging</AssemblyName>
+<RootNamespace>Hummingbird.Extersions.EventBus.SqlServerLogging</RootNamespace>
 <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 <PackageId>Hummingbird.Extersions.EventBus.SqlServerLogging</PackageId>
 <Authors>Hummingbird.Extersions.EventBus.SqlServerLogging</Authors>
@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.UidGenerator\Hummingbird.Extersions.UidGenerator.csproj" />
   </ItemGroup>
 
   <ItemGroup>

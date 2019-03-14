@@ -104,18 +104,15 @@ namespace Hummingbird.WebApi
 
             app.UseHummingbird(humming =>
             {
-                humming.UseEventBus(async sp =>
+                humming.UseEventBus(sp =>
                 {
                     sp.UseSubscriber(eventbus =>
                     {
-                        eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventHandler>();
+                        //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
+                        eventbus.Register<Events.NewMsgEvent, Events.NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
+
+                        
                     });
-                    try
-                    {
-                        await sp.UseDispatcherAsync(1000);
-                    }
-                    catch
-                    { }
                 });
 
             });

@@ -1,6 +1,7 @@
 ﻿using Hummingbird.Extersions.EventBus;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace Hummingbird.Extersions.EventBus.Abstractions
@@ -12,30 +13,41 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
     /// </summary>
     public interface IEventBus
     {
+        Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events,int EventDelaySeconds = 0);
 
         /// <summary>
         /// 发送消息
         /// </summary>
         Task PublishAsync(
             List<Models.EventLogEntry> Events,
-            Action<List<string>> ackHandler = null,
-            Action<List<string>> nackHandler = null,
-            Action<List<string>> returnHandler = null,
+            Action<List<long>> ackHandler = null,
+            Action<List<long>> nackHandler = null,
+            Action<List<long>> returnHandler = null,
             int EventDelaySeconds = 0,
             int TimeoutMilliseconds = 500,
-            int BatchSize=500);
+            int BatchSize = 500);
 
         /// <summary>
         /// 订阅消息（同一类消息可以重复订阅）
         /// 作者：郭明
         /// 日期：2017年4月3日
         /// </summary>
-        /// <param name="EventTypeName">消息类型名称</param>        
-        IEventBus Register<TD, TH>(string EventTypeName = "")
+        /// <param name="QueueName">队列名称</param>     
+        /// <param name="EventTypeName">事件类型名称</param>        
+        IEventBus Register<TD, TH>(string QueueName = "", string EventTypeName = "")
               where TD : class
               where TH : IEventHandler<TD>;
 
-        IEventBus RegisterBatch<TD, TH>(string EventTypeName = "",int BatchSize=50)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TD"></typeparam>
+        /// <typeparam name="TH"></typeparam>
+        /// <param name="QueueName">队列名称</param>
+        /// <param name="EventTypeName">事件类型名称</param>
+        /// <param name="BatchSize">批量获取消息大小</param>
+        /// <returns></returns>
+        IEventBus RegisterBatch<TD, TH>(string QueueName = "", string EventTypeName = "", int BatchSize = 50)
                where TD : class
                  where TH : IEventBatchHandler<TD>;
 
@@ -50,4 +62,6 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         Func<string[], string, Exception, dynamic[], Task<bool>> nackHandler);
 
     }
+
+
 }

@@ -8,22 +8,39 @@ namespace Hummingbird.Extersions.EventBus.Models
 {
     public class EventLogEntry
     {
-        private EventLogEntry() { }     
-
-        public EventLogEntry(object @event)
-        {
-            CreationTime =DateTime.Now;
-            State = EventStateEnum.NotPublished;
-            TimesSent = 0;
-            EventTypeName = @event.GetType().FullName;
-            Content = JsonConvert.SerializeObject(@event);
-            EventId = Guid.NewGuid().ToString("N");
+        private EventLogEntry() {
+            this.CreationTime = DateTime.Now;
+            this.State = EventStateEnum.NotPublished;
+            this.TimesSent = 0;
         }
 
+
+        public EventLogEntry(string EventTypeName, object @event, string MessageId, long EventId):this()
+        {
+            this.EventTypeName = string.IsNullOrEmpty(EventTypeName)? @event.GetType().FullName: EventTypeName;
+            this.Content = JsonConvert.SerializeObject(@event);
+            this.EventId = EventId;
+            this.MessageId = MessageId;
+        }
+
+        public EventLogEntry(string EventTypeName, object @event, string MessageId) 
+            :this(EventTypeName,@event,MessageId,-1)
+        {
+            
+        }
+
+
+        public EventLogEntry(string EventTypeName, object @event)
+            : this(EventTypeName, @event, Guid.NewGuid().ToString("N"), -1)
+        {
+
+        }
         /// <summary>
-        /// 时间编号
+        /// 事件编号
         /// </summary>
-        public string EventId { get; private set; }
+        public long EventId { get; private set; }
+
+        public string MessageId { get; private set; }
         /// <summary>
         /// 事件类型
         /// </summary>

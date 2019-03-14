@@ -4,14 +4,12 @@ using System.Text;
 
 namespace Hummingbird.Extersions.EventBus.Models
 {
-    public class EventConsumeLogEntry
+    public class EventFailedLogEntry
     {
-        public string EventConsumeLogId { get; set; }
-
         /// <summary>
         /// 事件编号
         /// </summary>
-        public string EventId { get; set; }
+        public long EventId { get; set; }
 
         /// <summary>
         /// 队列名称
@@ -19,15 +17,6 @@ namespace Hummingbird.Extersions.EventBus.Models
 
         public string QueueName { get; set; }
 
-        /// <summary>
-        /// 消费次数
-        /// </summary>
-        public int TimesConsume { get; set; }
-
-        /// <summary>
-        /// 状态
-        /// </summary>
-        public EventConsumeStateEnum State { get; set; }
 
         /// <summary>
         /// 创建时间

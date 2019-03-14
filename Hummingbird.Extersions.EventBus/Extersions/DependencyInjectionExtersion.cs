@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -100,23 +101,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
 
             //订阅消息
-            eventBus.Subscribe(async (eventIds, queueName) =>
+            eventBus.Subscribe((eventIds, queueName) =>
            {
-               //消息消费成功执行以下代码
-               if (eventIds.Length > 0)
-               {
-                   //出现异常则重试3次
-                   await policy.ExecuteAsync(async (cancllationToken) =>
-                  {
-                       //这里可能会重复执行要保持幂等
-                       await eventLogService.MarkEventConsumeAsRecivedAsync(eventIds, queueName, cancllationToken);
+              
+              
 
-                      return await Task.FromResult(true);
-
-                  }, CancellationToken.None);
-               }
-
-           }, async (eventIds, queueName, outEx, eventObjs) =>
+           }, (eventIds, queueName, outEx, eventObjs) =>
            {
                //消息消费失败执行以下代码
                if (outEx != null)
@@ -124,74 +114,30 @@ namespace Microsoft.Extensions.DependencyInjection
                    logger.LogError(outEx, outEx.Message);
                }
 
-               if (eventIds.Length > 0)
-               {
-                   //使用重试策略执行，出现错误立即重试3次
-                   return await policy.ExecuteAsync(async (cancellationToken) =>
-                  {
-                       //这里可能会重复，需要保持幂等
-                       var times = await eventLogService.MarkEventConsumeAsFailedAsync(eventIds, queueName, cancellationToken);
-
-                       //记录重试次数(在阀值内则重新写队列)
-                       if (times > 3)
-                      {
-                          return false;
-                      }
-                      else
-                      {
-                          return true;
-                      }
-                  }, CancellationToken.None);
-               }
-
-               return true;
+               return Task.FromResult(true);
 
            });
 
+       
             setupSubscriberHandler(eventBus);
+           
 
             return serviceProvider;
         }
 
 
-        public static IEventBus Register<TD, TH>(this IEventBus eventBus, string EventTypeName = "")
+        public static IEventBus Register<TD, TH>(this IEventBus eventBus,string QueueName="", string EventTypeName = "")
                      where TD : class
                      where TH : IEventHandler<TD>
         {
             return eventBus.Register<TD, TH>(EventTypeName);
         }
 
-        public static IEventBus Register<TD, TH>(this IEventBus eventBus, string EventTypeName = "", int BatchSize = 10)
+        public static IEventBus Register<TD, TH>(this IEventBus eventBus, string QueueName="", string EventTypeName = "", int BatchSize = 10)
              where TD : class
              where TH : IEventBatchHandler<TD>
         {
-            return eventBus.RegisterBatch<TD, TH>(EventTypeName, BatchSize);
-        }
-        /// <summary>
-        /// 使用消息总线发布者
-        /// 作者：郭明
-        /// 日期：2017年11月21日
-        /// </summary>
-        public static async Task UseDispatcherAsync(this IServiceProvider serviceProvider, int TakeCount = 1000)
-        {
-            var eventBus = serviceProvider.GetRequiredService<IEventBus>();
-            var logger = serviceProvider.GetRequiredService<ILogger<IEventLogger>>();
-            var eventLogService = serviceProvider.GetRequiredService<IEventLogger>();
-            //获取没有发布的事件列表
-            var unPublishedEventList = eventLogService.GetUnPublishedEventList(TakeCount);
-            //通过消息总线发布消息
-            await eventBus.PublishAsync(unPublishedEventList, (events) =>
-            {
-                eventLogService.MarkEventAsPublishedAsync(events, CancellationToken.None);
-
-            }, events =>
-            {
-                eventLogService.MarkEventAsPublishedFailedAsync(events, CancellationToken.None);
-
-            }, events =>
-            {
-                eventLogService.MarkEventAsPublishedFailedAsync(events, CancellationToken.None);
-            });
-        }
+            return eventBus.RegisterBatch<TD, TH>(QueueName,EventTypeName, BatchSize);
+        }       
     }
 }

@@ -5,11 +5,15 @@ namespace Hummingbird.UnitTest
 {
     public class EventBusUnitTest
     {
+        private string ConnectionString = "Data Source=192.168.109.227,63341;Initial Catalog=zongteng_TMS-dev;User ID=zt-2874-dev;pwd=qXSW!9vXYfFxQYbg";
         Hummingbird.Extersions.EventBus.Abstractions.IEventLogger eventLogger;
+        Hummingbird.Extersions.EventBus.Abstractions.IEventBus eventBus;
+
         public EventBusUnitTest()
         {
-            eventLogger = new SqlServerEventLogger(new DbConnectionFactory("Server=10.2.29.234;Database=HealthCloud.PharmacyService;User Id=sa;Password=kmdb@2016"));
-
+            var cacheManager = Hummingbird.Extersions.Cache.CacheFactory.Build<bool>(config => { });
+            var uniqueIdGenerator = new Hummingbird.Extersions.UidGenerator.SnowflakeUniqueIdGenerator(1, 1);
+            eventLogger = new SqlServerEventLogger(uniqueIdGenerator,new DbConnectionFactory(ConnectionString));
         }
 
         [Fact]
@@ -23,28 +27,16 @@ namespace Hummingbird.UnitTest
         [Fact]
         public void MarkEventAsPublishedAsyncTest()
         {
-            var list = eventLogger.MarkEventAsPublishedAsync(new System.Collections.Generic.List<string>() { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" }, CancellationToken.None);
+            var list = eventLogger.MarkEventAsPublishedAsync(new System.Collections.Generic.List<long>() {  0L }, CancellationToken.None);
         }
 
 
         [Fact]
         public void MarkEventAsPublishedFailedAsync()
         {
-            var list = eventLogger.MarkEventAsPublishedFailedAsync(new System.Collections.Generic.List<string>() { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" }, CancellationToken.None);
+            var list = eventLogger.MarkEventAsPublishedFailedAsync(new System.Collections.Generic.List<long>() { 0L }, CancellationToken.None);
         }
 
-
-        [Fact]
-        public void MarkEventConsumeAsFailedAsync()
-        {
-            eventLogger.MarkEventConsumeAsFailedAsync(new[] { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" }, "Test",CancellationToken.None).Wait();
-        }
-
-        [Fact]
-        public void MarkEventConsumeAsRecivedAsync()
-        {
-            eventLogger.MarkEventConsumeAsRecivedAsync(new[] { "fbdd9768-f79b-4fc5-a69f-37fc4ea3a332" }, "Test", CancellationToken.None).Wait();
-        }
 
         [Fact]
         public void SaveEventAsyncTest()
@@ -52,8 +44,6 @@ namespace Hummingbird.UnitTest
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
             var _dbConnection = new DbConnectionFactory("Server=10.2.29.234;Database=HealthCloud.PharmacyService;User Id=sa;Password=kmdb@2016");
-
-            SqlServerEventLogger eventLogService = new SqlServerEventLogger(_dbConnection);
 
             var eventLis = new System.Collections.Generic.List<object> {
                 new { EventId = "1" },
@@ -68,7 +58,8 @@ namespace Hummingbird.UnitTest
 
                 using (var transaction = db.BeginTransaction())
                 {
-                    eventLogService.SaveEventAsync(eventLis, transaction).Wait();
+
+                    eventLogger.SaveEventAsync(eventLis, transaction).Wait();
                     transaction.Commit();
                 }
             }

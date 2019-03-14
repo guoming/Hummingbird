@@ -15,7 +15,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
        : IRabbitMQPersistentConnection
     {
         private readonly IConnectionFactory _connectionFactory;
-        private readonly ILogger<DefaultRabbitMQPersistentConnection> _logger;
+        private readonly ILogger<IRabbitMQPersistentConnection> _logger;
         private readonly int _retryCount;
         IConnection _connection;
         bool _disposed;
@@ -24,7 +24,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private ConnectionFactory factory;
         private ConsoleLogger consoleLogger;
 
-        public DefaultRabbitMQPersistentConnection(IConnectionFactory connectionFactory, ILogger<DefaultRabbitMQPersistentConnection> logger, int retryCount = 5)
+        public DefaultRabbitMQPersistentConnection(IConnectionFactory connectionFactory, ILogger<IRabbitMQPersistentConnection> logger, int retryCount = 5)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -51,7 +51,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             {
                 throw new InvalidOperationException("No RabbitMQ connections are available to perform this action");
             }
-
+            
             return _connection.CreateModel();
         }
 

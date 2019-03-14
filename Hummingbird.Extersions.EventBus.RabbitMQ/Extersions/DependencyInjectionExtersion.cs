@@ -2,11 +2,13 @@
 using Hummingbird.Extersions.EventBus;
 using Hummingbird.Extersions.EventBus.Abstractions;
 using Hummingbird.Extersions.EventBus.RabbitMQ;
+using Hummingbird.Extersions.EventBus.RabbitMQ.LoadBalancers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -61,6 +63,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         public string ExchangeType { get; set; } = "topic";
 
+        public int SenderConnectionPoolSize { get; set; } = 10;
+
+        public int ReceiveConnectionPoolSize { get; set; } = 2;
     }
 
     public static class DependencyInjectionExtersion
@@ -72,15 +77,54 @@ namespace Microsoft.Extensions.DependencyInjection
             var option = new RabbitMqOption();
             setupConnectionFactory(option);
 
+            hostBuilder.Services.AddSingleton<IConnectionFactory>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<IConnectionFactory>>();
+
+                var factory = new ConnectionFactory();
+                factory.HostName = option.HostName;
+                factory.Port = option.Port;
+                factory.Password = option.Password;
+                factory.UserName = option.UserName;
+                factory.VirtualHost = option.VirtualHost;
+                factory.AutomaticRecoveryEnabled = true;
+                factory.TopologyRecoveryEnabled = true;
+                factory.UseBackgroundThreadsForIO = true;
+                return factory;
+            });
+            hostBuilder.Services.AddSingleton<IRabbitMQPersisterConnectionLoadBalancerFactory>(sp =>
+            {
+                return new DefaultLoadBalancerFactory();
+            });
             hostBuilder.Services.AddSingleton<IEventBus, EventBusRabbitMQ>(sp =>
             {
-                var rabbitMQPersistentConnection = sp.GetRequiredService<IRabbitMQPersistentConnection>();
-           
-                var cache = sp.GetRequiredService<Hummingbird.Extersions.Cache.IHummingbirdCache<bool>>();
-                var Configuration = sp.GetRequiredService<IConfiguration>();
-                var logger = sp.GetRequiredService<ILogger<EventBusRabbitMQ>>();
+                var cache = sp.GetRequiredService<Hummingbird.Extersions.Cache.IHummingbirdCache<bool>>();                
+                var logger = sp.GetRequiredService<ILogger<IEventBus>>();
+                var loggerConnection = sp.GetRequiredService<ILogger<IRabbitMQPersistentConnection>>();
+                var rabbitMQPersisterConnectionLoadBalancerFactory = sp.GetRequiredService<IRabbitMQPersisterConnectionLoadBalancerFactory>();
+                var connectionFactory = sp.GetRequiredService<IConnectionFactory>();                
+                var senderConnections = new List<IRabbitMQPersistentConnection>();
+                var receiveConnections = new List<IRabbitMQPersistentConnection>();
+
+                //消费端连接池
+                for (int i = 0; i < option.ReceiveConnectionPoolSize; i++)
+                {
+                    //消费端的连接池
+                    receiveConnections.Add(new DefaultRabbitMQPersistentConnection(connectionFactory, loggerConnection, option.RetryCount));
+                }
+
+                //发送端连接池
+                for (int i = 0; i < option.SenderConnectionPoolSize; i++)
+                {
+                    senderConnections.Add(new DefaultRabbitMQPersistentConnection(connectionFactory, loggerConnection, option.RetryCount));
+                }
+
+                var receiveLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> receiveConnections, "RoundRobinLoadBalancer");
+                var senderLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> senderConnections, "RoundRobinLoadBalancer");
+
                 return new EventBusRabbitMQ(cache,
-                    rabbitMQPersistentConnection, 
+                    receiveLoadBlancer,
+                    senderLoadBlancer,
                     logger,
                     sp,
                     retryCount: option.RetryCount,
@@ -90,21 +134,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     exchangeType: option.ExchangeType
                     );
             });
-
-            hostBuilder.Services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
-            {
-                    var Configuration = sp.GetRequiredService<IConfiguration>();
-                    var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>(); 
-
-                    var factory = new ConnectionFactory();
-                    factory.HostName = option.HostName;
-                    factory.Port = option.Port;
-                    factory.Password = option.Password;
-                    factory.UserName = option.UserName;
-                    factory.VirtualHost = option.VirtualHost;
-
-                    return new DefaultRabbitMQPersistentConnection(factory, logger, option.RetryCount);
-                });
 
             return hostBuilder;
            

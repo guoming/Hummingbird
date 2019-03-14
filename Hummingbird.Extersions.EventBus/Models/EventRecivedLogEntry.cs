@@ -4,19 +4,23 @@ using System.Text;
 
 namespace Hummingbird.Extersions.EventBus.Models
 {
-    public enum EventConsumeStateEnum
+    public class EventRecivedLogEntry
     {
         /// <summary>
-        /// 没有接收
+        /// 事件编号
         /// </summary>
-        NotRecived = 0,
+        public long EventId { get; set; }
+
         /// <summary>
-        /// 接收成功
+        /// 队列名称
         /// </summary>
-        Reviced = 1,
+
+        public string QueueName { get; set; }
+
+
         /// <summary>
-        /// 消费失败
+        /// 创建时间
         /// </summary>
-        RevicedFailed = 2
+        public DateTime CreationTime { get; set; }
     }
 }
