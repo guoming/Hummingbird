@@ -37,11 +37,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return hostBuilder;
         }
 
-        public static void UseSqlServerWorkIdCreateStrategy(this IdGeneratorOption option,string ConnectionString,string WorkTag) {
-
-            option.WorkIdCreateStrategy = new SqlServerWorkIdCreateStrategy(ConnectionString, WorkTag);
-        }
-
         public static void UseStaticWorkIdCreateStrategy(this IdGeneratorOption option, int WorkId)
         {
             option.WorkIdCreateStrategy = new StaticWorkIdCreateStrategy(WorkId);
