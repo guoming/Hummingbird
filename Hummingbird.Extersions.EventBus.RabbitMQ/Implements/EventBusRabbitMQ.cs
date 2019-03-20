@@ -82,7 +82,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
            .Or<SocketException>()
            .Or<System.IO.IOException>()
            .Or<AlreadyClosedException>()
-           .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+           .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)), (ex, time) =>
            {
                _logger.LogWarning(ex.ToString());
            });
