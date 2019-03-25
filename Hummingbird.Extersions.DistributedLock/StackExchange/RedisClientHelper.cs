@@ -22,15 +22,11 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
 
         #region 构造函数
 
-        public RedisClientHelper(int dbNum, string readWriteHosts, string KeyPrefix)
+        public RedisClientHelper(int dbNum, string connectionString, string KeyPrefix)
         {
             this.DbNum = dbNum;
             this.KeyPrefix = KeyPrefix;
-            this._conn = RedisConnectionHelp.CreateConnect(readWriteHosts);
-
-         
-            
-
+            this._conn = RedisConnectionHelp.CreateConnect(connectionString);
            
         }
 
@@ -41,6 +37,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
             this._conn = RedisConnectionHelp.CreateConnect(configOptions);
           
         }
+
 
         #endregion 构造函数
 

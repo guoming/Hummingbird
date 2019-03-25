@@ -40,10 +40,10 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
         {
             this.DbNum = DbNum;
         }
-
-        /// <summary>
-        /// 创建链接池管理对象
-        /// </summary>
+    
+            /// <summary>
+            /// 创建链接池管理对象
+            /// </summary>
         public static RedisCacheManage Create(RedisCacheConfig config)
         {
             _KeyPrefix = config.KeyPrefix + ":";

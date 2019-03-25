@@ -5,10 +5,10 @@ namespace Hummingbird.Extersions.DistributedLock
 {
     public static class DistributedLockFactory {
 
-        public static IDistributedLock CreateRedisDistributedLock(string LockName, string LockToken, RedisCacheConfig config)
+        public static IDistributedLock CreateRedisDistributedLock(RedisCacheConfig config)
         {
             var cacheManager = RedisCacheManage.Create(config);
-            return new RedisDistributedLock(cacheManager, LockName, LockToken);
+            return new RedisDistributedLock(cacheManager);
         }
     }
 
@@ -18,11 +18,10 @@ namespace Hummingbird.Extersions.DistributedLock
         private readonly string _lockName;
         private readonly string _lockToken;
 
-        public RedisDistributedLock(ICacheManager cacheManager,string LockName,string LockToken) {
+        public RedisDistributedLock(ICacheManager cacheManager) {
 
+            
             this._cacheManager = cacheManager;
-            this._lockName = LockName;
-            this._lockToken = LockToken;
         }
 
         /// <summary>
@@ -36,17 +35,21 @@ namespace Hummingbird.Extersions.DistributedLock
         /// <param name="retryTimes">自旋重试次数(默认10次)</param>
         /// <returns></returns>
         public bool Enter(
+            string LockName,
+            string LockToken,
             TimeSpan LockOutTime,
             int retryAttemptMillseconds = 50,
             int retryTimes = 5)
         {
             if (_cacheManager != null)
             {
-                var cacheKey = "Lock:" + _lockName;
+                var cacheKey = "Lock:" + LockName;
 
                 do
                 {
-                    if (!_cacheManager.LockTake(cacheKey, _lockToken, LockOutTime))
+                  
+
+                    if (!_cacheManager.LockTake(cacheKey, LockToken, LockOutTime))
                     {
                         retryTimes--;
                         if (retryTimes < 0)
@@ -79,7 +82,9 @@ namespace Hummingbird.Extersions.DistributedLock
         /// </summary>
         /// <param name="lockName"></param>
         /// <returns></returns>
-        public void Exit()
+        public void Exit(
+            string LockName,
+            string LockToken)
         {
             if (_cacheManager != null)
             {
@@ -92,7 +97,7 @@ namespace Hummingbird.Extersions.DistributedLock
 
                 polly.Execute(() =>
                 {
-                    _cacheManager.LockRelease("Lock:" + _lockName, _lockToken);
+                    _cacheManager.LockRelease("Lock:" + LockName, LockToken);
 
                 });
             }

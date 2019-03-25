@@ -12,9 +12,6 @@ namespace Hummingbird.Extersions.DistributedLock
     public class RedisCacheConfig
     {
 
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="WriteServerList">127.0.0.1:6378 或 node1@191.168.0.1.6378,node2@191.168.0.1.6378</param>
         /// <param name="ReadServerList">192.168.100.51:16378,192.168.100.51:26378 或 node1@191.168.0.1.16378,node2@191.168.0.1.16378,node1@191.168.0.1.26378,node2@191.168.0.1.26378</param>
         /// <param name="Password">123456</param>
@@ -37,43 +34,81 @@ namespace Hummingbird.Extersions.DistributedLock
             this.KeyPrefix = KeyPrefix;
         }
 
+        public void WithReadServerList(string ReadServerList)
+        {
+            this.ReadServerList = ReadServerList;
+        }
+
+        public void WithWriteServerList(string WriteServerList)
+        {
+            this.WriteServerList = WriteServerList;
+        }
+
+        /// <summary>
+        /// 哨兵列表
+        /// </summary>
+        public void WithSentineList(string SentineList)
+        {
+            this.SentineList = SentineList;
+
+        }
+        public void WithPassword(string Password)
+        {
+            this.Password = Password;
+        }
+
+        public void WithKeyPrefix(string KeyPrefix)
+        {
+            this.KeyPrefix = KeyPrefix;
+        }
+
+        public void WithSsl(bool Ssl)
+        {
+            this.Ssl = Ssl;
+        }
+
+        public void WithDb(int num)
+        {
+            this.DBNum = num;
+        }
+
         /// <summary>
         /// 读服务器列表
         /// </summary>
-        public string ReadServerList
+        internal string ReadServerList
         { get; private set; }
 
         /// <summary>
         /// 写入服务器列表
         /// </summary>
-        public string WriteServerList
+        internal string WriteServerList
         { get; private set; }
 
         /// <summary>
         /// 哨兵列表
         /// </summary>
-        public string SentineList { get; private set; }
+        internal string SentineList { get; private set; }
 
         /// <summary>
         /// 密码
         /// </summary>
-        public string Password
+        internal string Password
         { get; private set; }
 
 
         /// <summary>
         /// Key前缀
         /// </summary>
-        public string KeyPrefix { get; private set; }
+        internal string KeyPrefix { get; private set; }
         /// <summary>
         /// 是否SSL连接
         /// </summary>
-        public bool Ssl { get; private set; }
+        internal bool Ssl { get; private set; }
 
         /// <summary>
         /// 默认数据库
         /// </summary>
-        public int DBNum { get; private set; }
+        internal int DBNum { get; private set; }
 
     }
 }
