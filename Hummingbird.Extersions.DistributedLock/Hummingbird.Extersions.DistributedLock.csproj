@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-  <TargetFrameworks>netcoreapp2.1;net4.0;net4.6.1</TargetFrameworks>
+  <TargetFrameworks>netcoreapp2.1;</TargetFrameworks>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   <Version>1.3.0</Version>
@@ -22,10 +22,10 @@
   </PropertyGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <PackageReference Include="Polly" Version="6.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="StackExchange.Redis" Version="2.0.519" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />    
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
   </ItemGroup>
+
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net4.0' ">
     <PackageReference Include="Polly" Version="4.3.0" />

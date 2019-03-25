@@ -1,4 +1,7 @@
-﻿using Hummingbird.Core;
+﻿#if NETCORE
+using Hummingbird.Core;
+#endif
+
 using Hummingbird.Extersions.DistributedLock;
 using System;
 using System.Collections.Generic;
@@ -7,6 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtersion
     {
+#if NETCORE
         public static IHummingbirdHostBuilder AddDistributedLock(this IHummingbirdHostBuilder hostBuilder, Action<RedisCacheConfig> action)
         {
             action = action ?? throw new ArgumentNullException(nameof(action));
@@ -21,5 +25,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return hostBuilder;
 
         }
+#endif
     }
 }

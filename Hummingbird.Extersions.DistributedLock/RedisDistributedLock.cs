@@ -15,8 +15,6 @@ namespace Hummingbird.Extersions.DistributedLock
     class RedisDistributedLock : IDistributedLock
     {
         private readonly ICacheManager _cacheManager;
-        private readonly string _lockName;
-        private readonly string _lockToken;
 
         public RedisDistributedLock(ICacheManager cacheManager) {
 
@@ -59,7 +57,7 @@ namespace Hummingbird.Extersions.DistributedLock
 
                         if (retryAttemptMillseconds > 0)
                         {
-                            Console.WriteLine($"Wait Lock {_lockName} to {retryAttemptMillseconds} millseconds");
+                            Console.WriteLine($"Wait Lock {LockName} to {retryAttemptMillseconds} millseconds");
                             //获取锁失败则进行锁等待
                             System.Threading.Thread.Sleep(retryAttemptMillseconds);
                         }
