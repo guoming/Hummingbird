@@ -23,8 +23,18 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IHummingbirdHostBuilder AddEventBus(this IHummingbirdHostBuilder hostBuilder, Action<IHummingbirdEventBusHostBuilder> setup)
         {
+
+            var allTypes = System.Reflection.Assembly.GetCallingAssembly().GetTypes();
+            var types = allTypes.Where(type => Array.Exists(type.GetInterfaces(), t => t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IEventHandler<>) || t.GetGenericTypeDefinition() == typeof(IEventBatchHandler<>)))).ToList();
+
+            foreach (var type in types)
+            {
+                hostBuilder.Services.AddSingleton(type);
+            }
+
             var builder = new HummingbirdEventBusHostBuilder(hostBuilder.Services); ;
             setup(builder);
+           
             return hostBuilder;
         }
 

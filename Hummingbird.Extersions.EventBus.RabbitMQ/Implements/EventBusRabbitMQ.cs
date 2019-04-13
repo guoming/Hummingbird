@@ -530,9 +530,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             var _queueName = string.IsNullOrEmpty(QueueName)? typeof(TH).FullName: QueueName;
             var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
             var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventHandler<TD>;
-
+          
             if (EventAction == null)
             {
+                
                 EventAction = System.Activator.CreateInstance(typeof(TH)) as IEventHandler<TD>;
             }
 

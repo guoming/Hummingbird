@@ -19,6 +19,11 @@ namespace Hummingbird.WebApi.Events
 
     public class NewMsgEventHandler : Hummingbird.Extersions.EventBus.Abstractions.IEventHandler<NewMsgEvent>
     {
+        public NewMsgEventHandler(IServiceProvider serviceProvider)
+        {
+
+        }
+
         public Task<bool> Handle(NewMsgEvent @event, System.Threading.CancellationToken cancellationToken)
         {
             Console.WriteLine(@event.Time.ToString());

@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.NET46", "Sample
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.NetCoreWebApi", "Sample\Hummingbird.WebApi\Hummingbird.NetCoreWebApi.csproj", "{1198645A-8D8D-4B9D-AC17-5376BB7952A5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extersions.EventBus.MySqlLogging", "Hummingbird.Extersions.EventBus.MySqlLogging\Hummingbird.Extersions.EventBus.MySqlLogging.csproj", "{3D3F5653-D615-4BAE-975F-AE85353A93DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,10 @@ Global
 		{1198645A-8D8D-4B9D-AC17-5376BB7952A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1198645A-8D8D-4B9D-AC17-5376BB7952A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1198645A-8D8D-4B9D-AC17-5376BB7952A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D3F5653-D615-4BAE-975F-AE85353A93DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D3F5653-D615-4BAE-975F-AE85353A93DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D3F5653-D615-4BAE-975F-AE85353A93DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D3F5653-D615-4BAE-975F-AE85353A93DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,6 +155,7 @@ Global
 		{CDAFBEAC-2AF9-43AA-95F6-DE93A2E47544} = {DE0F9CBC-8B94-4D7D-805F-FE652AC26BFD}
 		{CDF3BE6D-0CFF-40D8-81EE-FA86D530CA28} = {DE0F9CBC-8B94-4D7D-805F-FE652AC26BFD}
 		{1198645A-8D8D-4B9D-AC17-5376BB7952A5} = {DE0F9CBC-8B94-4D7D-805F-FE652AC26BFD}
+		{3D3F5653-D615-4BAE-975F-AE85353A93DD} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

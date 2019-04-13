@@ -10,14 +10,14 @@ using System.Threading;
 using System.Data;
 using Hummingbird.Extersions.UidGenerator;
 
-namespace Hummingbird.Extersions.EventBus.SqlServerLogging
+namespace Hummingbird.Extersions.EventBus.MySqlLogging
 {
-    public class SqlServerEventLogger : IEventLogger
+    public class MySqlEventLogger : IEventLogger
     {
         IDbConnectionFactory _dbConnection;
         IUniqueIdGenerator _uniqueIdGenerator;
 
-        public SqlServerEventLogger(
+        public MySqlEventLogger(
             IUniqueIdGenerator uniqueIdGenerator,
             IDbConnectionFactory dbConnection)
         {
@@ -84,7 +84,6 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                 {
                     if (db.State != System.Data.ConnectionState.Open)
                     {
-                        
                         await db.OpenAsync(cancellationToken);
                     }
                     using (var tran = db.BeginTransaction())
@@ -144,7 +143,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         {
             using (var db = _dbConnection.GetDbConnection())
             {
-                return db.Query<EventLogEntry>("select top " + Take + " EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc").AsList();
+                return db.Query<EventLogEntry>($"select  EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc limit {Take}").AsList();
             }
         }
     }

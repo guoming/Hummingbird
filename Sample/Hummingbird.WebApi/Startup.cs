@@ -25,6 +25,7 @@ namespace Hummingbird.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+         
           
             services.AddHummingbird(hummingbird =>
             {
@@ -113,6 +114,8 @@ namespace Hummingbird.WebApi
 
                         
                     });
+
+                    
                 });
 
             });
