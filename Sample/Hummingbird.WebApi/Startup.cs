@@ -84,8 +84,9 @@ namespace Hummingbird.WebApi
                         factory.VirtualHost = Configuration["EventBus:VirtualHost"] ?? "/";
                         factory.RetryCount = int.Parse(Configuration["EventBus:RetryCount"] ?? "3");
                     })
+                    
                     .AddSqlServerEventLogging(DatabaseConnectionString);
-
+                    
 
 
                 });
@@ -111,11 +112,7 @@ namespace Hummingbird.WebApi
                     {
                         //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
                         eventbus.Register<Events.NewMsgEvent, Events.NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
-
-                        
                     });
-
-                    
                 });
 
             });
