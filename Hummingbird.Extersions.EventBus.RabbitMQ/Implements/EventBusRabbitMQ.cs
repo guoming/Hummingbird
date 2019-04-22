@@ -489,9 +489,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 _batchBlock_BasicNacks.Complete();
                 _batchBlock_BasicReturn.Complete();
 
-                await _batchBlock_BasicReturn.Completion.ContinueWith(delegate { _actionBlock_BasicReturn.Complete(); });
-                await _batchBlock_BasicAcks.Completion.ContinueWith(delegate { _actionBlock_BasicAcks.Complete(); });
-                await _batchBlock_BasicNacks.Completion.ContinueWith(delegate { _actionBlock_BasicNacks.Complete(); });
+                await _batchBlock_BasicReturn.Completion.ContinueWith(delegate { _actionBlock_BasicReturn.Complete(); _actionBlock_BasicReturn.Completion.Wait(); });
+                await _batchBlock_BasicAcks.Completion.ContinueWith(delegate { _actionBlock_BasicAcks.Complete(); _actionBlock_BasicAcks.Completion.Wait(); });
+                await _batchBlock_BasicNacks.Completion.ContinueWith(delegate { _actionBlock_BasicNacks.Complete(); _actionBlock_BasicNacks.Completion.Wait(); });
 
             }
             catch (Exception ex)
