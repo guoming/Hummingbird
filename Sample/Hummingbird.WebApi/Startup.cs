@@ -77,12 +77,9 @@ namespace Hummingbird.WebApi
                     builder
                     .AddRabbitmq(factory =>
                     {
-                        factory.HostName = Configuration["EventBus:HostName"] ?? "localhost";
-                        factory.Port = int.Parse(Configuration["EventBus:Port"] ?? "5672");
-                        factory.UserName = Configuration["EventBus:UserName"] ?? "guest";
-                        factory.Password = Configuration["EventBus:Password"] ?? "guest";
-                        factory.VirtualHost = Configuration["EventBus:VirtualHost"] ?? "/";
-                        factory.RetryCount = int.Parse(Configuration["EventBus:RetryCount"] ?? "3");
+                        factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                        factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                        factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
                     })
                     
                     .AddSqlServerEventLogging(DatabaseConnectionString);

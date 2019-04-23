@@ -44,15 +44,5 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj">
-      <Project>{da121499-5dd1-4e2b-9592-554c0b2b4651}</Project>
-      <Name>Hummingbird.Extersions.Cache</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Hummingbird.Extersions.DistributedLock\Hummingbird.Extersions.DistributedLock.csproj">
-      <Project>{7f45f220-2cd5-44a2-b0f8-7c54e23c3e5b}</Project>
-      <Name>Hummingbird.Extersions.DistributedLock</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
