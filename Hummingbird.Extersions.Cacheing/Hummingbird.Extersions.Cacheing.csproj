@@ -4,13 +4,12 @@
   <TargetFrameworks>netcoreapp2.1;</TargetFrameworks>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-  <Version>1.4.0</Version>
+  <Version>1.3.0</Version>
   <Description>分布式锁实现</Description>
   <Authors>GUOMING</Authors>
   <Company>GUOMING</Company>
   <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
-  <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>NETCORE</DefineConstants>
@@ -37,9 +36,6 @@
     <PackageReference Include="Polly" Version="6.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="StackExchange.Redis" Version="2.0.519" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Hummingbird.Extersions.Cacheing\Hummingbird.Extersions.Cacheing.csproj" />
   </ItemGroup>
 
 </Project>

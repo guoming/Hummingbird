@@ -4,41 +4,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Hummingbird.Extersions.DistributedLock
+namespace Hummingbird.Extersions.Cacheing.StackExchange
 {
     /// <summary>
     /// Redis服务配置
     /// </summary>
     public class RedisCacheConfig
     {
-
-        /// <param name="WriteServerList">127.0.0.1:6378 或 node1@191.168.0.1.6378,node2@191.168.0.1.6378</param>
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="ReadServerList">192.168.100.51:16378,192.168.100.51:26378 或 node1@191.168.0.1.16378,node2@191.168.0.1.16378,node1@191.168.0.1.26378,node2@191.168.0.1.26378</param>
-        /// <param name="Password">123456</param>
-        /// <param name="Ssl">RedisSsl连接(默认:false)</param>
-        /// <param name="DbNum">Redis数据库（默认：0）</param>
-        /// <param name="KeyPrefix">缓存前缀(默认：空)</param>
-        public RedisCacheConfig(
-            string WriteServerList,
-            string ReadServerList,
-            string Password,
-            bool Ssl=false,
-            int DbNum=0, 
-            string KeyPrefix="")
-        {
-            this.WriteServerList = WriteServerList;
-            this.ReadServerList = ReadServerList;
-            this.Password = Password;
-            this.Ssl = Ssl;
-            this.DBNum = DBNum;
-            this.KeyPrefix = KeyPrefix;
-        }
-
         public void WithReadServerList(string ReadServerList)
         {
             this.ReadServerList = ReadServerList;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="WriteServerList">127.0.0.1:6378 或 node1@191.168.0.1.6378,node2@191.168.0.1.6378</param>
         public void WithWriteServerList(string WriteServerList)
         {
             this.WriteServerList = WriteServerList;
@@ -103,12 +88,12 @@ namespace Hummingbird.Extersions.DistributedLock
         /// <summary>
         /// 是否SSL连接
         /// </summary>
-        internal bool Ssl { get; private set; }
+        internal bool Ssl { get; private set; } = false;
 
         /// <summary>
         /// 默认数据库
         /// </summary>
-        internal int DBNum { get; private set; }
+        internal int DBNum { get; private set; } = 0;
 
     }
 }

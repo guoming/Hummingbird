@@ -1,16 +1,9 @@
-﻿using System;
-using Hummingbird.Extersions.DistributedLock.StackExchangeImplement;
+﻿using Hummingbird.Extersions.Cacheing;
+using Hummingbird.Extersions.Cacheing.StackExchange;
 using Polly;
+using System;
 namespace Hummingbird.Extersions.DistributedLock
 {
-    public static class DistributedLockFactory {
-
-        public static IDistributedLock CreateRedisDistributedLock(RedisCacheConfig config)
-        {
-            var cacheManager = RedisCacheManage.Create(config);
-            return new RedisDistributedLock(cacheManager);
-        }
-    }
 
     class RedisDistributedLock : IDistributedLock
     {

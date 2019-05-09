@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Hummingbird.Extersions.DistributedLock.KetamaHash
+namespace Hummingbird.Extersions.Cacheing.KetamaHash
 {
     class HashAlgorithm
     {

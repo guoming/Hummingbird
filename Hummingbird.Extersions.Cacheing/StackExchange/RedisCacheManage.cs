@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
+using StackExchange.Redis;
 
-namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
+namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 {
 
     class RedisCacheManage : ICacheManager
@@ -27,7 +28,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
         //Redis集群分片存储定位器
         private static KetamaHash.KetamaNodeLocator _Locator;
 
-        private static Dictionary<string, StackExchange.Redis.ConfigurationOptions> _clusterConfigOptions = new Dictionary<string, StackExchange.Redis.ConfigurationOptions>();
+        private static Dictionary<string, ConfigurationOptions> _clusterConfigOptions = new Dictionary<string, ConfigurationOptions>();
 
         private static Dictionary<string, Dictionary<int, RedisClientHelper>> _clients = new Dictionary<string, Dictionary<int, RedisClientHelper>>();
         #endregion
@@ -44,7 +45,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
             /// <summary>
             /// 创建链接池管理对象
             /// </summary>
-        public static RedisCacheManage Create(RedisCacheConfig config)
+        public static ICacheManager Create(StackExchange.RedisCacheConfig config)
         {
             _KeyPrefix = config.KeyPrefix + ":";
 
@@ -75,7 +76,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
 
                                 if (!_clusterConfigOptions.ContainsKey(NodeName))
                                 {
-                                    StackExchange.Redis.ConfigurationOptions configOption = new StackExchange.Redis.ConfigurationOptions();
+                                   ConfigurationOptions configOption = new ConfigurationOptions();
                                     configOption.ServiceName = NodeName;
                                     configOption.Password = config.Password;
                                     configOption.AbortOnConnectFail = false;
@@ -117,7 +118,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                                         //当前集群的配置不存在
                                         if (!_clusterConfigOptions.ContainsKey(NodeName))
                                         {
-                                            StackExchange.Redis.ConfigurationOptions configOption = new StackExchange.Redis.ConfigurationOptions();
+                                            ConfigurationOptions configOption = new ConfigurationOptions();
                                             configOption.ServiceName = NodeName;
                                             configOption.Password = config.Password;
                                             configOption.AbortOnConnectFail = false;
@@ -141,7 +142,7 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                                         if (!_clusterConfigOptions.ContainsKey(NodeName))
                                         {
                                             
-                                            StackExchange.Redis.ConfigurationOptions configOption = new StackExchange.Redis.ConfigurationOptions();
+                                            ConfigurationOptions configOption = new ConfigurationOptions();
                                             configOption.ServiceName = NodeName;
                                             configOption.Password = config.Password;
                                             configOption.AbortOnConnectFail = false;
@@ -178,19 +179,19 @@ namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
                                 if (!_clusterConfigOptions.ContainsKey(hostName))
                                 {
                                     //连接sentinel服务器
-                                    StackExchange.Redis.ConfigurationOptions sentinelConfig = new StackExchange.Redis.ConfigurationOptions();
+                                    ConfigurationOptions sentinelConfig = new ConfigurationOptions();
                                     sentinelConfig.ServiceName = ServiceName;
                                     sentinelConfig.EndPoints.Add(ip, port);
                                     sentinelConfig.AbortOnConnectFail = false;
                                     sentinelConfig.DefaultDatabase = config.DBNum;
                                     sentinelConfig.TieBreaker = ""; //这行在sentinel模式必须加上
-                                    sentinelConfig.CommandMap = StackExchange.Redis.CommandMap.Sentinel;
+                                    sentinelConfig.CommandMap = CommandMap.Sentinel;
                                     sentinelConfig.DefaultVersion = new Version(3, 0);
                                     _clusterConfigOptions[hostName] = sentinelConfig;
                                 }
                                 else
                                 {
-                                    StackExchange.Redis.ConfigurationOptions sentinelConfig = _clusterConfigOptions[hostName] as StackExchange.Redis.ConfigurationOptions;
+                                   ConfigurationOptions sentinelConfig = _clusterConfigOptions[hostName] as ConfigurationOptions;
                                     sentinelConfig.EndPoints.Add(ip, port);
                                     _clusterConfigOptions[hostName] = sentinelConfig;
                                 }

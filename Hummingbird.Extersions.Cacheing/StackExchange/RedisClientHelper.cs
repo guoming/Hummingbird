@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
+namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 {
     /// <summary>
     /// Redis操作

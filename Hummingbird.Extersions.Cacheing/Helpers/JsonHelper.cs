@@ -10,7 +10,7 @@ using System.Globalization;
 using System.IO;
 
 
-namespace Hummingbird.Extersions.DistributedLock
+namespace Hummingbird.Extersions.Cacheing
 {
     /// <summary>
     /// Json帮助类

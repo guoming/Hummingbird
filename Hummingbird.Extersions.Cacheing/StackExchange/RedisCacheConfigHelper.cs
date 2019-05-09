@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
+namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 { 
     static class RedisCacheConfigHelper
     {

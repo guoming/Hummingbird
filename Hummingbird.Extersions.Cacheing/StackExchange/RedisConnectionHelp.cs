@@ -3,7 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Configuration;
 
-namespace Hummingbird.Extersions.DistributedLock.StackExchangeImplement
+namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 {
     /// <summary>
     /// ConnectionMultiplexer对象管理帮助类

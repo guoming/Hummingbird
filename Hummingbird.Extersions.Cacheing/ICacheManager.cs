@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Hummingbird.Extersions.DistributedLock
+namespace Hummingbird.Extersions.Cacheing
 {
-    interface ICacheManager
+    public interface ICacheManager
     {
 
         /// <summary>
