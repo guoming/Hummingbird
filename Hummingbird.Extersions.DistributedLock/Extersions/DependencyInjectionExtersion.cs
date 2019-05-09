@@ -16,11 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IHummingbirdHostBuilder AddDistributedLock(this IHummingbirdHostBuilder hostBuilder, Action<Config> action)
         {
             action = action ?? throw new ArgumentNullException(nameof(action));
-            
-            var option = new Config();
-            action(option);
-
-            var RedisDistributedLock = DistributedLockFactory.CreateRedisDistributedLock(option);
+            var RedisDistributedLock = DistributedLockFactory.Build(action);
             hostBuilder.Services.AddSingleton<IDistributedLock>(RedisDistributedLock);
             return hostBuilder;
 
@@ -33,12 +29,13 @@ namespace Hummingbird.Extersions.DistributedLock
 {
     public static class DistributedLockFactory
     {
-
-        public static IDistributedLock CreateRedisDistributedLock(Config config)
+        public static IDistributedLock Build(Action<Config> configSetup)
         {
+            var config = new Config();
+            configSetup(config);
+
             return new RedisDistributedLock(Cacheing.CacheFactory.Build(option =>
             {
-
                 option.WithDb(config.DBNum);
                 option.WithKeyPrefix(config.KeyPrefix);
                 option.WithWriteServerList(config.WriteServerList);
