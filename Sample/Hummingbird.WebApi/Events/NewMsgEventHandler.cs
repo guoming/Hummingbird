@@ -31,4 +31,19 @@ namespace Hummingbird.WebApi.Events
             return Task.FromResult(true);
         }
     }
+
+    public class NewMsgEventHandler2 : Hummingbird.Extersions.EventBus.Abstractions.IEventHandler<NewMsgEvent>
+    {
+        public NewMsgEventHandler2(IServiceProvider serviceProvider)
+        {
+
+        }
+
+        public Task<bool> Handle(NewMsgEvent @event, System.Threading.CancellationToken cancellationToken)
+        {
+            Console.WriteLine(@event.Time.ToString());
+
+            return Task.FromResult(true);
+        }
+    }
 }
