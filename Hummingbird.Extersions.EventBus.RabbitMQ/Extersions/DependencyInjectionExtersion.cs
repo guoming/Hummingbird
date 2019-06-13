@@ -76,7 +76,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             this.ReceiverMaxConnections = ReceiverMaxConnections;
             this.ReceiverAcquireRetryAttempts = AcquireRetryAttempts;
-            this.IdempotencyDuration = IdempotencyDuration;
+            this.IdempotencyDuration = IdempotencyDurationSeconds;
             this.PreFetch = PreFetch;
             
         }
