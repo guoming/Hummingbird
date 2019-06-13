@@ -111,14 +111,13 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// </summary>
         public async Task PublishAsync(
             List<Models.EventLogEntry> Events,
-            Action<List<long>> ackHandler = null,
-            Action<List<long>> nackHandler = null,
-            Action<List<long>> returnHandler = null,
+            Action<List<Models.EventLogEntry>> ackHandler = null,
+            Action<List<Models.EventLogEntry>> nackHandler = null,
+            Action<List<Models.EventLogEntry>> returnHandler = null,
             int EventDelaySeconds = 0,
             int TimeoutMilliseconds = 500,
             int BatchSize = 500)
         {
-
             var evtDicts = Events.Select(a => new EventMessage()
             {
                 Body = a.Content,
@@ -127,7 +126,49 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 RouteKey = a.EventTypeName
             }).ToList();
 
-            await EnqueueConfirm(evtDicts, ackHandler, nackHandler, returnHandler, EventDelaySeconds, TimeoutMilliseconds, BatchSize);
+            await EnqueueConfirm(evtDicts,(messageIds)=> {
+
+                ackHandler(Events.Where(@event => messageIds.Contains(@event.MessageId)).ToList());                
+
+            }, (messageIds)=> {
+
+                nackHandler(Events.Where(@event => messageIds.Contains(@event.MessageId)).ToList());
+
+            }, (messageIds)=> {
+                returnHandler(Events.Where(@event => messageIds.Contains(@event.MessageId)).ToList());
+            }, EventDelaySeconds, TimeoutMilliseconds, BatchSize);
+        }
+
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        public async Task<bool> PublishAsync(
+            List<Models.EventLogEntry> Events,
+            int EventDelaySeconds = 0,
+            int TimeoutMilliseconds = 500,
+            int BatchSize = 500)
+        {
+            var evtDicts = Events.Select(a => new EventMessage()
+            {
+                Body = a.Content,
+                MessageId = a.MessageId.ToString(),
+                EventId = a.EventId,
+                RouteKey = a.EventTypeName
+            }).ToList();
+
+            bool result = true;
+
+            await EnqueueConfirm(evtDicts, (messageIds) => {
+
+            }, (messageIds) => {
+
+                result = false;
+
+            }, (messageIds) => {
+                result = false;
+            }, EventDelaySeconds, TimeoutMilliseconds, BatchSize);
+
+            return result;
         }
 
         async Task EnqueueNoConfirm(
@@ -163,9 +204,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             properties.MessageId = MessageId;
                             properties.Headers = new Dictionary<string, Object>();
                             properties.Headers["EventId"] = EventId;
+                        
 
                             //需要发送延时消息
-                            if (EventDelaySeconds > 0)
+                        if (EventDelaySeconds > 0)
                             {
                                 var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
 
@@ -223,18 +265,17 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             }
         }
 
-
         async Task EnqueueConfirm(
           List<EventMessage> Events,
-          Action<List<long>> ackHandler,
-          Action<List<long>> nackHandler,
-          Action<List<long>> returnHandler,
+          Action<List<string>> ackHandler,
+          Action<List<string>> nackHandler,
+          Action<List<string>> returnHandler,
           int EventDelaySeconds,
           int TimeoutMilliseconds,
           int BatchSize)
         {
             var persistentConnection = await _senderLoadBlancer.Lease();
-
+            
             try
             {
                 if (!persistentConnection.IsConnected)
@@ -242,36 +283,36 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     persistentConnection.TryConnect();
                 }
                 //消息发送成功后回调后需要修改数据库状态，改成本地做组缓存后，再批量入库。（性能提升百倍）
-                var _batchBlock_BasicReturn = new BatchBlock<long>(BatchSize);
-                var _batchBlock_BasicAcks = new BatchBlock<long>(BatchSize);
-                var _batchBlock_BasicNacks = new BatchBlock<long>(BatchSize);
-                var _actionBlock_BasicReturn = new ActionBlock<long[]>(EventIDs =>
+                var _batchBlock_BasicReturn = new BatchBlock<string>(BatchSize);
+                var _batchBlock_BasicAcks = new BatchBlock<string>(BatchSize);
+                var _batchBlock_BasicNacks = new BatchBlock<string>(BatchSize);
+                var _actionBlock_BasicReturn = new ActionBlock<string[]>(MessageIds =>
                 {
-                    if (returnHandler != null && EventIDs.Length > 0)
+                    if (returnHandler != null && MessageIds.Length > 0)
                     {
-                        returnHandler(EventIDs.ToList());
+                        returnHandler(MessageIds.ToList());
                     }
                 }, new ExecutionDataflowBlockOptions()
                 {
                     MaxDegreeOfParallelism = Environment.ProcessorCount
                 });
 
-                var _actionBlock_BasicAcks = new ActionBlock<long[]>(EventIDs =>
+                var _actionBlock_BasicAcks = new ActionBlock<string[]>(MessageIds =>
                 {
-                    if (ackHandler != null && EventIDs.Length > 0)
+                    if (ackHandler != null && MessageIds.Length > 0)
                     {
-                        ackHandler(EventIDs.ToList());
+                        ackHandler(MessageIds.ToList());
                     }
                 }, new ExecutionDataflowBlockOptions()
                 {
                     MaxDegreeOfParallelism = Environment.ProcessorCount,
                 });
 
-                var _actionBlock_BasicNacks = new ActionBlock<long[]>(EventIDs =>
+                var _actionBlock_BasicNacks = new ActionBlock<string[]>(MessageIds =>
                 {
-                    if (nackHandler != null && EventIDs.Length > 0)
+                    if (nackHandler != null && MessageIds.Length > 0)
                     {
-                        nackHandler(EventIDs.ToList());
+                        nackHandler(MessageIds.ToList());
                     }
                 }, new ExecutionDataflowBlockOptions()
                 {
@@ -285,17 +326,26 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 using (var _channel = persistentConnection.CreateModel())
                 {
                     //保存EventId和DeliveryTag 映射
-                    var unconfirmEventIds = new long[Events.Count];
-                    var returnEventIds = new Dictionary<long, bool>();
+                    var unconfirmMessageIds = new string[Events.Count];
+                    var returnMessageIds = new Dictionary<string, bool>();
                     ulong lastDeliveryTag = 0;
 
                     //消息无法投递失被退回（如：队列找不到）
                     _channel.BasicReturn += async (object sender, BasicReturnEventArgs e) =>
                     {
-                        if (!string.IsNullOrEmpty(e.BasicProperties.MessageId) && long.TryParse(e.BasicProperties.MessageId,out long EventId))
+                        if (!string.IsNullOrEmpty(e.BasicProperties.MessageId))
                         {
-                            returnEventIds.Add(EventId, false);
-                            await _batchBlock_BasicReturn.SendAsync(EventId);
+                            var MessageId = e.BasicProperties.MessageId;
+
+                            if (!string.IsNullOrEmpty(MessageId))
+                            {
+                                if (!returnMessageIds.ContainsKey(MessageId))
+                                {
+                                    returnMessageIds.Add(MessageId, false);
+                                }
+
+                                await _batchBlock_BasicReturn.SendAsync(MessageId);
+                            }
                         }
                     };
 
@@ -306,21 +356,21 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         {
                             for (var i = lastDeliveryTag; i < e.DeliveryTag; i++)
                             {
-                                var eventId = unconfirmEventIds[i];
-                                if (eventId>0)
+                                var messageId = unconfirmMessageIds[i];
+                                if (!string.IsNullOrEmpty(messageId))
                                 {
-                                    unconfirmEventIds[i] = -1;
+                                    unconfirmMessageIds[i] = "";
 
-                                    if (returnEventIds.Count > 0)
+                                    if (returnMessageIds.Count > 0)
                                     {
-                                        if (!returnEventIds.ContainsKey(eventId))
+                                        if (!returnMessageIds.ContainsKey(messageId))
                                         {
-                                            await _batchBlock_BasicAcks.SendAsync(eventId);
+                                            await _batchBlock_BasicAcks.SendAsync(messageId);
                                         }
                                     }
                                     else
                                     {
-                                        await _batchBlock_BasicAcks.SendAsync(eventId);
+                                        await _batchBlock_BasicAcks.SendAsync(messageId);
                                     }
                                 }
                             }
@@ -330,21 +380,22 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         }
                         else
                         {
-                            var eventId = unconfirmEventIds[e.DeliveryTag - 1];
+                            var messageId = unconfirmMessageIds[e.DeliveryTag - 1];
 
-                            if (eventId>0)
+                            if (!string.IsNullOrEmpty(messageId))
                             {
-                                unconfirmEventIds[e.DeliveryTag - 1] = -1;
-                                if (returnEventIds.Count > 0)
+                                unconfirmMessageIds[e.DeliveryTag - 1] = "";
+
+                                if (returnMessageIds.Count > 0)
                                 {
-                                    if (!returnEventIds.ContainsKey(eventId))
+                                    if (!returnMessageIds.ContainsKey(messageId))
                                     {
-                                        await _batchBlock_BasicAcks.SendAsync(eventId);
+                                        await _batchBlock_BasicAcks.SendAsync(messageId);
                                     }
                                 }
                                 else
                                 {
-                                    await _batchBlock_BasicAcks.SendAsync(eventId);
+                                    await _batchBlock_BasicAcks.SendAsync(messageId);
                                 }
                             }
                         }
@@ -358,21 +409,21 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         {
                             for (var i = lastDeliveryTag; i < e.DeliveryTag; i++)
                             {
-                                var eventId = unconfirmEventIds[i];
-                                if (eventId>0)
+                                var messageId = unconfirmMessageIds[i];
+                                if (!string.IsNullOrEmpty(messageId))
                                 {
-                                    unconfirmEventIds[i] =-1;
+                                    unconfirmMessageIds[i] ="";
 
-                                    if (returnEventIds.Count > 0)
+                                    if (returnMessageIds.Count > 0)
                                     {
-                                        if (!returnEventIds.ContainsKey(eventId))
+                                        if (!returnMessageIds.ContainsKey(messageId))
                                         {
-                                            await _batchBlock_BasicNacks.SendAsync(eventId);
+                                            await _batchBlock_BasicNacks.SendAsync(messageId);
                                         }
                                     }
                                     else
                                     {
-                                        await _batchBlock_BasicNacks.SendAsync(eventId);
+                                        await _batchBlock_BasicNacks.SendAsync(messageId);
                                     }
                                 }
                             }
@@ -382,21 +433,21 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         }
                         else
                         {
-                            var eventId = unconfirmEventIds[e.DeliveryTag - 1];
-                            if (eventId>0)
+                            var messageId = unconfirmMessageIds[e.DeliveryTag - 1];
+                            if (!string.IsNullOrEmpty(messageId))
                             {
-                                unconfirmEventIds[e.DeliveryTag - 1] = -1;
+                                unconfirmMessageIds[e.DeliveryTag - 1] = "";
 
-                                if (returnEventIds.Count > 0)
+                                if (returnMessageIds.Count > 0)
                                 {
-                                    if (!returnEventIds.ContainsKey(eventId))
+                                    if (!returnMessageIds.ContainsKey(messageId))
                                     {
-                                        await _batchBlock_BasicNacks.SendAsync(eventId);
+                                        await _batchBlock_BasicNacks.SendAsync(messageId);
                                     }
                                 }
                                 else
                                 {
-                                    await _batchBlock_BasicNacks.SendAsync(eventId);
+                                    await _batchBlock_BasicNacks.SendAsync(messageId);
                                 }
                             }
 
@@ -425,11 +476,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             //设置消息持久化
                             IBasicProperties properties = _channel.CreateBasicProperties();
                             properties.DeliveryMode = 2;
-                            properties.MessageId = MessageId;
-                            properties.Headers = new Dictionary<string, Object>();                             
-                            properties.Headers["EventId"] = EventId;
-
-                            unconfirmEventIds[eventIndex] = EventId;
+                            properties.MessageId = MessageId;                            
+                            properties.Headers = new Dictionary<string, Object>();                                                         
+                            unconfirmMessageIds[eventIndex] = MessageId;
 
                             //需要发送延时消息
                             if (EventDelaySeconds > 0)

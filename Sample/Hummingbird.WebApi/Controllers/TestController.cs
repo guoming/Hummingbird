@@ -54,9 +54,9 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
 
         [HttpGet]
         [Route("Publish")]
-        public async Task PublishAsync()
+        public async Task<bool> PublishAsync()
         {
-            await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
+            return await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
 
                         new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new Hummingbird.WebApi.Events.NewMsgEvent{
 
@@ -65,7 +65,7 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
                             new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new Hummingbird.WebApi.Events.NewMsgEvent(){
                                 Time=DateTime.Now
                             })
-                });
+                },0,1);
         }
     }
 }

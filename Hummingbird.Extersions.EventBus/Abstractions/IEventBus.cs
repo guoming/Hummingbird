@@ -20,21 +20,27 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         /// </summary>
         Task PublishAsync(
             List<Models.EventLogEntry> Events,
-            Action<List<long>> ackHandler = null,
-            Action<List<long>> nackHandler = null,
-            Action<List<long>> returnHandler = null,
+            Action<List<Models.EventLogEntry>> ackHandler,
+            Action<List<Models.EventLogEntry>> nackHandler,
+            Action<List<Models.EventLogEntry>> returnHandler,
             int EventDelaySeconds = 0,
             int TimeoutMilliseconds = 500,
             int BatchSize = 500);
 
-        /// <summary>
-        /// 订阅消息（同一类消息可以重复订阅）
-        /// 作者：郭明
-        /// 日期：2017年4月3日
-        /// </summary>
-        /// <param name="QueueName">队列名称</param>     
-        /// <param name="EventTypeName">事件类型名称</param>        
-        IEventBus Register<TD, TH>(string QueueName = "", string EventTypeName = "")
+        Task<bool> PublishAsync(
+         List<Models.EventLogEntry> Events,
+         int EventDelaySeconds = 0,
+         int TimeoutMilliseconds = 500,
+         int BatchSize = 500);
+
+            /// <summary>
+            /// 订阅消息（同一类消息可以重复订阅）
+            /// 作者：郭明
+            /// 日期：2017年4月3日
+            /// </summary>
+            /// <param name="QueueName">队列名称</param>     
+            /// <param name="EventTypeName">事件类型名称</param>        
+            IEventBus Register<TD, TH>(string QueueName = "", string EventTypeName = "")
               where TD : class
               where TH : IEventHandler<TD>;
 
