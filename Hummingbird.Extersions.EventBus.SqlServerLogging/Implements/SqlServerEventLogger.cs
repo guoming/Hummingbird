@@ -22,7 +22,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         public SqlServerEventLogger(
             IUniqueIdGenerator uniqueIdGenerator,
             IDbConnectionFactory dbConnection,
-            SqlServerConfiguration sqlServerConfiguration ="")
+            SqlServerConfiguration sqlServerConfiguration)
         {
             this._sqlServerConfiguration = sqlServerConfiguration;
             this._uniqueIdGenerator = uniqueIdGenerator;
