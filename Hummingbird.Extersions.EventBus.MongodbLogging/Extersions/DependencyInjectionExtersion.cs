@@ -9,13 +9,25 @@ using MongoDB.Bson.Serialization.IdGenerators;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+
+
+
+
     public static class DependencyInjectionExtersion
     {
-        public static IHummingbirdEventBusHostBuilder AddMongodbEventLogging(this IHummingbirdEventBusHostBuilder hostBuilder, MongodbConfiguration configuration)
+        public static IHummingbirdEventBusHostBuilder AddMongodbEventLogging(this IHummingbirdEventBusHostBuilder hostBuilder, Action<MongodbConfiguration> setupConnectionFactory)
         {
+            #region 配置
+            setupConnectionFactory = setupConnectionFactory ?? throw new ArgumentNullException(nameof(setupConnectionFactory));
+            var configuration = new MongodbConfiguration();
+            setupConnectionFactory(configuration);
+            #endregion
+
+            #region Mongodb 主键映射
             var classMap = new BsonClassMap(typeof(Hummingbird.Extersions.EventBus.Models.EventLogEntry)).MapIdField("MessageId").SetIdGenerator(StringObjectIdGenerator.Instance).ClassMap;
             BsonClassMap.RegisterClassMap(classMap);
-        
+            #endregion
+
             hostBuilder.Services.AddTransient<MongodbConfiguration>(a => configuration);
             hostBuilder.Services.AddTransient<MongoDB.Driver.IMongoClient>((sp) => {
                 var config = sp.GetService<MongodbConfiguration>();

@@ -16,11 +16,15 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
     {
         IDbConnectionFactory _dbConnection;
         IUniqueIdGenerator _uniqueIdGenerator;
+        MySqlConfiguration _mySqlConfiguration;
 
         public MySqlEventLogger(
             IUniqueIdGenerator uniqueIdGenerator,
-            IDbConnectionFactory dbConnection)
+            IDbConnectionFactory dbConnection,
+            MySqlConfiguration mySqlConfiguration)
         {
+
+            this._mySqlConfiguration = mySqlConfiguration;
             this._uniqueIdGenerator = uniqueIdGenerator;
             this._dbConnection = dbConnection;
         }
@@ -55,7 +59,7 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
                 sqlParamtersList.Add(sqlParamters);
             }
 
-            await transaction.Connection.ExecuteAsync("insert into EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
+            await transaction.Connection.ExecuteAsync($"insert into {_mySqlConfiguration.TablePrefix}EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
             sqlParamtersList, 
             transaction: transaction
             );
@@ -88,7 +92,7 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
                     }
                     using (var tran = db.BeginTransaction())
                     {
-                        await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", sqlParamtersList, transaction: tran);
+                        await db.ExecuteAsync($"update {_mySqlConfiguration.TablePrefix}EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", sqlParamtersList, transaction: tran);
                         tran.Commit();
                     }
                 }
@@ -123,7 +127,7 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
                     }
                     using (var tran = db.BeginTransaction())
                     {
-                        await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=2 where EventId=@EventId", sqlParamtersList, transaction: tran);
+                        await db.ExecuteAsync($"update {_mySqlConfiguration.TablePrefix}EventLogs set TimesSent=TimesSent+1,State=2 where EventId=@EventId", sqlParamtersList, transaction: tran);
 
                         tran.Commit();
                     }
@@ -143,7 +147,7 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
         {
             using (var db = _dbConnection.GetDbConnection())
             {
-                return db.Query<EventLogEntry>($"select  EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc limit {Take}").AsList();
+                return db.Query<EventLogEntry>($"select  EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from {_mySqlConfiguration.TablePrefix}EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc limit {Take}").AsList();
             }
         }
     }

@@ -14,13 +14,17 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
 {
     public class SqlServerEventLogger : IEventLogger
     {
-        IDbConnectionFactory _dbConnection;
-        IUniqueIdGenerator _uniqueIdGenerator;
+        private readonly IDbConnectionFactory _dbConnection;
+        private readonly IUniqueIdGenerator _uniqueIdGenerator;
+        private readonly SqlServerConfiguration _sqlServerConfiguration;
+        
 
         public SqlServerEventLogger(
             IUniqueIdGenerator uniqueIdGenerator,
-            IDbConnectionFactory dbConnection)
+            IDbConnectionFactory dbConnection,
+            SqlServerConfiguration sqlServerConfiguration ="")
         {
+            this._sqlServerConfiguration = sqlServerConfiguration;
             this._uniqueIdGenerator = uniqueIdGenerator;
             this._dbConnection = dbConnection;
         }
@@ -55,7 +59,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                 sqlParamtersList.Add(sqlParamters);
             }
 
-            await transaction.Connection.ExecuteAsync("insert into EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
+            await transaction.Connection.ExecuteAsync($"insert into {_sqlServerConfiguration.TablePrefix}EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
             sqlParamtersList, 
             transaction: transaction
             );
@@ -89,7 +93,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                     }
                     using (var tran = db.BeginTransaction())
                     {
-                        await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", sqlParamtersList, transaction: tran);
+                        await db.ExecuteAsync($"update {_sqlServerConfiguration.TablePrefix}EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", sqlParamtersList, transaction: tran);
                         tran.Commit();
                     }
                 }
@@ -124,7 +128,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                     }
                     using (var tran = db.BeginTransaction())
                     {
-                        await db.ExecuteAsync("update EventLogs set TimesSent=TimesSent+1,State=2 where EventId=@EventId", sqlParamtersList, transaction: tran);
+                        await db.ExecuteAsync($"update {_sqlServerConfiguration.TablePrefix}EventLogs set TimesSent=TimesSent+1,State=2 where EventId=@EventId", sqlParamtersList, transaction: tran);
 
                         tran.Commit();
                     }
@@ -144,7 +148,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         {
             using (var db = _dbConnection.GetDbConnection())
             {
-                return db.Query<EventLogEntry>("select top " + Take + " EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc").AsList();
+                return db.Query<EventLogEntry>($"select top {Take} EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from {_sqlServerConfiguration.TablePrefix}EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc").AsList();
             }
         }
     }

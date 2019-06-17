@@ -14,18 +14,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Hummingbird.Extersions.EventBus.MongodbLogging
 {
-    public class MongodbConfiguration
-    {
-        public string ConnectionString { get; set; }
-
-        public string DatabaseName { get; set; }
-
-        /// <summary>
-        /// 超时时间
-        /// </summary>
-        public int TimeoutMillseconds { get; set; } = 1000 * 20;
-    }
-
     public class MongodbEventLogger : IEventLogger
     {
         IUniqueIdGenerator _uniqueIdGenerator;
@@ -61,7 +49,7 @@ namespace Hummingbird.Extersions.EventBus.MongodbLogging
                 return await _timeoutPolicy.ExecuteAsync(async (ctx) =>
                 {
                     var db = _client.GetDatabase(_mondbConfiguration.DatabaseName);
-                    var collections = db.GetCollection<EventBus.Models.EventLogEntry>("events");
+                    var collections = db.GetCollection<EventBus.Models.EventLogEntry>($"{_mondbConfiguration.CollectionPrefix}events");
                     var models = new List<WriteModel<EventBus.Models.EventLogEntry>>();
                     var LogEntrys = events.Select(@event => new EventLogEntry("", @event, Guid.NewGuid().ToString("N"), _uniqueIdGenerator.NewId())).ToList();
 
@@ -95,7 +83,7 @@ namespace Hummingbird.Extersions.EventBus.MongodbLogging
                     await _timeoutPolicy.ExecuteAsync(async (ctx) =>
                     {
                         var db = _client.GetDatabase(_mondbConfiguration.DatabaseName);
-                        var collections = db.GetCollection<EventBus.Models.EventLogEntry>("events");
+                        var collections = db.GetCollection<EventBus.Models.EventLogEntry>($"{_mondbConfiguration.CollectionPrefix}events");
                         
                         await collections.UpdateOneAsync(o => events.Contains(o.EventId), Builders<EventBus.Models.EventLogEntry>.Update
                             .Set(a => a.State, EventStateEnum.Published)
@@ -129,7 +117,7 @@ namespace Hummingbird.Extersions.EventBus.MongodbLogging
                     await _timeoutPolicy.ExecuteAsync(async (ctx) =>
                      {
                          var db = _client.GetDatabase(_mondbConfiguration.DatabaseName);
-                         var collections = db.GetCollection<EventBus.Models.EventLogEntry>("events");
+                         var collections = db.GetCollection<EventBus.Models.EventLogEntry>($"{_mondbConfiguration.CollectionPrefix}events");
                          await collections.UpdateOneAsync(o => events.Contains(o.EventId), Builders<EventBus.Models.EventLogEntry>.Update
                              .Set(a => a.State, EventStateEnum.PublishedFailed)
                              .Inc(a => a.TimesSent, 1)
@@ -158,7 +146,7 @@ namespace Hummingbird.Extersions.EventBus.MongodbLogging
                return _timeoutPolicy.ExecuteAsync(async (ctx) =>
                 {
                     var db = _client.GetDatabase(_mondbConfiguration.DatabaseName);
-                    var collections = db.GetCollection<EventBus.Models.EventLogEntry>("events");
+                    var collections = db.GetCollection<EventBus.Models.EventLogEntry>($"{_mondbConfiguration.CollectionPrefix}events");
 
                     return await collections.Find(o => (o.State == EventStateEnum.NotPublished || o.State == EventStateEnum.PublishedFailed) && o.TimesSent <= 3).SortBy(a => a.EventId).Limit(Take).ToListAsync();
 
