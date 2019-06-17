@@ -24,8 +24,19 @@ namespace Microsoft.Extensions.DependencyInjection
             #endregion
 
             #region Mongodb 主键映射
-            var classMap = new BsonClassMap(typeof(Hummingbird.Extersions.EventBus.Models.EventLogEntry)).MapProperty("MessageId").SetIdGenerator(StringObjectIdGenerator.Instance).ClassMap;
-            BsonClassMap.RegisterClassMap(classMap);
+            BsonClassMap.RegisterClassMap<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(map =>
+            {
+                map.AutoMap();
+                map.SetIgnoreExtraElements(true);//忽略属性
+                map.MapProperty("MessageId").SetIdGenerator(StringObjectIdGenerator.Instance);
+                map.MapProperty(c => c.Content).SetElementName("Content");
+                map.MapProperty(c => c.CreationTime).SetElementName("CreationTime");
+                map.MapProperty(c => c.EventId).SetElementName("EventId");
+                map.MapProperty(c => c.EventTypeName).SetElementName("EventTypeName");
+                map.MapProperty(c => c.State).SetElementName("State");
+                map.MapProperty(c => c.TimesSent).SetElementName("TimesSent");                
+            });
+       
             #endregion
 
             hostBuilder.Services.AddTransient<MongodbConfiguration>(a => configuration);
