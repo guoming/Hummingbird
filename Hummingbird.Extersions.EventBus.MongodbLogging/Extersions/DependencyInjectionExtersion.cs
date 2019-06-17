@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
             #endregion
 
             #region Mongodb 主键映射
-            var classMap = new BsonClassMap(typeof(Hummingbird.Extersions.EventBus.Models.EventLogEntry)).MapIdField("MessageId").SetIdGenerator(StringObjectIdGenerator.Instance).ClassMap;
+            var classMap = new BsonClassMap(typeof(Hummingbird.Extersions.EventBus.Models.EventLogEntry)).MapProperty("MessageId").SetIdGenerator(StringObjectIdGenerator.Instance).ClassMap;
             BsonClassMap.RegisterClassMap(classMap);
             #endregion
 
