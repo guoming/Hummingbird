@@ -1,45 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-  <TargetFrameworks>netcoreapp2.1;</TargetFrameworks>
+   <TargetFrameworks>netcoreapp2.1;net4.6.1</TargetFrameworks>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-  <Version>1.4.1</Version>
+  <Version>1.5.0</Version>
   <Description>分布式锁实现</Description>
   <Authors>GUOMING</Authors>
   <Company>GUOMING</Company>
   <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
   <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
-    <DefineConstants>NETCORE</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net4.5' ">
-    <DefineConstants>NET45</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net4.6' ">
-    <DefineConstants>NET46</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
-    <PackageReference Include="Polly" Version="6.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />    
-    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
-  </ItemGroup>
-
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net4.0' ">
-    <PackageReference Include="Polly" Version="4.3.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="StackExchange.Redis" Version="1.2.0" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net4.6.1' ">
-    <PackageReference Include="Polly" Version="6.1.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="StackExchange.Redis" Version="2.0.519" />
-  </ItemGroup>
+  </PropertyGroup> 
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Extersions.Cacheing\Hummingbird.Extersions.Cacheing.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,9 +1,12 @@
-﻿#if NETCORE
+﻿
+#if NETCORE
 using Hummingbird.Core;
+#endif
+
 using Hummingbird.Extersions.Cacheing;
 using Hummingbird.Extersions.Cacheing.StackExchange;
 using Hummingbird.Extersions.Cacheing.StackExchangeImplement;
-#endif
+
 
 using System;
 using System.Collections.Generic;
