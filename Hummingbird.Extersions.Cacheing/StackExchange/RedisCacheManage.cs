@@ -41,14 +41,21 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         {
             this.DbNum = DbNum;
         }
-    
-            /// <summary>
-            /// 创建链接池管理对象
-            /// </summary>
+
+        /// <summary>
+        /// 创建链接池管理对象
+        /// </summary>
         public static ICacheManager Create(StackExchange.RedisCacheConfig config)
         {
-            _KeyPrefix = config.KeyPrefix + ":";
-
+            if (string.IsNullOrEmpty(config.KeyPrefix))
+            { 
+                _KeyPrefix =string.Empty;
+            }
+            else
+            { 
+                _KeyPrefix = config.KeyPrefix + ":";
+               
+            }
             if (_Locator == null)
             {
                 lock (_syncCreateInstance)
@@ -512,7 +519,12 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         {
             return GetPooledClientManager(cacheKey).HashKeys<T>(cacheKey);
         }
+        
 
+        public IDictionary<string,T> HashGetAll<T>(string cacheKey)
+        {
+            return GetPooledClientManager(cacheKey).HashGetAll<T>(cacheKey);
+        }
 
         public T HashGet<T>(string cacheKey, string dataKey)
         {

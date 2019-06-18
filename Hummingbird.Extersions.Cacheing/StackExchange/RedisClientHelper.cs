@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using System.Reflection.Emit;
 namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 {
     /// <summary>
@@ -368,7 +368,30 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             return Do(db =>
             {
                 RedisValue[] values = db.HashKeys(key);
+                
                 return ConvetList<T>(values);
+            });
+        }
+
+        /// <summary>
+        /// 获取hashkey所有Redis key
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public IDictionary<string,T> HashGetAll<T>(string key)
+        {
+            key = AddSysCustomKey(key);
+            return Do(db =>
+            {
+                var hashEntries = db.HashGetAll(key);
+                var result = new Dictionary<string, T>();
+                foreach (var entry in hashEntries)
+                {   
+                    result.Add(entry.Name, ConvertObj<T>(entry.Value));
+                }
+
+                return result;
             });
         }
 
@@ -1143,7 +1166,6 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         private string ConvertJson<T>(T value)
         {
-            //string result = value is string ? value.ToString() : JsonConvert.SerializeObject(value);
             string result = JsonConvert.SerializeObject(value);
             return result;
         }
@@ -1154,10 +1176,20 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             {
                 return default(T);
             }
-            var json = value.ToString();
-            T result = JsonHelper.FromJson<T>(json);
+            else
+            {
+                var json = value.ToString();
 
-            return result;
+                if (typeof(T).IsValueType || typeof(T).FullName == "System.String")
+                {
+                    return (T)Convert.ChangeType(json, typeof(T));
+                }
+                else
+                {
+                    T result = JsonHelper.FromJson<T>(json);
+                    return result;
+                }
+            }
         }
 
         private List<T> ConvetList<T>(RedisValue[] values)

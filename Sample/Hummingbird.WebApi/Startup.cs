@@ -82,7 +82,10 @@ namespace Hummingbird.WebApi
                         factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
                     })
                     
-                    .AddSqlServerEventLogging(DatabaseConnectionString);
+                    .AddSqlServerEventLogging(a=> {
+
+                        a.WithEndpoint(DatabaseConnectionString);
+                    });
                     
 
 

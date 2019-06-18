@@ -163,6 +163,8 @@ namespace Hummingbird.Extersions.Cacheing
 
         T HashGet<T>(string cacheKey, string dataKey);
 
+        IDictionary<string, T> HashGetAll<T>(string cacheKey);
+
         bool HashKeys<T>(string cacheKey, string dataKey, T value);
 
         /// <summary>
