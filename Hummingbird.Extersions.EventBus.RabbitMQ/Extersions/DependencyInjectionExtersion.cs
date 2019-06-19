@@ -62,6 +62,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             this.SenderMaxConnections = SenderMaxConnections;
             this.SenderAcquireRetryAttempts = AcquireRetryAttempts;
+            this.SenderLoadBalancer = LoadBalancer;
         }
 
 
@@ -78,6 +79,8 @@ namespace Microsoft.Extensions.DependencyInjection
             this.ReceiverAcquireRetryAttempts = AcquireRetryAttempts;
             this.IdempotencyDuration = IdempotencyDurationSeconds;
             this.PreFetch = PreFetch;
+            this.ReceiverLoadBalancer = LoadBalancer;
+
             
         }
 
