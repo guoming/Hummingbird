@@ -12,5 +12,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
         IModel CreateModel();
 
+        IModel GetModel();
+
     }
 }

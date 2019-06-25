@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using System.Collections.Concurrent;
 
 namespace Hummingbird.Extersions.EventBus.RabbitMQ
 {
@@ -53,6 +54,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private Action<string[], string> _subscribeAckHandler = null;
         private Func<string[], string, Exception, dynamic[], Task<bool>> _subscribeNackHandler = null;
         private static List<IModel> _subscribeChannels = new List<IModel>();
+        private readonly SemaphoreSlim readLock = new SemaphoreSlim(1, 1);
+        private static ConcurrentDictionary<string, SortedList<string, bool>> _channelAllReturnMessageIds = new ConcurrentDictionary<string, SortedList<string, bool>>();
+        private static ConcurrentDictionary<string, SortedList<ulong, string>> _channelAllUnconfirmMessageIds = new ConcurrentDictionary<string, SortedList<ulong, string>>();
+     
         private readonly IHummingbirdCache<bool> _cacheManager;
         private readonly RetryPolicy _eventBusRetryPolicy = null;
 
@@ -68,6 +73,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             string exchange = "amp.topic",
             string exchangeType = "topic")
         {
+        
             this._receiveLoadBlancer = receiveLoadBlancer;
             this._senderLoadBlancer = senderLoadBlancer;
             this._lifetimeScope = lifetimeScope ?? throw new ArgumentNullException(nameof(lifetimeScope));
@@ -106,38 +112,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             await EnqueueNoConfirm(evtDicts,EventDelaySeconds);
         }
 
-        /// <summary>
-        /// 发送消息
-        /// </summary>
-        public async Task PublishAsync(
-            List<Models.EventLogEntry> Events,
-            Action<List<Models.EventLogEntry>> ackHandler = null,
-            Action<List<Models.EventLogEntry>> nackHandler = null,
-            Action<List<Models.EventLogEntry>> returnHandler = null,
-            int EventDelaySeconds = 0,
-            int TimeoutMilliseconds = 500,
-            int BatchSize = 500)
-        {
-            var evtDicts = Events.Select(a => new EventMessage()
-            {
-                Body = a.Content,
-                MessageId = a.MessageId.ToString(),
-                EventId = a.EventId,
-                RouteKey = a.EventTypeName
-            }).ToList();
-
-            await EnqueueConfirm(evtDicts,(messageIds)=> {
-
-                ackHandler(Events.Where(@event => messageIds.Contains(@event.MessageId)).ToList());                
-
-            }, (messageIds)=> {
-
-                nackHandler(Events.Where(@event => messageIds.Contains(@event.MessageId)).ToList());
-
-            }, (messageIds)=> {
-                returnHandler(Events.Where(@event => messageIds.Contains(@event.MessageId)).ToList());
-            }, EventDelaySeconds, TimeoutMilliseconds, BatchSize);
-        }
+      
 
         /// <summary>
         /// 发送消息
@@ -158,15 +133,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
             bool result = true;
 
-            await EnqueueConfirm(evtDicts, (messageIds) => {
-
-            }, (messageIds) => {
-
-                result = false;
-
-            }, (messageIds) => {
-                result = false;
-            }, EventDelaySeconds, TimeoutMilliseconds, BatchSize);
+            await EnqueueConfirm(evtDicts, EventDelaySeconds, TimeoutMilliseconds, BatchSize);
 
             return result;
         }
@@ -175,87 +142,87 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             List<EventMessage> Events,
           int EventDelaySeconds)
         {
+         
             var persistentConnection = await _senderLoadBlancer.Lease();
 
             try
             {
+             
                 if (!persistentConnection.IsConnected)
                 {
                     persistentConnection.TryConnect();
                 }
 
-                using (var _channel = persistentConnection.CreateModel())
+                var _channel = persistentConnection.GetModel();
+                
+                // 提交走批量通道
+                var _batchPublish = _channel.CreateBasicPublishBatch();
+                    
+                for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
                 {
-                    // 提交走批量通道
-                    var _batchPublish = _channel.CreateBasicPublishBatch();
                     
-                    for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
-                    {
-                    
-                            var MessageId = Events[eventIndex].MessageId;
-                            var EventId = Events[eventIndex].EventId;
+                        var MessageId = Events[eventIndex].MessageId;
+                        var EventId = Events[eventIndex].EventId;
 
-                            var json = Events[eventIndex].Body;
-                            var routeKey = Events[eventIndex].RouteKey;
-                            byte[] bytes = Encoding.UTF8.GetBytes(json);
-                            //设置消息持久化
-                            IBasicProperties properties = _channel.CreateBasicProperties();
-                            properties.DeliveryMode = 2;
-                            properties.MessageId = MessageId;
-                            properties.Headers = new Dictionary<string, Object>();
-                            properties.Headers["EventId"] = EventId;
+                        var json = Events[eventIndex].Body;
+                        var routeKey = Events[eventIndex].RouteKey;
+                        byte[] bytes = Encoding.UTF8.GetBytes(json);
+                        //设置消息持久化
+                        IBasicProperties properties = _channel.CreateBasicProperties();
+                        properties.DeliveryMode = 2;
+                        properties.MessageId = MessageId;
+                        properties.Headers = new Dictionary<string, Object>();
+                        properties.Headers["EventId"] = EventId;
                         
 
-                            //需要发送延时消息
-                        if (EventDelaySeconds > 0)
-                            {
-                                var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
-
-                                Dictionary<string, object> dic = new Dictionary<string, object>();
-                                dic.Add("x-expires", EventDelaySeconds * 10000);//队列过期时间 
-                                dic.Add("x-message-ttl", EventDelaySeconds * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
-                                dic.Add("x-dead-letter-exchange", _exchange);//过期消息转向路由  
-                                dic.Add("x-dead-letter-routing-key", routeKey);//过期消息转向路由相匹配routingkey 
-
-                                //创建一个队列                         
-                                _channel.QueueDeclare(
-                                        queue: newQueue,
-                                        durable: true,
-                                        exclusive: false,
-                                        autoDelete: false,
-                                        arguments: dic);
-
-                                //发送至延时队列，延时结束后会写入正式度列
-                                _batchPublish.Add(
-                                    exchange: "",
-                                    mandatory: true,
-                                    routingKey: newQueue,
-                                    properties: properties,
-                                    body: bytes);
-
-                            }
-                            else
-                            {
-                                //发送到正常队列，如果Reject会写入死信队列
-                                _batchPublish.Add(
-                                    exchange: _exchange,
-                                    mandatory: true,
-                                    routingKey: routeKey,
-                                    properties: properties,
-                                    body: bytes);
-                            }                   
-                    };
-
-                    await _eventBusRetryPolicy.Execute(async () =>
-                    {
-                        await Task.Run(() =>
+                        //需要发送延时消息
+                    if (EventDelaySeconds > 0)
                         {
-                            //批量提交
-                            _batchPublish.Publish();
-                        });
-                    });
-                }
+                            var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
 
+                            Dictionary<string, object> dic = new Dictionary<string, object>();
+                            dic.Add("x-expires", EventDelaySeconds * 10000);//队列过期时间 
+                            dic.Add("x-message-ttl", EventDelaySeconds * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
+                            dic.Add("x-dead-letter-exchange", _exchange);//过期消息转向路由  
+                            dic.Add("x-dead-letter-routing-key", routeKey);//过期消息转向路由相匹配routingkey 
+
+                            //创建一个队列                         
+                            _channel.QueueDeclare(
+                                    queue: newQueue,
+                                    durable: true,
+                                    exclusive: false,
+                                    autoDelete: false,
+                                    arguments: dic);
+
+                            //发送至延时队列，延时结束后会写入正式度列
+                            _batchPublish.Add(
+                                exchange: "",
+                                mandatory: true,
+                                routingKey: newQueue,
+                                properties: properties,
+                                body: bytes);
+
+                        }
+                        else
+                        {
+                            //发送到正常队列，如果Reject会写入死信队列
+                            _batchPublish.Add(
+                                exchange: _exchange,
+                                mandatory: true,
+                                routingKey: routeKey,
+                                properties: properties,
+                                body: bytes);
+                        }                   
+                };
+                  
+                await _eventBusRetryPolicy.Execute(async () =>
+                {
+                    await Task.Run(() =>
+                    {
+                        //批量提交
+                        _batchPublish.Publish();
+                    });
+                });
 
             }
             catch (Exception ex)
@@ -265,11 +232,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             }
         }
 
+
+
         async Task EnqueueConfirm(
           List<EventMessage> Events,
-          Action<List<string>> ackHandler,
-          Action<List<string>> nackHandler,
-          Action<List<string>> returnHandler,
           int EventDelaySeconds,
           int TimeoutMilliseconds,
           int BatchSize)
@@ -282,266 +248,86 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 {
                     persistentConnection.TryConnect();
                 }
-                //消息发送成功后回调后需要修改数据库状态，改成本地做组缓存后，再批量入库。（性能提升百倍）
-                var _batchBlock_BasicReturn = new BatchBlock<string>(BatchSize);
-                var _batchBlock_BasicAcks = new BatchBlock<string>(BatchSize);
-                var _batchBlock_BasicNacks = new BatchBlock<string>(BatchSize);
-                var _actionBlock_BasicReturn = new ActionBlock<string[]>(MessageIds =>
+                var _channel = persistentConnection.GetModel();
+
+                _eventBusRetryPolicy.Execute(() =>
                 {
-                    if (returnHandler != null && MessageIds.Length > 0)
-                    {
-                        returnHandler(MessageIds.ToList());
-                    }
-                }, new ExecutionDataflowBlockOptions()
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount
-                });
-
-                var _actionBlock_BasicAcks = new ActionBlock<string[]>(MessageIds =>
-                {
-                    if (ackHandler != null && MessageIds.Length > 0)
-                    {
-                        ackHandler(MessageIds.ToList());
-                    }
-                }, new ExecutionDataflowBlockOptions()
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount,
-                });
-
-                var _actionBlock_BasicNacks = new ActionBlock<string[]>(MessageIds =>
-                {
-                    if (nackHandler != null && MessageIds.Length > 0)
-                    {
-                        nackHandler(MessageIds.ToList());
-                    }
-                }, new ExecutionDataflowBlockOptions()
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount
-                });
-
-                _batchBlock_BasicReturn.LinkTo(_actionBlock_BasicReturn);
-                _batchBlock_BasicAcks.LinkTo(_actionBlock_BasicAcks);
-                _batchBlock_BasicNacks.LinkTo(_actionBlock_BasicNacks);
-
-                using (var _channel = persistentConnection.CreateModel())
-                {
-                    //保存EventId和DeliveryTag 映射
-                    var unconfirmMessageIds = new string[Events.Count];
-                    var returnMessageIds = new Dictionary<string, bool>();
-                    ulong lastDeliveryTag = 0;
-
-                    //消息无法投递失被退回（如：队列找不到）
-                    _channel.BasicReturn += async (object sender, BasicReturnEventArgs e) =>
-                    {
-                        if (!string.IsNullOrEmpty(e.BasicProperties.MessageId))
-                        {
-                            var MessageId = e.BasicProperties.MessageId;
-
-                            if (!string.IsNullOrEmpty(MessageId))
-                            {
-                                if (!returnMessageIds.ContainsKey(MessageId))
-                                {
-                                    returnMessageIds.Add(MessageId, false);
-                                }
-
-                                await _batchBlock_BasicReturn.SendAsync(MessageId);
-                            }
-                        }
-                    };
-
-                    //消息路由到队列并持久化后执行
-                    _channel.BasicAcks += async (object sender, BasicAckEventArgs e) =>
-                    {
-                        if (e.Multiple)
-                        {
-                            for (var i = lastDeliveryTag; i < e.DeliveryTag; i++)
-                            {
-                                var messageId = unconfirmMessageIds[i];
-                                if (!string.IsNullOrEmpty(messageId))
-                                {
-                                    unconfirmMessageIds[i] = "";
-
-                                    if (returnMessageIds.Count > 0)
-                                    {
-                                        if (!returnMessageIds.ContainsKey(messageId))
-                                        {
-                                            await _batchBlock_BasicAcks.SendAsync(messageId);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        await _batchBlock_BasicAcks.SendAsync(messageId);
-                                    }
-                                }
-                            }
-
-                            // 批量回调，记录当期位置
-                            lastDeliveryTag = e.DeliveryTag;
-                        }
-                        else
-                        {
-                            var messageId = unconfirmMessageIds[e.DeliveryTag - 1];
-
-                            if (!string.IsNullOrEmpty(messageId))
-                            {
-                                unconfirmMessageIds[e.DeliveryTag - 1] = "";
-
-                                if (returnMessageIds.Count > 0)
-                                {
-                                    if (!returnMessageIds.ContainsKey(messageId))
-                                    {
-                                        await _batchBlock_BasicAcks.SendAsync(messageId);
-                                    }
-                                }
-                                else
-                                {
-                                    await _batchBlock_BasicAcks.SendAsync(messageId);
-                                }
-                            }
-                        }
-                    };
-
-                    //消息投递失败
-                    _channel.BasicNacks += async (object sender, BasicNackEventArgs e) =>
-                    {
-
-                        if (e.Multiple)
-                        {
-                            for (var i = lastDeliveryTag; i < e.DeliveryTag; i++)
-                            {
-                                var messageId = unconfirmMessageIds[i];
-                                if (!string.IsNullOrEmpty(messageId))
-                                {
-                                    unconfirmMessageIds[i] ="";
-
-                                    if (returnMessageIds.Count > 0)
-                                    {
-                                        if (!returnMessageIds.ContainsKey(messageId))
-                                        {
-                                            await _batchBlock_BasicNacks.SendAsync(messageId);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        await _batchBlock_BasicNacks.SendAsync(messageId);
-                                    }
-                                }
-                            }
-
-                            // 批量回调，记录当期位置
-                            lastDeliveryTag = e.DeliveryTag;
-                        }
-                        else
-                        {
-                            var messageId = unconfirmMessageIds[e.DeliveryTag - 1];
-                            if (!string.IsNullOrEmpty(messageId))
-                            {
-                                unconfirmMessageIds[e.DeliveryTag - 1] = "";
-
-                                if (returnMessageIds.Count > 0)
-                                {
-                                    if (!returnMessageIds.ContainsKey(messageId))
-                                    {
-                                        await _batchBlock_BasicNacks.SendAsync(messageId);
-                                    }
-                                }
-                                else
-                                {
-                                    await _batchBlock_BasicNacks.SendAsync(messageId);
-                                }
-                            }
-
-                        }
-                    };
-
-                    _eventBusRetryPolicy.Execute(() =>
-                    {
-                        _channel.ConfirmSelect();
-                    });
+                    _channel.ConfirmSelect();
+                });               
 
                     // 提交走批量通道
-                    var _batchPublish = _channel.CreateBasicPublishBatch();
-                    
+                var _batchPublish = _channel.CreateBasicPublishBatch();
 
-                    for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
+                for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
+                {
+                    _eventBusRetryPolicy.Execute(() =>
                     {
-                        _eventBusRetryPolicy.Execute(() =>
+                        var MessageId = Events[eventIndex].MessageId;
+                        var EventId = Events[eventIndex].EventId;
+
+                        var json = Events[eventIndex].Body;
+                        var routeKey = Events[eventIndex].RouteKey;
+                        byte[] bytes = Encoding.UTF8.GetBytes(json);
+                        //设置消息持久化
+                        IBasicProperties properties = _channel.CreateBasicProperties();
+                        properties.DeliveryMode = 2;
+                        properties.MessageId = MessageId;
+                        properties.Headers = new Dictionary<string, Object>();
+                   
+
+                        //需要发送延时消息
+                        if (EventDelaySeconds > 0)
                         {
-                            var MessageId = Events[eventIndex].MessageId;
-                            var EventId = Events[eventIndex].EventId;
+                            var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
 
-                            var json = Events[eventIndex].Body;
-                            var routeKey = Events[eventIndex].RouteKey;
-                            byte[] bytes = Encoding.UTF8.GetBytes(json);
-                            //设置消息持久化
-                            IBasicProperties properties = _channel.CreateBasicProperties();
-                            properties.DeliveryMode = 2;
-                            properties.MessageId = MessageId;                            
-                            properties.Headers = new Dictionary<string, Object>();                                                         
-                            unconfirmMessageIds[eventIndex] = MessageId;
+                            Dictionary<string, object> dic = new Dictionary<string, object>();
+                            dic.Add("x-expires", EventDelaySeconds * 10000);//队列过期时间 
+                            dic.Add("x-message-ttl", EventDelaySeconds * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
+                            dic.Add("x-dead-letter-exchange", _exchange);//过期消息转向路由  
+                            dic.Add("x-dead-letter-routing-key", routeKey);//过期消息转向路由相匹配routingkey 
 
-                            //需要发送延时消息
-                            if (EventDelaySeconds > 0)
-                            {
-                                var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
-
-                                Dictionary<string, object> dic = new Dictionary<string, object>();
-                                dic.Add("x-expires", EventDelaySeconds * 10000);//队列过期时间 
-                                dic.Add("x-message-ttl", EventDelaySeconds * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
-                                dic.Add("x-dead-letter-exchange", _exchange);//过期消息转向路由  
-                                dic.Add("x-dead-letter-routing-key", routeKey);//过期消息转向路由相匹配routingkey 
-
-                                //创建一个队列                         
-                                _channel.QueueDeclare(
+                            //创建一个队列                         
+                            _channel.QueueDeclare(
                                         queue: newQueue,
                                         durable: true,
                                         exclusive: false,
                                         autoDelete: false,
                                         arguments: dic);
 
-                                //发送至延时队列，延时结束后会写入正式度列
-                                _batchPublish.Add(
+                            //发送至延时队列，延时结束后会写入正式度列
+                            _batchPublish.Add(
                                     exchange: "",
                                     mandatory: true,
                                     routingKey: newQueue,
                                     properties: properties,
                                     body: bytes);
 
-                            }
-                            else
-                            {
-                                //发送到正常队列，如果Reject会写入死信队列
-                                _batchPublish.Add(
+                        }
+                        else
+                        {
+                            //发送到正常队列，如果Reject会写入死信队列
+                            _batchPublish.Add(
                                     exchange: _exchange,
                                     mandatory: true,
                                     routingKey: routeKey,
                                     properties: properties,
                                     body: bytes);
-                            }
-                            
-                        });
-                    };
+                        }
 
-                    await _eventBusRetryPolicy.Execute(async () =>
+                    });
+                };
+
+                await _eventBusRetryPolicy.Execute(async () =>
                     {
                         await Task.Run(() =>
                         {
                             //批量提交
                             _batchPublish.Publish();
-                            
-                            _channel.WaitForConfirms(TimeSpan.FromMilliseconds(TimeoutMilliseconds));
+
+                            _channel.WaitForConfirmsOrDie();
                         });
                     });
-                }
-
-                _batchBlock_BasicAcks.Complete();
-                _batchBlock_BasicNacks.Complete();
-                _batchBlock_BasicReturn.Complete();
-
-                await _batchBlock_BasicReturn.Completion.ContinueWith(delegate { _actionBlock_BasicReturn.Complete(); _actionBlock_BasicReturn.Completion.Wait(); });
-                await _batchBlock_BasicAcks.Completion.ContinueWith(delegate { _actionBlock_BasicAcks.Complete(); _actionBlock_BasicAcks.Completion.Wait(); });
-                await _batchBlock_BasicNacks.Completion.ContinueWith(delegate { _actionBlock_BasicNacks.Complete(); _actionBlock_BasicNacks.Completion.Wait(); });
-
+            
             }
             catch (Exception ex)
             {
@@ -832,7 +618,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         #region batch Pull
                         for (var i = 0; i < BatchSize; i++)
                         {
-                            
+                        
+
                             var ea = _channel.BasicGet(_queueName, false);
                             if (ea != null)
                             {

@@ -17,6 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
             setupFactory(configuration);
             #endregion
 
+            hostBuilder.Services.AddTransient<MySqlConfiguration>(a => configuration);
             hostBuilder.Services.AddTransient<IDbConnectionFactory>(a => new DbConnectionFactory(configuration.ConnectionString));
             hostBuilder.Services.AddTransient<IEventLogger, MySqlEventLogger>();
             return hostBuilder;

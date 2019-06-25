@@ -53,18 +53,28 @@ namespace Hummingbird.Extersions.Cacheing
         #region json转T对象
         public static T FromJson<T>(this string json)
         {
-            if (string.IsNullOrWhiteSpace(json)) return default(T);
-            return JsonConvert.DeserializeObject<T>(json);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return default(T);
+            }
+            else
+            {
+                return JsonConvert.DeserializeObject<T>(json);
+            }
         }
 
         public static T FromJsonSafe<T>(this string json, T defValue = default(T))
         {
-            if (string.IsNullOrWhiteSpace(json)) return defValue;
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return defValue;
+            }
+
             try
             {
                 return JsonConvert.DeserializeObject<T>(json);
             }
-            catch// (Exception e)
+            catch(Exception e)
             {
                 return defValue;
             }

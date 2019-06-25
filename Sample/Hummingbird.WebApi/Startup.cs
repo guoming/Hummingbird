@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Hummingbird.WebApi.Events;
 using Microsoft.AspNetCore.Builder;
@@ -80,15 +82,13 @@ namespace Hummingbird.WebApi
                         factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
                         factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
                         factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                    })
-                    
-                    .AddSqlServerEventLogging(a=> {
-
-                        a.WithEndpoint(DatabaseConnectionString);
-                    });
-                    
-
-
+                        factory.WithReceiver(3, 3, "RoundRobinLoadBalancer", 1, 2);
+                        factory.WithSender(10);
+                    })               
+                    .AddSqlServerEventLogging(a =>
+                     {
+                         a.WithEndpoint(DatabaseConnectionString);
+                     });
                 });
 
             });
@@ -111,7 +111,9 @@ namespace Hummingbird.WebApi
                     sp.UseSubscriber(eventbus =>
                     {
                         //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
-                        eventbus.Register<Events.NewMsgEvent, Events.NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
+                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
+
+
                     });
                 });
 

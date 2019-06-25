@@ -7,6 +7,6 @@ namespace Hummingbird.WebApi.Events
 {
     public class NewMsgEvent
     {
-        public DateTime Time { get; set; }
+        public int Value { get; set; }
     }
 }

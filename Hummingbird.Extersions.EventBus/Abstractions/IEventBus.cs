@@ -15,18 +15,7 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
     {
         Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events,int EventDelaySeconds = 0);
 
-        /// <summary>
-        /// 发送消息
-        /// </summary>
-        Task PublishAsync(
-            List<Models.EventLogEntry> Events,
-            Action<List<Models.EventLogEntry>> ackHandler,
-            Action<List<Models.EventLogEntry>> nackHandler,
-            Action<List<Models.EventLogEntry>> returnHandler,
-            int EventDelaySeconds = 0,
-            int TimeoutMilliseconds = 500,
-            int BatchSize = 500);
-
+   
         Task<bool> PublishAsync(
          List<Models.EventLogEntry> Events,
          int EventDelaySeconds = 0,

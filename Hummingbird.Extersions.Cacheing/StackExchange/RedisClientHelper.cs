@@ -27,7 +27,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             this.DbNum = dbNum;
             this.KeyPrefix = KeyPrefix;
             this._conn = RedisConnectionHelp.CreateConnect(connectionString);
-           
+
         }
 
         public RedisClientHelper(int dbNum, ConfigurationOptions configOptions, string KeyPrefix)
@@ -35,7 +35,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             this.DbNum = dbNum;
             this.KeyPrefix = KeyPrefix;
             this._conn = RedisConnectionHelp.CreateConnect(configOptions);
-          
+
         }
 
 
@@ -267,7 +267,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(db => db.HashExists(key, dataKey));
 
-           
+
         }
 
         /// <summary>
@@ -368,7 +368,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             return Do(db =>
             {
                 RedisValue[] values = db.HashKeys(key);
-                
+
                 return ConvetList<T>(values);
             });
         }
@@ -379,7 +379,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
-        public IDictionary<string,T> HashGetAll<T>(string key)
+        public IDictionary<string, T> HashGetAll<T>(string key)
         {
             key = AddSysCustomKey(key);
             return Do(db =>
@@ -387,7 +387,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
                 var hashEntries = db.HashGetAll(key);
                 var result = new Dictionary<string, T>();
                 foreach (var entry in hashEntries)
-                {   
+                {
                     result.Add(entry.Name, ConvertObj<T>(entry.Value));
                 }
 
@@ -936,7 +936,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         public bool KeyDelete(string key)
         {
             key = AddSysCustomKey(key);
-            return Do(db => db.KeyDelete(key));            
+            return Do(db => db.KeyDelete(key));
         }
 
         /// <summary>
@@ -991,10 +991,10 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         /// <param name="key">redis key</param>
         /// <param name="expiry"></param>
         /// <returns></returns>
-        public bool LockTake(string key,string lockValue, TimeSpan expiry)
+        public bool LockTake(string key, string lockValue, TimeSpan expiry)
         {
             key = AddSysCustomKey(key);
-            return Do(db => db.LockTake(key,lockValue, expiry));
+            return Do(db => db.LockTake(key, lockValue, expiry));
         }
 
         /// <summary>
@@ -1146,28 +1146,23 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         private T Do<T>(Func<IDatabase, T> func)
         {
-            try
+           
+            if (_conn != null)
             {
-                if (_conn != null)
-                {
-                    var database = _conn.GetDatabase(DbNum);
-                    return func(database);
-
-              
-                }
-                else
-                    return default(T);
+                var database = _conn.GetDatabase(DbNum);
+                return func(database);
             }
-            catch //(Exception E)
-            {   
+            else
                 return default(T);
-            }
+          
         }
 
         private string ConvertJson<T>(T value)
         {
+
             string result = JsonConvert.SerializeObject(value);
             return result;
+
         }
 
         private T ConvertObj<T>(RedisValue value)
@@ -1186,10 +1181,11 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
                 }
                 else
                 {
-                    T result = JsonHelper.FromJson<T>(json);
+                    T result = JsonHelper.FromJsonSafe<T>(json);
                     return result;
                 }
             }
+
         }
 
         private List<T> ConvetList<T>(RedisValue[] values)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Hummingbird.Extersions.Cache;
@@ -39,16 +40,16 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
         [Route("PublishNonConfirm")]
         public async Task PublishNonConfirmAsync()
         {
-            await _eventBus.PublishNonConfirmAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
+            for (int i = 0; i < 100000; i++)
+            {
+                await _eventBus.PublishNonConfirmAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
 
                         new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new Hummingbird.WebApi.Events.NewMsgEvent{
 
-                                Time=DateTime.Now
-                            }),
-                            new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new Hummingbird.WebApi.Events.NewMsgEvent(){
-                                Time=DateTime.Now
+                                Value=i
                             })
                 });
+            }
         }
 
 
@@ -56,16 +57,33 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
         [Route("Publish")]
         public async Task<bool> PublishAsync()
         {
-            return await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
+            var result = new List<string>();
+
+            for (int i = 0; i < 100000; i++)
+            {
+
+                var r= await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
 
                         new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new Hummingbird.WebApi.Events.NewMsgEvent{
 
-                                Time=DateTime.Now
-                            }),
-                            new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new Hummingbird.WebApi.Events.NewMsgEvent(){
-                                Time=DateTime.Now
+                                Value=0
                             })
-                },0,1);
+                }, 0, 1);
+
+                if(!r)
+                {
+                    Console.WriteLine("F");
+                }
+                else
+                {
+                    Console.WriteLine("O");
+                }
+            }
+
+
+
+
+            return true;
         }
     }
 }

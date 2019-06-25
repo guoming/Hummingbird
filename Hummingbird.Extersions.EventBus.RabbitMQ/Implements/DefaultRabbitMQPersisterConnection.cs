@@ -17,12 +17,11 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly IConnectionFactory _connectionFactory;
         private readonly ILogger<IRabbitMQPersistentConnection> _logger;
         private readonly int _retryCount;
-        IConnection _connection;
-        bool _disposed;
-
-        object sync_root = new object();
-        private ConnectionFactory factory;
-        private ConsoleLogger consoleLogger;
+        private IConnection _connection;
+        private IModel _model;
+        private bool _disposed;
+        private object sync_root = new object();
+        private readonly ConnectionFactory factory;
 
         public DefaultRabbitMQPersistentConnection(IConnectionFactory connectionFactory, ILogger<IRabbitMQPersistentConnection> logger, int retryCount = 5)
         {
@@ -31,10 +30,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             _retryCount = retryCount;
         }
 
-        public DefaultRabbitMQPersistentConnection(ConnectionFactory factory, ConsoleLogger consoleLogger)
+        public DefaultRabbitMQPersistentConnection(ConnectionFactory factory)
         {
             this.factory = factory;
-            this.consoleLogger = consoleLogger;
         }
 
         public bool IsConnected
@@ -51,8 +49,20 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             {
                 throw new InvalidOperationException("No RabbitMQ connections are available to perform this action");
             }
-            
+
+
             return _connection.CreateModel();
+         
+        }
+
+        public IModel GetModel()
+        {
+            if (!IsConnected)
+            {
+                throw new InvalidOperationException("No RabbitMQ connections are available to perform this action");
+            }
+
+            return _model;
         }
 
         public void Dispose()
@@ -91,8 +101,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         policy.Execute(() =>
                         {
-                            _connection = _connectionFactory
-                                  .CreateConnection();
+                            _connection = _connectionFactory.CreateConnection();
+                            _model = _connection.CreateModel();
                         });
 
                         if (IsConnected)

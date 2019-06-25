@@ -105,7 +105,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var eventBus = serviceProvider.GetRequiredService<IEventBus>();
             var logger = serviceProvider.GetRequiredService<ILogger<IEventLogger>>();
-            var eventLogService = serviceProvider.GetRequiredService<IEventLogger>();
             //消息处理的策略(降级时返回处理失败)
             var policy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false).WrapAsync(createPolicy(logger));
 

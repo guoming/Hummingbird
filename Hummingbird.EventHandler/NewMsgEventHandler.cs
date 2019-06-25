@@ -9,10 +9,7 @@ namespace Hummingbird.WebApi.Events
     {
         public Task<bool> Handle(NewMsgEvent[] @event, System.Threading.CancellationToken cancellationToken)
         {
-            foreach (var item in @event)
-            {
-                Console.WriteLine(item.Time.ToString());
-            }
+   
             return Task.FromResult(true);
         }
     }
@@ -21,13 +18,13 @@ namespace Hummingbird.WebApi.Events
     {
         public NewMsgEventHandler(IServiceProvider serviceProvider)
         {
+        
 
         }
 
         public Task<bool> Handle(NewMsgEvent @event, System.Threading.CancellationToken cancellationToken)
         {
-            Console.WriteLine(@event.Time.ToString());
-
+           
             return Task.FromResult(true);
         }
     }
@@ -41,7 +38,7 @@ namespace Hummingbird.WebApi.Events
 
         public Task<bool> Handle(NewMsgEvent @event, System.Threading.CancellationToken cancellationToken)
         {
-            Console.WriteLine(@event.Time.ToString());
+            Console.WriteLine(@event.Value.ToString());
 
             return Task.FromResult(true);
         }
