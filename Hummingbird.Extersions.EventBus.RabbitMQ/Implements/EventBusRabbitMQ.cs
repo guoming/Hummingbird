@@ -399,9 +399,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         var MessageId = ea.BasicProperties.MessageId;
 
-                        if (!string.IsNullOrEmpty(MessageId) && (_IdempotencyDuration == 0 || !_cacheManager.Exists($"{_queueName}:{MessageId}", "Events")))
+                        if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.Exists($"{_queueName}:{MessageId}", "Events"))
                         {
-
                             try
                             {
                                 bytes = ea.Body;
@@ -416,55 +415,55 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                 if (handlerOK)
                                 {
-                                    if (_subscribeAckHandler != null)
+                                    if (_subscribeAckHandler != null && !string.IsNullOrEmpty(MessageId))
                                     {
                                         _subscribeAckHandler(new string[] { MessageId }, _queueName);
                                     }
-                                //确认消息
-                                _channel.BasicAck(ea.DeliveryTag, false);
 
-                                //幂等保证
-                                if (_IdempotencyDuration > 0)
+                                    //确认消息
+                                    _channel.BasicAck(ea.DeliveryTag, false);
+
+                                    //幂等保证
+                                    if (_IdempotencyDuration > 0 && !string.IsNullOrEmpty(MessageId))
                                     {
                                         _cacheManager.Add($"{_queueName}:{MessageId}", true, TimeSpan.FromSeconds(_IdempotencyDuration), "Events");
                                     }
                                 }
                                 else
                                 {
-                                //重新入队，默认：是
-                                var requeue = true;
+                                    //重新入队，默认：是
+                                    var requeue = true;
 
-                                //执行回调，等待业务层确认是否重新入队
-                                if (_subscribeNackHandler != null)
+                                    //执行回调，等待业务层确认是否重新入队
+                                    if (_subscribeNackHandler != null && !string.IsNullOrEmpty(MessageId))
                                     {
                                         requeue = await _subscribeNackHandler(new string[] { MessageId }, _queueName, null, new dynamic[] { msg });
                                     }
 
-                                //确认消息
-                                _channel.BasicReject(ea.DeliveryTag, requeue);
+                                    //确认消息
+                                    _channel.BasicReject(ea.DeliveryTag, requeue);
 
                                 }
                             }
                             catch (Exception ex)
                             {
-                            //重新入队，默认：是
-                            var requeue = true;
+                                //重新入队，默认：是
+                                var requeue = true;
 
-                            //执行回调，等待业务层的处理结果
-                            if (_subscribeNackHandler != null)
+                                //执行回调，等待业务层的处理结果
+                                if (_subscribeNackHandler != null && !string.IsNullOrEmpty(MessageId))
                                 {
                                     requeue = await _subscribeNackHandler(new string[] { MessageId }, _queueName, ex, new dynamic[] { msg });
-
                                 }
 
-                            //确认消息
-                            _channel.BasicReject(ea.DeliveryTag, requeue);
-                            }
+                                //确认消息
+                                _channel.BasicReject(ea.DeliveryTag, requeue);
+                            }                            
                         }
                         else
                         {
-                        //确认处理（消息被丢弃）
-                        _channel.BasicAck(ea.DeliveryTag, false);
+                            //确认处理（消息被丢弃）
+                            _channel.BasicAck(ea.DeliveryTag, false);
                         }
                     }
                     catch (Exception ex)
