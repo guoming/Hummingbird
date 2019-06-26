@@ -570,149 +570,162 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 persistentConnection.TryConnect();
             }
 
-            var _channel = persistentConnection.CreateModel();
-            var policy = createPolicy();
-            var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false)
-                .WrapAsync(policy);
-            var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
-            var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
-            var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventBatchHandler<TD>;
-
-            if (EventAction == null)
+            for (int parallelism = 0; parallelism < _reveiverMaxDegreeOfParallelism; parallelism++)
             {
-                EventAction = System.Activator.CreateInstance(typeof(TH)) as IEventBatchHandler<TD>;
-            }
+                var _channel = persistentConnection.CreateModel();
+                var policy = createPolicy();
+                var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false)
+                    .WrapAsync(policy);
+                var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
+                var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
+                var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventBatchHandler<TD>;
 
-            //direct fanout topic  
-            _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
-
-            //在MQ上定义一个持久化队列，如果名称相同不会重复创建
-            _channel.QueueDeclare(_queueName, true, false, false, null);
-            //绑定交换器和队列
-            _channel.QueueBind(_queueName, _exchange, _routeKey);
-            //输入1，那如果接收一个消息，但是没有应答，则客户端不会收到下一个消息
-            _channel.BasicQos(0,(ushort)BatchSize, false);
-
-            Task.Run(async () =>
-            {
-                while (true)
+                if (EventAction == null)
                 {
-                    try
+                    EventAction = System.Activator.CreateInstance(typeof(TH)) as IEventBatchHandler<TD>;
+                }
+
+                //direct fanout topic  
+                _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
+
+                //在MQ上定义一个持久化队列，如果名称相同不会重复创建
+                _channel.QueueDeclare(_queueName, true, false, false, null);
+                //绑定交换器和队列
+                _channel.QueueBind(_queueName, _exchange, _routeKey);
+                //输入1，那如果接收一个消息，但是没有应答，则客户端不会收到下一个消息
+                _channel.BasicQos(0, (ushort)BatchSize, false);
+
+                Task.Run(async () =>
+                {
+                    while (true)
                     {
-                        var batchPool = new ConcurrentDictionary<string, TD>();
-                        ulong batchLastDeliveryTag = 0;
-                        var _insertPoolBlock = new ActionBlock<BasicGetResult>(ea =>
+                        try
                         {
-                            //消息编号不为空, 消息没有被处理过则写入待处理列表
-                            if (!string.IsNullOrEmpty(ea.BasicProperties.MessageId) && (_IdempotencyDuration == 0 || !_cacheManager.Exists($"{_queueName}:{ea.BasicProperties.MessageId}", "Events")))
+                            var batchPool = new ConcurrentDictionary<string, TD>();
+                            ulong batchLastDeliveryTag = 0;
+                            var _insertPoolBlock = new ActionBlock<BasicGetResult>(ea =>
                             {
+                                var MessageId = ea.BasicProperties.MessageId;
 
-                                batchPool.TryAdd(ea.BasicProperties.MessageId, JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)));
-                                batchLastDeliveryTag = ea.DeliveryTag;
-                                return;
+                            //消息编号不为空, 消息没有被处理过则写入待处理列表
+                            if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.Exists($"{_queueName}:{MessageId}", "Events"))
+                                {
+                                    if (string.IsNullOrEmpty(MessageId))
+                                    {
+                                        batchPool.TryAdd(Guid.NewGuid().ToString("N"), JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)));
+                                    }
+                                    else
+                                    {
+                                        batchPool.TryAdd(ea.BasicProperties.MessageId, JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)));
+                                    }
 
-                            }
+                                    batchLastDeliveryTag = ea.DeliveryTag;
+                                    return;
+                                }
+                                else
+                                {
+                                //丢弃，消息已经被处理或者没有消息编号
+                                _channel.BasicNack(ea.DeliveryTag, false, false);
+                                }
 
-                            //丢弃，消息已经被处理或者没有消息编号
-                            _channel.BasicNack(ea.DeliveryTag, false, false);
-                        });
+                            });
 
                         #region batch Pull
                         for (var i = 0; i < BatchSize; i++)
-                        {
-                        
-
-                            var ea = _channel.BasicGet(_queueName, false);
-                            if (ea != null)
                             {
-                                _insertPoolBlock.Post(ea);
+                                var ea = _channel.BasicGet(_queueName, false);
+                                if (ea != null)
+                                {
+                                    _insertPoolBlock.Post(ea);
+                                }
+                                else
+                                {
+                                    break;
+                                }
                             }
-                            else
-                            {
-                                break;
-                            }
-                        }
 
                         #endregion
 
                         //等待消息写入度列完成
                         _insertPoolBlock.Complete();
-                        await _insertPoolBlock.Completion;
+                            await _insertPoolBlock.Completion;
 
                         //队列不为空
                         if (batchPool.Count > 0)
-                        {
-                            var eventIds = batchPool.Select(a => a.Key).ToArray();
-                            var bodys = batchPool.Select(a => a.Value).ToArray();
-
-                            try
                             {
-                                var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
-                                 {
-                                     return await EventAction.Handle(bodys, cancellationToken);
+                                var messageIds = batchPool.Select(a => a.Key).ToArray();
+                                var bodys = batchPool.Select(a => a.Value).ToArray();
 
-                                 }, CancellationToken.None);
-
-                                if (handlerOK)
+                                try
                                 {
-                                    #region 消息处理成功
-                                    if (_subscribeAckHandler != null)
+                                    var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
+                                     {
+                                         return await EventAction.Handle(bodys, cancellationToken);
+
+                                     }, CancellationToken.None);
+
+                                    if (handlerOK)
                                     {
-                                        _subscribeAckHandler(eventIds, _queueName);
-                                    }
+                                    #region 消息处理成功
+                                    if (_subscribeAckHandler != null && messageIds.Length > 0)
+                                        {
+                                            _subscribeAckHandler(messageIds, _queueName);
+                                        }
 
                                     //确认消息被处理
                                     _channel.BasicAck(batchLastDeliveryTag, true);
 
                                     //消息幂等
-                                    if (_IdempotencyDuration > 0)
-                                    {
-                                        for (int i = 0; i < eventIds.Length; i++)
+                                    if (_IdempotencyDuration > 0 && messageIds.Length > 0)
                                         {
-                                            _cacheManager.Add($"{_queueName}:{eventIds[i].ToString()}", true, TimeSpan.FromSeconds(_IdempotencyDuration), "Events");
+                                            for (int i = 0; i < messageIds.Length; i++)
+                                            {
+                                                _cacheManager.Add($"{_queueName}:{messageIds[i].ToString()}", true, TimeSpan.FromSeconds(_IdempotencyDuration), "Events");
+                                            }
                                         }
-                                    }
 
                                     #endregion
                                 }
-                                else
-                                {
+                                    else
+                                    {
                                     #region 消息处理失败
                                     var requeue = true;
 
-                                    if (_subscribeNackHandler != null)
-                                    {
-                                        requeue = await _subscribeNackHandler(eventIds, _queueName, null, bodys);
-                                    }
+                                        if (_subscribeNackHandler != null && messageIds.Length > 0)
+                                        {
+                                            requeue = await _subscribeNackHandler(messageIds, _queueName, null, bodys);
+                                        }
 
-                                    _channel.BasicNack(batchLastDeliveryTag, true, requeue);
+                                        _channel.BasicNack(batchLastDeliveryTag, true, requeue);
 
                                     #endregion
                                 }
-                            }
-                            catch (Exception ex)
-                            {
+                                }
+                                catch (Exception ex)
+                                {
                                 #region 业务处理消息出现异常，消息重新写入队列，超过最大重试次数后不再写入队列
                                 var requeue = true;
 
-                                if (_subscribeNackHandler != null)
-                                {
-                                    requeue = await _subscribeNackHandler(eventIds, _queueName, ex, bodys);
-                                }
-                                _channel.BasicNack(batchLastDeliveryTag, true, requeue);
+                                    if (_subscribeNackHandler != null && messageIds.Length > 0)
+                                    {
+                                        requeue = await _subscribeNackHandler(messageIds, _queueName, ex, bodys);
+                                    }
+                                    _channel.BasicNack(batchLastDeliveryTag, true, requeue);
 
                                 #endregion
                             }
+                            }
                         }
-                    }
-                    catch(Exception ex)
-                    {
-                        _logger.LogError(ex.Message, ex);
-                    }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex.Message, ex);
+                        }
 
-                }
-            });
-            _subscribeChannels.Add(_channel);
+                    }
+                });
+                _subscribeChannels.Add(_channel);
+            }
+
             return this;
         }
 
