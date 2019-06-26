@@ -68,7 +68,7 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
 
                                 Value=0
                             })
-                }, 0, 1);
+                });
 
                 if(!r)
                 {

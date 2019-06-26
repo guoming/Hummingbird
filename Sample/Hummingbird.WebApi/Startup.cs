@@ -82,7 +82,7 @@ namespace Hummingbird.WebApi
                         factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
                         factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
                         factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                        factory.WithReceiver(3, 3, "RoundRobinLoadBalancer", 1, 2);
+                        factory.WithReceiver(3, 10,3, "RoundRobinLoadBalancer", 1, 2);
                         factory.WithSender(10);
                     })               
                     .AddSqlServerEventLogging(a =>

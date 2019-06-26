@@ -18,9 +18,7 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
    
         Task<bool> PublishAsync(
          List<Models.EventLogEntry> Events,
-         int EventDelaySeconds = 0,
-         int TimeoutMilliseconds = 500,
-         int BatchSize = 500);
+         int EventDelaySeconds = 0);
 
             /// <summary>
             /// 订阅消息（同一类消息可以重复订阅）
