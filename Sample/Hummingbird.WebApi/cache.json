@@ -4,7 +4,7 @@
     {
       "key": "redisConnection",
       "database": 0,
-      "connectionString": "localhost:6379,password=,allowAdmin=true,ssl=false,abortConnect=false,connectTimeout=5000"
+      "connectionString": "192.168.109.156:63100,password=tY7cRu9HG_jyDw2r,allowAdmin=true,ssl=false,abortConnect=false,connectTimeout=5000"
     }
   ],
   "cacheManagers": [
@@ -13,11 +13,11 @@
       "name": "HummingbirdCache",
       "retryTimeout": 100,
       "updateMode": "Up",
-      //"backplane": {
-      //  "key": "redisConnection",
-      //  "knownType": "Redis",
-      //  "channelName": "redisChannel"
-      //},
+      "backplane": {
+        "key": "redisConnection",
+        "knownType": "Redis",
+        "channelName": "redisChannel"
+      },
       "loggerFactory": {
         "knownType": "Microsoft"
       },
@@ -33,12 +33,12 @@
           "expirationTimeout": "0:0:23",
           "isBackplaneSource": false,
           "name": "sys cache"
+        },
+        {
+          "knownType": "Redis",
+          "key": "redisConnection",
+          "isBackplaneSource": true
         }
-        //{
-        //  "knownType": "Redis",
-        //  "key": "redisConnection",
-        //  "isBackplaneSource": true
-        //}
       ]
     }
   ]

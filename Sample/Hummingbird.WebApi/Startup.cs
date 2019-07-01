@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ZT.TMS.DataExchange.Application.Events;
 
 namespace Hummingbird.WebApi
 {
@@ -111,9 +112,8 @@ namespace Hummingbird.WebApi
                     sp.UseSubscriber(eventbus =>
                     {
                         //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
-                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
-
-
+                        //eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
+                        eventbus.RegisterBatch<ChangeDataCaptureEvent, ChangeDataCaptureEventToESIndexHandler>("", "#");
                     });
                 });
 

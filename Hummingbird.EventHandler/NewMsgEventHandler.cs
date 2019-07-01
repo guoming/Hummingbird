@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using ZT.TMS.DataExchange.Application.Events;
 
 namespace Hummingbird.WebApi.Events
 {
@@ -41,6 +43,24 @@ namespace Hummingbird.WebApi.Events
             Console.WriteLine(@event.Value.ToString());
 
             return Task.FromResult(true);
+        }
+    }
+
+
+}
+
+namespace ZT.TMS.DataExchange.Application.Events
+{
+
+    public class ChangeDataCaptureEventToESIndexHandler : Hummingbird.Extersions.EventBus.Abstractions.IEventBatchHandler<ChangeDataCaptureEvent>
+    {
+
+
+        public Task<bool> Handle(ChangeDataCaptureEvent[] @event, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(false);
+
+
         }
     }
 }
