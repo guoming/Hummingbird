@@ -413,7 +413,15 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                     var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
                                     {
-                                        return await EventAction.Handle(msg, cancellationToken);
+                                        try
+                                        {
+                                           return await EventAction.Handle(msg, cancellationToken);
+                                        }
+                                        catch(Exception ex)
+                                        {
+                                            _logger.LogError(ex.Message, ex);
+                                            return await  Task.FromResult(false);
+                                        }
 
                                     }, CancellationToken.None);
 
@@ -665,7 +673,15 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 {
                                     var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
                                      {
-                                         return await EventAction.Handle(bodys, cancellationToken);
+                                         try
+                                         {
+                                             return await EventAction.Handle(bodys, cancellationToken);
+                                         }
+                                         catch (Exception ex)
+                                         {
+                                             _logger.LogError(ex.Message, ex);
+                                             return await Task.FromResult(false);
+                                         }
 
                                      }, CancellationToken.None);
 
