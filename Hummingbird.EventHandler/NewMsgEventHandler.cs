@@ -58,6 +58,7 @@ namespace ZT.TMS.DataExchange.Application.Events
 
         public Task<bool> Handle(ChangeDataCaptureEvent[] @event, CancellationToken cancellationToken)
         {
+            throw new Exception("");
             return Task.FromResult(false);
 
 

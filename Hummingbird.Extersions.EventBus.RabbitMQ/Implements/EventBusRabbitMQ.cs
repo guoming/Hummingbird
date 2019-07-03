@@ -410,18 +410,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     bytes = ea.Body;
                                     str = Encoding.UTF8.GetString(bytes);
                                     msg = JsonConvert.DeserializeObject<TD>(str);
-
+                                    Exception handlerException = null;
                                     var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
                                     {
-                                        try
-                                        {
-                                           return await EventAction.Handle(msg, cancellationToken);
-                                        }
-                                        catch(Exception ex)
-                                        {
-                                            _logger.LogError(ex.Message, ex);
-                                            return await  Task.FromResult(false);
-                                        }
+                                        return await EventAction.Handle(msg, cancellationToken);
 
                                     }, CancellationToken.None);
 
@@ -671,33 +663,26 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                 try
                                 {
+                                   
                                     var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
                                      {
-                                         try
-                                         {
-                                             return await EventAction.Handle(bodys, cancellationToken);
-                                         }
-                                         catch (Exception ex)
-                                         {
-                                             _logger.LogError(ex.Message, ex);
-                                             return await Task.FromResult(false);
-                                         }
+                                         return await EventAction.Handle(bodys, cancellationToken);                                      
 
                                      }, CancellationToken.None);
 
                                     if (handlerOK)
                                     {
-                                    #region 消息处理成功
-                                    if (_subscribeAckHandler != null && messageIds.Length > 0)
+                                        #region 消息处理成功
+                                        if (_subscribeAckHandler != null && messageIds.Length > 0)
                                         {
                                             _subscribeAckHandler(messageIds, _queueName);
                                         }
 
-                                    //确认消息被处理
-                                    _channel.BasicAck(batchLastDeliveryTag, true);
+                                        //确认消息被处理
+                                        _channel.BasicAck(batchLastDeliveryTag, true);
 
-                                    //消息幂等
-                                    if (_IdempotencyDuration > 0 && messageIds.Length > 0)
+                                        //消息幂等
+                                        if (_IdempotencyDuration > 0 && messageIds.Length > 0)
                                         {
                                             for (int i = 0; i < messageIds.Length; i++)
                                             {
@@ -705,12 +690,12 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                             }
                                         }
 
-                                    #endregion
-                                }
+                                        #endregion
+                                    }
                                     else
                                     {
-                                    #region 消息处理失败
-                                    var requeue = true;
+                                        #region 消息处理失败
+                                        var requeue = true;
 
                                         if (_subscribeNackHandler != null && messageIds.Length > 0)
                                         {
@@ -719,13 +704,13 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                         _channel.BasicNack(batchLastDeliveryTag, true, requeue);
 
-                                    #endregion
-                                }
+                                        #endregion
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
-                                #region 业务处理消息出现异常，消息重新写入队列，超过最大重试次数后不再写入队列
-                                var requeue = true;
+                                    #region 业务处理消息出现异常，消息重新写入队列，超过最大重试次数后不再写入队列
+                                    var requeue = true;
 
                                     if (_subscribeNackHandler != null && messageIds.Length > 0)
                                     {
@@ -733,8 +718,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     }
                                     _channel.BasicNack(batchLastDeliveryTag, true, requeue);
 
-                                #endregion
-                            }
+                                    #endregion
+                                }
                             }
                         }
                         catch (Exception ex)
