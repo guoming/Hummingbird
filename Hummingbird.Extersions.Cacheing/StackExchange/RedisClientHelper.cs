@@ -10,7 +10,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
     /// <summary>
     /// Redis操作
     /// </summary>
-    class RedisClientHelper
+   internal class RedisClientHelper
     {
         private int DbNum { get; }
 
@@ -70,10 +70,9 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         /// <param name="value">保存的值</param>
         /// <param name="expiry">过期时间</param>
         /// <returns></returns>
-        public dynamic ExecuteAsync(string script, params object[] objs)
+        public async Task<dynamic> ExecuteAsync(string script, params object[] objs)
         {
-            var r = Do(db => db.ExecuteAsync(script, objs));
-            return r;
+            return await Do(db => db.ExecuteAsync(script, objs));            
         }
 
 

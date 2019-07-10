@@ -276,7 +276,7 @@ namespace Hummingbird.Extersions.Cacheing
         #region Execute
         dynamic Execute(string script, params object[] objs);
 
-        dynamic ExecuteAsync(string script, params object[] objs);
+        Task<dynamic> ExecuteAsync(string script, params object[] objs);
         #endregion
     }
 }

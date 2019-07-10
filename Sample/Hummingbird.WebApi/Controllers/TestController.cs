@@ -32,14 +32,31 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
             _eventLogger = eventLogger;
         }
 
+        volatile int count = 0;
+
         [HttpGet]
         [Route("Empty")]
         public async Task Empty()
         {
-            var ret =(int)cacheManager.Execute("BF.ADD", "1", "2")==1;
-            var ret2=(int)cacheManager.Execute("BF.EXISTS", "1", "2") == 1;
-            var ret3 = (int)cacheManager.Execute("BF.EXISTS", "1", "7") == 1;
 
+            Parallel.For(0, 10000000,new ParallelOptions() {  MaxDegreeOfParallelism=50}, (i) =>
+              {
+
+
+                  var ret2 = (int)cacheManager.Execute("BF.ADD", "TrackingNumbers", i);
+                  System.Threading.Interlocked.Add(ref count, 1);
+
+                  Console.WriteLine($"ADD:{i}:{count}");
+
+              });
+
+            Parallel.For(0, 10000000, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (i) =>
+            {
+                var ret2 = (int)cacheManager.Execute("BF.EXISTS", "TrackingNumbers", i) == 1;
+                System.Threading.Interlocked.Add(ref count, 1);
+
+                Console.WriteLine($"EXISTS:{i}:{count}");
+             });
 
 
         }

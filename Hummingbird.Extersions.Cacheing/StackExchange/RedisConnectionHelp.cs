@@ -11,7 +11,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
     class RedisConnectionHelp
     {
 
-        private static readonly object Locker = new object();        
+        private static readonly object Locker = new object();
         private static readonly ConcurrentDictionary<string, ConnectionMultiplexer> ConnectionCache = new ConcurrentDictionary<string, ConnectionMultiplexer>();
         private RedisConnectionHelp()
         { }
@@ -23,16 +23,19 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         /// <returns></returns>
         public static ConnectionMultiplexer CreateConnect(string connectionString)
         {
+            return GetManager(connectionString);
+
             if (!ConnectionCache.ContainsKey(connectionString))
             {
                 ConnectionCache[connectionString] = GetManager(connectionString);
             }
 
-            return ConnectionCache[connectionString];          
+            return ConnectionCache[connectionString];
         }
 
         public static ConnectionMultiplexer CreateConnect(ConfigurationOptions option)
         {
+            return GetManager(option);
             if (!ConnectionCache.ContainsKey(option.ServiceName))
             {
                 ConnectionCache[option.ServiceName] = GetManager(option);
@@ -43,7 +46,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         private static ConnectionMultiplexer GetManager(string connectionString)
         {
- 
+
             var connect = ConnectionMultiplexer.Connect(connectionString);
 
             //注册如下事件
@@ -60,6 +63,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         private static ConnectionMultiplexer GetManager(ConfigurationOptions sentinelConfig)
         {
+            
             ConnectionMultiplexer connect = ConnectionMultiplexer.Connect(sentinelConfig);
             //注册如下事件
             connect.ConnectionFailed += MuxerConnectionFailed;
@@ -67,11 +71,12 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             connect.ErrorMessage += MuxerErrorMessage;
             connect.ConfigurationChanged += MuxerConfigurationChanged;
             connect.HashSlotMoved += MuxerHashSlotMoved;
-            connect.InternalError += MuxerInternalError;
-
+            connect.InternalError += MuxerInternalError;      
+            
+            
             return connect;
         }
-   
+
 
         #region 事件
 
@@ -112,7 +117,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         /// <param name="e"></param>
         private static void MuxerConnectionFailed(object sender, ConnectionFailedEventArgs e)
         {
-        
+
             Console.WriteLine("重新连接：Endpoint failed: " + e.EndPoint + ", " + e.FailureType + (e.Exception == null ? "" : (", " + e.Exception.Message)));
         }
 

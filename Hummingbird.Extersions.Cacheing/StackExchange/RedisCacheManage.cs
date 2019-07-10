@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
 using StackExchange.Redis;
+using System.Threading;
 
 namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 {
@@ -30,7 +31,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         private static Dictionary<string, ConfigurationOptions> _clusterConfigOptions = new Dictionary<string, ConfigurationOptions>();
 
-        private static Dictionary<string, Dictionary<int, RedisClientHelper>> _clients = new Dictionary<string, Dictionary<int, RedisClientHelper>>();
+        private static Dictionary<string, Dictionary<int, LoadBalancers.IConnectionLoadBalancer>> _nodeClients = new Dictionary<string, Dictionary<int, LoadBalancers.IConnectionLoadBalancer>>();
         #endregion
 
         #region 实例变量
@@ -47,6 +48,8 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         /// </summary>
         public static ICacheManager Create(StackExchange.RedisCacheConfig config)
         {
+            ThreadPool.SetMinThreads(200, 200);
+
             if (string.IsNullOrEmpty(config.KeyPrefix))
             { 
                 _KeyPrefix =string.Empty;
@@ -131,6 +134,10 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
                                             configOption.AbortOnConnectFail = false;
                                             configOption.DefaultDatabase = config.DBNum;
                                             configOption.Ssl = config.Ssl;
+                                            configOption.ConnectTimeout = 15000;
+                                            configOption.SyncTimeout = 5000;
+                                            configOption.ResponseTimeout = 15000;
+                                           
                                             foreach (var ipAndPort in masterServerIPAndPortArray.Union(slaveServerIPAndPortArray).Distinct())
                                             {
                                                 configOption.EndPoints.Add(RedisCacheConfigHelper.GetIP(ipAndPort), RedisCacheConfigHelper.GetPort(ipAndPort));
@@ -155,6 +162,11 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
                                             configOption.AbortOnConnectFail = false;
                                             configOption.DefaultDatabase = config.DBNum;
                                             configOption.Ssl = config.Ssl;
+                                            configOption.ConnectTimeout = 15000;
+                                            configOption.SyncTimeout = 5000;
+                                            configOption.ResponseTimeout = 15000;
+                                
+
                                             configOption.EndPoints.Add(RedisCacheConfigHelper.GetIP(NodeName), RedisCacheConfigHelper.GetPort(NodeName));
                                             _clusterConfigOptions.Add(NodeName, configOption);
                                         }
@@ -223,59 +235,66 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         /// </summary>
         /// <param name="cacheKey"></param>
         /// <returns></returns>
-        RedisClientHelper GetPooledClientManager(string cacheKey)
+        private RedisClientHelper GetPooledClientManager(string cacheKey)
         {
             var nodeName = _Locator.GetPrimary(_KeyPrefix + cacheKey);
 
-            if (_clients.ContainsKey(nodeName))
+            if (_nodeClients.ContainsKey(nodeName))
             {
-                var dbs = _clients[nodeName];
+                var dbs = _nodeClients[nodeName];
 
                 if (dbs.ContainsKey(DbNum))
                 {
-                    return dbs[DbNum];
+                    return dbs[DbNum].Lease();
                 }
                 else
                 {
-                    return GetClientHelper(nodeName, _KeyPrefix);
+                    return GetClientHelper(nodeName);
                 }
             }
             else
             {
-                return GetClientHelper(nodeName, _KeyPrefix);
+                return GetClientHelper(nodeName);
             }
         }
 
-        RedisClientHelper GetClientHelper(string nodeName, string _KeyPrefix)
+
+        private RedisClientHelper GetClientHelper(string nodeName)
         {
             lock (_syncCreateClient)
             {
-                RedisClientHelper client = null;
-
-                if (_clients.ContainsKey(nodeName))
+                if (_nodeClients.ContainsKey(nodeName))
                 {
-                    var dbs = _clients[nodeName];
+                    var dbs = _nodeClients[nodeName];
 
-                    if (dbs.ContainsKey(DbNum))
+                    if (!dbs.ContainsKey(DbNum))
                     {
-                        client = dbs[DbNum];
-                    }
-                    else
-                    {
-                        client = new RedisClientHelper(DbNum, _clusterConfigOptions[nodeName], _KeyPrefix);
-                        dbs[DbNum] = client;
+                        dbs[DbNum] = GetConnectionLoadBalancer(nodeName);
                     }
                 }
                 else
                 {
-                    client = new RedisClientHelper(DbNum, _clusterConfigOptions[nodeName], _KeyPrefix);
-                    var node = new Dictionary<int, RedisClientHelper>();
-                    node[DbNum] = client;
-                    _clients[nodeName] = node;
+                    var node = new Dictionary<int, LoadBalancers.IConnectionLoadBalancer>();
+                    node[DbNum] = GetConnectionLoadBalancer(nodeName);
+                    _nodeClients[nodeName] = node;
                 }
 
-                return client;
+                return _nodeClients[nodeName][DbNum].Lease();
             }
+        }
+
+        private LoadBalancers.IConnectionLoadBalancer GetConnectionLoadBalancer(string nodeName)
+        {
+            return new LoadBalancers.RoundRobinLoadBalancer(() =>
+            {
+                var clients = new List<RedisClientHelper>();
+                for (int i = 0; i < 10; i++)
+                {
+                    clients.Add(new RedisClientHelper(DbNum, _clusterConfigOptions[nodeName], _KeyPrefix));
+                }
+
+                return clients;
+            });
         }
 
         #endregion
@@ -708,7 +727,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(command).Execute(command, objs);
         }
 
-        public dynamic ExecuteAsync(string command, params object[] objs)
+        public Task<dynamic> ExecuteAsync(string command, params object[] objs)
         {
             return GetPooledClientManager(command).ExecuteAsync(command, objs);
         }
