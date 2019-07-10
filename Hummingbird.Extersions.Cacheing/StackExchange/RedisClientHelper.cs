@@ -41,6 +41,47 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         #endregion 构造函数
 
+        #region Script
+
+        #region 同步方法
+
+        /// <summary>
+        /// 保存单个key value
+        /// </summary>
+        /// <param name="key">Redis Key</param>
+        /// <param name="value">保存的值</param>
+        /// <param name="expiry">过期时间</param>
+        /// <returns></returns>
+        public dynamic Execute(string command, params object[] objs)            
+        {
+            var r= Do(db => db.Execute(command, objs));
+         
+            return r;
+            
+        }
+
+        #endregion 同步方法
+
+        #region 异步方法
+        /// <summary>
+        /// 保存单个key value
+        /// </summary>
+        /// <param name="key">Redis Key</param>
+        /// <param name="value">保存的值</param>
+        /// <param name="expiry">过期时间</param>
+        /// <returns></returns>
+        public dynamic ExecuteAsync(string script, params object[] objs)
+        {
+            var r = Do(db => db.ExecuteAsync(script, objs));
+            return r;
+        }
+
+
+        #endregion 异步方法
+
+        #endregion String
+
+
         #region String
 
         #region 同步方法
@@ -1113,6 +1154,8 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         public ITransaction CreateTransaction()
         {
             return GetDatabase().CreateTransaction();
+
+            
         }
 
         public IDatabase GetDatabase()

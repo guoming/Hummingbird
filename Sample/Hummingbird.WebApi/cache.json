@@ -4,7 +4,7 @@
     {
       "key": "redisConnection",
       "database": 0,
-      "connectionString": "192.168.109.156:63100,password=tY7cRu9HG_jyDw2r,allowAdmin=true,ssl=false,abortConnect=false,connectTimeout=5000"
+      "connectionString": "192.168.109.44:6379,password=123456,allowAdmin=true,ssl=false,abortConnect=false,connectTimeout=5000"
     }
   ],
   "cacheManagers": [

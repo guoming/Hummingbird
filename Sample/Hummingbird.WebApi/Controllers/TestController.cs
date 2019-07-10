@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Hummingbird.Extersions.Cache;
+using Hummingbird.Extersions.Cacheing;
 using Hummingbird.Extersions.EventBus.Abstractions;
 using Hummingbird.Extersions.Resilience.Http;
 
@@ -17,13 +18,16 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
     [Route("api/[controller]")]
     public class TestController : Controller
     {
+        private readonly ICacheManager cacheManager;
         private readonly IEventBus _eventBus;
         private readonly IEventLogger _eventLogger;
 
         public TestController(
+            ICacheManager cacheManager,
             IEventBus eventBus,
             IEventLogger  eventLogger)
         {
+            this.cacheManager = cacheManager;
             _eventBus = eventBus;
             _eventLogger = eventLogger;
         }
@@ -32,7 +36,12 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
         [Route("Empty")]
         public async Task Empty()
         {
-           
+            var ret =(int)cacheManager.Execute("BF.ADD", "1", "2")==1;
+            var ret2=(int)cacheManager.Execute("BF.EXISTS", "1", "2") == 1;
+            var ret3 = (int)cacheManager.Execute("BF.EXISTS", "1", "7") == 1;
+
+
+
         }
 
 

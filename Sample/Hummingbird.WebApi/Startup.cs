@@ -45,6 +45,15 @@ namespace Hummingbird.WebApi
                     option.ConfigName = "HummingbirdCache";
                     option.CacheRegion = Configuration["SERVICE_NAME"];
                 })
+                .AddCacheing(option => {
+
+                    option.WithDb(0);
+                    option.WithKeyPrefix("");
+                    option.WithPassword("123456");
+                    option.WithReadServerList("192.168.109.44:6379");
+                    option.WithWriteServerList("192.168.109.44:6379");
+                    option.WithSsl(false);
+                })
                 .AddIdempotency(option =>
                 {
                     option.Druation = TimeSpan.FromMinutes(5);

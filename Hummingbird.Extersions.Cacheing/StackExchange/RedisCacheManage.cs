@@ -703,6 +703,16 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(key).SetRemove(key, values);
         }
 
+        public dynamic Execute(string command, params object[] objs)
+        {
+            return GetPooledClientManager(command).Execute(command, objs);
+        }
+
+        public dynamic ExecuteAsync(string command, params object[] objs)
+        {
+            return GetPooledClientManager(command).ExecuteAsync(command, objs);
+        }
+
         #endregion
 
         #endregion

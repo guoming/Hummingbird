@@ -30,7 +30,7 @@ namespace Hummingbird.Extersions.Cacheing
         /// <param name="cacheOutTime"></param>
         bool ExpireEntryAt(string cacheKey, TimeSpan cacheOutTime);
 
-
+        #region String
         /// <summary>
         /// 获取缓存
         /// </summary>
@@ -107,6 +107,9 @@ namespace Hummingbird.Extersions.Cacheing
         /// <param name="val"></param>
         /// <returns></returns>
         Task<double> StringIncrementAsync(string cacheKey, double val = 1);
+        #endregion
+
+        #region LOCK
 
         /// <summary>
         /// 设置Key的时间
@@ -131,6 +134,9 @@ namespace Hummingbird.Extersions.Cacheing
         /// <param name="expiry"></param>
         /// <returns></returns>
         bool LockRelease(string key, string lockValue);
+        #endregion
+
+        #region Publish&Subscrbe
 
         /// <summary>
         /// 发布一个事件
@@ -155,6 +161,9 @@ namespace Hummingbird.Extersions.Cacheing
         /// <param name="val"></param>
         /// <returns></returns>
         void Subscribe(string channelId, Action<object> handler);
+        #endregion
+
+        #region Hash
 
         double HashIncrement(string cacheKey, string dataKey, double value = 1);
         double HashDecrement(string cacheKey, string dataKey, double value = 1);
@@ -166,7 +175,9 @@ namespace Hummingbird.Extersions.Cacheing
         IDictionary<string, T> HashGetAll<T>(string cacheKey);
 
         bool HashKeys<T>(string cacheKey, string dataKey, T value);
+        #endregion
 
+        #region List
         /// <summary>
         /// 出栈
         /// </summary>
@@ -239,6 +250,10 @@ namespace Hummingbird.Extersions.Cacheing
         /// <returns></returns>
         T ListRightPopLeftPush<T>(string source, string destination);
 
+        #endregion
+
+        #region Set
+
         bool SetAdd<T>(string key, T value);
 
         bool SetContains<T>(string key, T value);
@@ -256,5 +271,12 @@ namespace Hummingbird.Extersions.Cacheing
         bool SetRemove<T>(string key, T value);
 
         long SetRemove<T>(string key, T[] values);
+        #endregion
+
+        #region Execute
+        dynamic Execute(string script, params object[] objs);
+
+        dynamic ExecuteAsync(string script, params object[] objs);
+        #endregion
     }
 }
