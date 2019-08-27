@@ -30,44 +30,6 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         }
 
         /// <summary>
-        /// 保存事件
-        /// 作者:郭明
-        /// 日期：2017年11月15日
-        /// </summary>
-        /// <param name="events"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<List<EventLogEntry>> SaveEventAsync(List<object> events, IDbTransaction transaction)
-        {
-            if (transaction == null)
-            {
-                throw new ArgumentNullException("transaction", $"A {typeof(DbTransaction).FullName} is required as a pre-requisite to save the event.");
-            }
-            var LogEntrys = events.Select(@event => new EventLogEntry("", @event, Guid.NewGuid().ToString("N"), _uniqueIdGenerator.NewId())).ToList();
-
-            var sqlParamtersList = new List<DynamicParameters>();
-            foreach(var eventLogEntry in LogEntrys)
-            {
-                var sqlParamters = new DynamicParameters();
-                sqlParamters.Add("EventId", eventLogEntry.EventId, System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
-                sqlParamters.Add("MessageId", eventLogEntry.EventId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
-                sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
-                sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
-                sqlParamters.Add("TimesSent", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
-                sqlParamters.Add("CreationTime", DateTime.Now, System.Data.DbType.DateTimeOffset, System.Data.ParameterDirection.Input, 4);
-                sqlParamters.Add("Content", eventLogEntry.Content, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
-                sqlParamtersList.Add(sqlParamters);
-            }
-
-            await transaction.Connection.ExecuteAsync($"insert into {_sqlServerConfiguration.TablePrefix}EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
-            sqlParamtersList, 
-            transaction: transaction
-            );
-
-            return LogEntrys;
-        }
-
-        /// <summary>
         /// 事件发布成功
         /// </summary>
         /// <param name="events"></param>
@@ -150,6 +112,34 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
             {
                 return db.Query<EventLogEntry>($"select top {Take} EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from {_sqlServerConfiguration.TablePrefix}EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc").AsList();
             }
+        }
+
+        public async Task<List<EventLogEntry>> SaveEventAsync(List<EventLogEntry> LogEntrys, IDbTransaction transaction)
+        {
+            if (transaction == null)
+            {
+                throw new ArgumentNullException("transaction", $"A {typeof(DbTransaction).FullName} is required as a pre-requisite to save the event.");
+            }
+            var sqlParamtersList = new List<DynamicParameters>();
+            foreach (var eventLogEntry in LogEntrys)
+            {
+                var sqlParamters = new DynamicParameters();
+                sqlParamters.Add("EventId", eventLogEntry.EventId, System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
+                sqlParamters.Add("MessageId", eventLogEntry.EventId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
+                sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
+                sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("TimesSent", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("CreationTime", DateTime.UtcNow, System.Data.DbType.DateTimeOffset, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("Content", eventLogEntry.Content, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
+                sqlParamtersList.Add(sqlParamters);
+            }
+
+            await transaction.Connection.ExecuteAsync($"insert into {_sqlServerConfiguration.TablePrefix}EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
+            sqlParamtersList,
+            transaction: transaction
+            );
+
+            return LogEntrys;
         }
     }
 }

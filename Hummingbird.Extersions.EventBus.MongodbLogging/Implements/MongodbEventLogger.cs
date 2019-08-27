@@ -34,40 +34,7 @@ namespace Hummingbird.Extersions.EventBus.MongodbLogging
             _timeoutPolicy = Polly.Policy.TimeoutAsync(mondbConfiguration.TimeoutMillseconds);
         }
 
-        /// <summary>
-        /// 保存事件
-        /// 作者:郭明
-        /// 日期：2017年11月15日
-        /// </summary>
-        /// <param name="events"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        public async Task<List<EventLogEntry>> SaveEventAsync(List<object> events, IDbTransaction transaction)
-        {
-            try
-            {
-                return await _timeoutPolicy.ExecuteAsync(async (ctx) =>
-                {
-                    var db = _client.GetDatabase(_mondbConfiguration.DatabaseName);
-                    var collections = db.GetCollection<EventBus.Models.EventLogEntry>($"{_mondbConfiguration.CollectionPrefix}events");
-                    var models = new List<WriteModel<EventBus.Models.EventLogEntry>>();
-                    var LogEntrys = events.Select(@event => new EventLogEntry("", @event, Guid.NewGuid().ToString("N"), _uniqueIdGenerator.NewId())).ToList();
-
-                    foreach (var item in LogEntrys)
-                    {
-                        models.Add(new InsertOneModel<EventBus.Models.EventLogEntry>(item));
-                    }
-
-                    await collections.BulkWriteAsync(models, new BulkWriteOptions() { },  CancellationToken.None);
-                    return LogEntrys;
-                }, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                throw ex;
-            }
-        }
+    
 
         /// <summary>
         /// 事件发布成功
@@ -151,6 +118,32 @@ namespace Hummingbird.Extersions.EventBus.MongodbLogging
                     return await collections.Find(o => (o.State == EventStateEnum.NotPublished || o.State == EventStateEnum.PublishedFailed) && o.TimesSent <= 3).SortBy(a => a.EventId).Limit(Take).ToListAsync();
 
                 }, CancellationToken.None).Result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                throw ex;
+            }
+        }
+
+        public async Task<List<EventLogEntry>> SaveEventAsync(List<EventLogEntry> LogEntrys, IDbTransaction transaction)
+        {
+            try
+            {
+                return await _timeoutPolicy.ExecuteAsync(async (ctx) =>
+                {
+                    var db = _client.GetDatabase(_mondbConfiguration.DatabaseName);
+                    var collections = db.GetCollection<EventBus.Models.EventLogEntry>($"{_mondbConfiguration.CollectionPrefix}events");
+                    var models = new List<WriteModel<EventBus.Models.EventLogEntry>>();
+
+                    foreach (var item in LogEntrys)
+                    {
+                        models.Add(new InsertOneModel<EventBus.Models.EventLogEntry>(item));
+                    }
+
+                    await collections.BulkWriteAsync(models, new BulkWriteOptions() { }, CancellationToken.None);
+                    return LogEntrys;
+                }, CancellationToken.None);
             }
             catch (Exception ex)
             {

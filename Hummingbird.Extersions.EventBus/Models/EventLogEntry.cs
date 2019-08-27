@@ -23,12 +23,6 @@ namespace Hummingbird.Extersions.EventBus.Models
             this.MessageId = MessageId;
         }
 
-        public EventLogEntry(string EventTypeName, object @event, string MessageId) 
-            :this(EventTypeName,@event,MessageId,-1)
-        {
-            
-        }
-
 
         public EventLogEntry(string EventTypeName, object @event)
             : this(EventTypeName, @event, Guid.NewGuid().ToString("N"), -1)

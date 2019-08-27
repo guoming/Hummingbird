@@ -14,7 +14,7 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
     /// </summary>
     public interface IEventLogger
     {
-         Task<List<EventLogEntry>> SaveEventAsync(List<object> events, IDbTransaction transaction);
+        Task<List<EventLogEntry>> SaveEventAsync(List<EventLogEntry> events, IDbTransaction transaction);
 
         /// <summary>
         /// 事件已经发布成功

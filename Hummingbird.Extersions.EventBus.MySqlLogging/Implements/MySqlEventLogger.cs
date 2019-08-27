@@ -29,6 +29,8 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
             this._dbConnection = dbConnection;
         }
 
+
+
         /// <summary>
         /// 保存事件
         /// 作者:郭明
@@ -37,16 +39,14 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
         /// <param name="events"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        public async Task<List<EventLogEntry>> SaveEventAsync(List<object> events, IDbTransaction transaction)
+        public async Task<List<EventLogEntry>> SaveEventAsync(List<EventLogEntry> LogEntrys, IDbTransaction transaction)
         {
             if (transaction == null)
             {
                 throw new ArgumentNullException("transaction", $"A {typeof(DbTransaction).FullName} is required as a pre-requisite to save the event.");
             }
-            var LogEntrys = events.Select(@event => new EventLogEntry("", @event, Guid.NewGuid().ToString("N"), _uniqueIdGenerator.NewId())).ToList();
-
             var sqlParamtersList = new List<DynamicParameters>();
-            foreach(var eventLogEntry in LogEntrys)
+            foreach (var eventLogEntry in LogEntrys)
             {
                 var sqlParamters = new DynamicParameters();
                 sqlParamters.Add("EventId", eventLogEntry.EventId, System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
@@ -54,13 +54,13 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
                 sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
                 sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("TimesSent", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
-                sqlParamters.Add("CreationTime", DateTime.Now, System.Data.DbType.DateTimeOffset, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("CreationTime", DateTime.UtcNow, System.Data.DbType.DateTimeOffset, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("Content", eventLogEntry.Content, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
                 sqlParamtersList.Add(sqlParamters);
             }
 
             await transaction.Connection.ExecuteAsync($"insert into {_mySqlConfiguration.TablePrefix}EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
-            sqlParamtersList, 
+            sqlParamtersList,
             transaction: transaction
             );
 
