@@ -15,30 +15,23 @@ namespace Hummingbird.Extersions.EventBus.Models
         }
 
 
-        public EventLogEntry(string EventTypeName, object @event, string MessageId, long EventId):this()
+        public EventLogEntry(string EventTypeName, object @event):this()
         {
             this.EventTypeName = string.IsNullOrEmpty(EventTypeName)? @event.GetType().FullName: EventTypeName;
             this.Content = JsonConvert.SerializeObject(@event);
-            this.EventId = EventId;
-            this.MessageId = MessageId;
-        }
-
-
-        public EventLogEntry(string EventTypeName, object @event)
-            : this(EventTypeName, @event, Guid.NewGuid().ToString("N"), -1)
-        {
-
+            this.EventId = -1;
+            this.MessageId = Guid.NewGuid().ToString("N");
         }
         /// <summary>
         /// 事件编号
         /// </summary>
-        public long EventId { get; private set; }
+        public long EventId { get; set; }
 
-        public string MessageId { get; private set; }
+        public string MessageId { get; set; }
         /// <summary>
         /// 事件类型
         /// </summary>
-        public string EventTypeName { get; private set; }
+        public string EventTypeName { get; set; }
         /// <summary>
         /// 状态
         /// </summary>
@@ -50,11 +43,11 @@ namespace Hummingbird.Extersions.EventBus.Models
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime CreationTime { get; private set; }
+        public DateTime CreationTime { get; set; }
 
         /// <summary>
         /// 内容
         /// </summary>
-        public string Content { get; private set; }
+        public string Content { get; set; }
     }
 }

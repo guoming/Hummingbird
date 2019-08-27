@@ -124,12 +124,12 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
             foreach (var eventLogEntry in LogEntrys)
             {
                 var sqlParamters = new DynamicParameters();
-                sqlParamters.Add("EventId", eventLogEntry.EventId, System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
-                sqlParamters.Add("MessageId", eventLogEntry.EventId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
+                sqlParamters.Add("EventId", eventLogEntry.EventId > 0 ? eventLogEntry.EventId : _uniqueIdGenerator.NewId(), System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
+                sqlParamters.Add("MessageId", eventLogEntry.MessageId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
                 sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
                 sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("TimesSent", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
-                sqlParamters.Add("CreationTime", DateTime.UtcNow, System.Data.DbType.DateTimeOffset, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("CreationTime", DateTime.UtcNow, System.Data.DbType.DateTime2, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("Content", eventLogEntry.Content, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
                 sqlParamtersList.Add(sqlParamters);
             }

@@ -138,6 +138,7 @@ namespace Hummingbird.Extersions.EventBus.MongodbLogging
 
                     foreach (var item in LogEntrys)
                     {
+                        item.EventId = item.EventId > 0 ? item.EventId : _uniqueIdGenerator.NewId();
                         models.Add(new InsertOneModel<EventBus.Models.EventLogEntry>(item));
                     }
 
