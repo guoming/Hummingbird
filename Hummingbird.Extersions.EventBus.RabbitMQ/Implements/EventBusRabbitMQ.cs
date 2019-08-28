@@ -43,8 +43,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
     {
         private readonly IServiceProvider _lifetimeScope;
         private readonly IRabbitMQPersisterConnectionLoadBalancer _receiveLoadBlancer;
-        private readonly IRabbitMQPersisterConnectionLoadBalancer _senderLoadBlancer;        
-        private readonly ILogger<IEventBus> _logger;        
+        private readonly IRabbitMQPersisterConnectionLoadBalancer _senderLoadBlancer;
+        private readonly ILogger<IEventBus> _logger;
         private readonly string _exchange = "amq.topic";
         private readonly string _exchangeType = "topic";
         private readonly ushort _preFetch = 1;
@@ -58,7 +58,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly SemaphoreSlim readLock = new SemaphoreSlim(1, 1);
         private static ConcurrentDictionary<string, SortedList<string, bool>> _channelAllReturnMessageIds = new ConcurrentDictionary<string, SortedList<string, bool>>();
         private static ConcurrentDictionary<string, SortedList<ulong, string>> _channelAllUnconfirmMessageIds = new ConcurrentDictionary<string, SortedList<ulong, string>>();
-     
+
         private readonly IHummingbirdCache<bool> _cacheManager;
         private readonly RetryPolicy _eventBusRetryPolicy = null;
 
@@ -70,8 +70,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
            IServiceProvider lifetimeScope,
            int reveiverMaxDegreeOfParallelism = 10,
             int retryCount = 3,
-            ushort preFetch = 1,            
-            int IdempotencyDuration = 15,            
+            ushort preFetch = 1,
+            int IdempotencyDuration = 15,
             string exchange = "amp.topic",
             string exchangeType = "topic")
         {
@@ -112,10 +112,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 RouteKey = a.EventTypeName
             }).ToList();
 
-            await EnqueueNoConfirm(evtDicts,EventDelaySeconds);
+            await EnqueueNoConfirm(evtDicts, EventDelaySeconds);
         }
 
-      
+
 
         /// <summary>
         /// 发送消息
@@ -143,79 +143,79 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             List<EventMessage> Events,
           int EventDelaySeconds)
         {
-         
+
             var persistentConnection = await _senderLoadBlancer.Lease();
 
             try
             {
-             
+
                 if (!persistentConnection.IsConnected)
                 {
                     persistentConnection.TryConnect();
                 }
 
                 var _channel = persistentConnection.GetModel();
-                
+
                 // 提交走批量通道
                 var _batchPublish = _channel.CreateBasicPublishBatch();
-                    
+
                 for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
                 {
-                    
-                        var MessageId = Events[eventIndex].MessageId;
-                        var EventId = Events[eventIndex].EventId;
 
-                        var json = Events[eventIndex].Body;
-                        var routeKey = Events[eventIndex].RouteKey;
-                        byte[] bytes = Encoding.UTF8.GetBytes(json);
-                        //设置消息持久化
-                        IBasicProperties properties = _channel.CreateBasicProperties();
-                        properties.DeliveryMode = 2;
-                        properties.MessageId = MessageId;
-                        properties.Headers = new Dictionary<string, Object>();
-                        properties.Headers["EventId"] = EventId;
-                        
+                    var MessageId = Events[eventIndex].MessageId;
+                    var EventId = Events[eventIndex].EventId;
 
-                        //需要发送延时消息
+                    var json = Events[eventIndex].Body;
+                    var routeKey = Events[eventIndex].RouteKey;
+                    byte[] bytes = Encoding.UTF8.GetBytes(json);
+                    //设置消息持久化
+                    IBasicProperties properties = _channel.CreateBasicProperties();
+                    properties.DeliveryMode = 2;
+                    properties.MessageId = MessageId;
+                    properties.Headers = new Dictionary<string, Object>();
+                    properties.Headers["EventId"] = EventId;
+
+
+                    //需要发送延时消息
                     if (EventDelaySeconds > 0)
-                        {
-                            var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
+                    {
+                        var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
 
-                            Dictionary<string, object> dic = new Dictionary<string, object>();
-                            dic.Add("x-expires", EventDelaySeconds * 10000);//队列过期时间 
-                            dic.Add("x-message-ttl", EventDelaySeconds * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
-                            dic.Add("x-dead-letter-exchange", _exchange);//过期消息转向路由  
-                            dic.Add("x-dead-letter-routing-key", routeKey);//过期消息转向路由相匹配routingkey 
+                        Dictionary<string, object> dic = new Dictionary<string, object>();
+                        dic.Add("x-expires", EventDelaySeconds * 10000);//队列过期时间 
+                        dic.Add("x-message-ttl", EventDelaySeconds * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
+                        dic.Add("x-dead-letter-exchange", _exchange);//过期消息转向路由  
+                        dic.Add("x-dead-letter-routing-key", routeKey);//过期消息转向路由相匹配routingkey 
 
-                            //创建一个队列                         
-                            _channel.QueueDeclare(
-                                    queue: newQueue,
-                                    durable: true,
-                                    exclusive: false,
-                                    autoDelete: false,
-                                    arguments: dic);
+                        //创建一个队列                         
+                        _channel.QueueDeclare(
+                                queue: newQueue,
+                                durable: true,
+                                exclusive: false,
+                                autoDelete: false,
+                                arguments: dic);
 
-                            //发送至延时队列，延时结束后会写入正式度列
-                            _batchPublish.Add(
-                                exchange: "",
-                                mandatory: true,
-                                routingKey: newQueue,
-                                properties: properties,
-                                body: bytes);
+                        //发送至延时队列，延时结束后会写入正式度列
+                        _batchPublish.Add(
+                            exchange: "",
+                            mandatory: true,
+                            routingKey: newQueue,
+                            properties: properties,
+                            body: bytes);
 
-                        }
-                        else
-                        {
-                            //发送到正常队列，如果Reject会写入死信队列
-                            _batchPublish.Add(
-                                exchange: _exchange,
-                                mandatory: true,
-                                routingKey: routeKey,
-                                properties: properties,
-                                body: bytes);
-                        }                   
+                    }
+                    else
+                    {
+                        //发送到正常队列，如果Reject会写入死信队列
+                        _batchPublish.Add(
+                            exchange: _exchange,
+                            mandatory: true,
+                            routingKey: routeKey,
+                            properties: properties,
+                            body: bytes);
+                    }
                 };
-                  
+
                 await _eventBusRetryPolicy.Execute(async () =>
                 {
                     await Task.Run(() =>
@@ -240,7 +240,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
           int EventDelaySeconds)
         {
             var persistentConnection = await _senderLoadBlancer.Lease();
-            
+
             try
             {
                 if (!persistentConnection.IsConnected)
@@ -252,9 +252,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 _eventBusRetryPolicy.Execute(() =>
                 {
                     _channel.ConfirmSelect();
-                });               
+                });
 
-                    // 提交走批量通道
+                // 提交走批量通道
                 var _batchPublish = _channel.CreateBasicPublishBatch();
 
                 for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
@@ -272,7 +272,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         properties.DeliveryMode = 2;
                         properties.MessageId = MessageId;
                         properties.Headers = new Dictionary<string, Object>();
-                   
+
 
                         //需要发送延时消息
                         if (EventDelaySeconds > 0)
@@ -326,7 +326,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             _channel.WaitForConfirmsOrDie();
                         });
                     });
-            
+
             }
             catch (Exception ex)
             {
@@ -349,7 +349,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 where TD : class
                 where TH : IEventHandler<TD>
         {
-            
+
             var persistentConnection = _receiveLoadBlancer.Lease().Result;
 
             if (!persistentConnection.IsConnected)
@@ -506,7 +506,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             return this;
         }
 
-        private IAsyncPolicy createPolicy() {
+        private IAsyncPolicy createPolicy()
+        {
 
             IAsyncPolicy policy = Policy.NoOpAsync();//创建一个空的Policy
 
@@ -549,7 +550,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     return Task.FromResult(true);
                 }));
 
-     
+
 
             return policy;
 
@@ -564,7 +565,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// <typeparam name="TH"></typeparam>
         /// <param name="EventTypeName">消息类型名称</param>        
         /// <returns></returns>
-        public IEventBus RegisterBatch<TD, TH>(string QueueName, string EventTypeName = "", int BatchSize =50)
+        public IEventBus RegisterBatch<TD, TH>(string QueueName, string EventTypeName = "", int BatchSize = 50)
                 where TD : class
                 where TH : IEventBatchHandler<TD>
         {
@@ -608,40 +609,34 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         {
                             var batchPool = new List<(string MessageId, TD Body)>();
                             ulong batchLastDeliveryTag = 0;
-                            var _insertPoolBlock = new ActionBlock<BasicGetResult>(ea =>
-                            {
-                                var MessageId = ea.BasicProperties.MessageId;
 
-                            //消息编号不为空, 消息没有被处理过则写入待处理列表
-                            if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.Exists($"{_queueName}:{MessageId}", "Events"))
-                                {
-                                    if (string.IsNullOrEmpty(MessageId))
-                                    {
-                                        batchPool.Add((Guid.NewGuid().ToString("N"), JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body))));
-                                    }
-                                    else
-                                    {
-                                        batchPool.Add((ea.BasicProperties.MessageId, JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body))));
-                                    }
-
-                                    batchLastDeliveryTag = ea.DeliveryTag;
-                                    return;
-                                }
-                                else
-                                {
-                                //丢弃，消息已经被处理或者没有消息编号
-                                _channel.BasicNack(ea.DeliveryTag, false, false);
-                                }
-
-                            });
-
-                        #region batch Pull
-                        for (var i = 0; i < BatchSize; i++)
+                            #region batch Pull
+                            for (var i = 0; i < BatchSize; i++)
                             {
                                 var ea = _channel.BasicGet(_queueName, false);
                                 if (ea != null)
                                 {
-                                    _insertPoolBlock.Post(ea);
+                                    var MessageId = ea.BasicProperties.MessageId;
+
+                                    //消息编号不为空, 消息没有被处理过则写入待处理列表
+                                    if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.Exists($"{_queueName}:{MessageId}", "Events"))
+                                    {
+                                        if (string.IsNullOrEmpty(MessageId))
+                                        {
+                                            batchPool.Add((Guid.NewGuid().ToString("N"), JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body))));
+                                        }
+                                        else
+                                        {
+                                            batchPool.Add((ea.BasicProperties.MessageId, JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body))));
+                                        }
+
+                                        batchLastDeliveryTag = ea.DeliveryTag;                                      
+                                    }
+                                    else
+                                    {
+                                        //丢弃，消息已经被处理或者没有消息编号
+                                        _channel.BasicNack(ea.DeliveryTag, false, false);
+                                    }
                                 }
                                 else
                                 {
@@ -649,24 +644,21 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 }
                             }
 
-                        #endregion
+                            #endregion
 
-                        //等待消息写入度列完成
-                        _insertPoolBlock.Complete();
-                            await _insertPoolBlock.Completion;
 
-                        //队列不为空
-                        if (batchPool.Count > 0)
+                            //队列不为空
+                            if (batchPool.Count > 0)
                             {
                                 var messageIds = batchPool.Select(a => a.MessageId).ToArray();
                                 var bodys = batchPool.Select(a => a.Body).ToArray();
 
                                 try
                                 {
-                                   
+
                                     var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
                                      {
-                                         return await EventAction.Handle(bodys, cancellationToken);                                      
+                                         return await EventAction.Handle(bodys, cancellationToken);
 
                                      }, CancellationToken.None);
 
