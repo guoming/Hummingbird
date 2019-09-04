@@ -154,9 +154,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// 消费者最大重试次数
         /// </summary>
         internal int ReceiverAcquireRetryAttempts { get; set; } = 3;
+
+        /// <summary>
+        /// 消费处理超时时间
+        /// </summary>
+        internal int ReceiverHandlerTimeoutMillseconds { get; set; } = 1000 * 2;
    
         /// <summary>
-        /// 单个连接最大Channel数量
+        /// 消费单个连接最大Channel数量
         /// </summary>
         internal int ReveiverMaxDegreeOfParallelism { get; set; } = 10;
 
@@ -226,14 +231,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 var receiveLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> receiveConnections, option.ReceiverLoadBalancer);
                 var senderLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> senderConnections, option.SenderLoadBalancer);
-
+                
                 return new EventBusRabbitMQ(cache,
                     receiveLoadBlancer,
                     senderLoadBlancer,
                     logger,
                     sp,
-                    retryCount: option.SenderAcquireRetryAttempts,
+                    senderRetryCount: option.SenderAcquireRetryAttempts,
                     reveiverMaxDegreeOfParallelism:option.ReveiverMaxDegreeOfParallelism,
+                    receiverAcquireRetryAttempts: option.ReceiverAcquireRetryAttempts,
+                    receiverHandlerTimeoutMillseconds: option.ReceiverHandlerTimeoutMillseconds,
                     preFetch:option.PreFetch,
                     IdempotencyDuration: option.IdempotencyDuration,
                     exchange: option.Exchange,

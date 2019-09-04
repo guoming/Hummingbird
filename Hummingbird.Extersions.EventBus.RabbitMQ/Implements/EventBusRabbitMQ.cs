@@ -47,8 +47,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly ILogger<IEventBus> _logger;
         private readonly string _exchange = "amq.topic";
         private readonly string _exchangeType = "topic";
-        private readonly ushort _preFetch = 1;
-        private readonly int _retryCount = 3;
+        private readonly ushort _preFetch = 1;        
         private readonly int _IdempotencyDuration;
         private readonly int _reveiverMaxDegreeOfParallelism;
 
@@ -60,7 +59,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private static ConcurrentDictionary<string, SortedList<ulong, string>> _channelAllUnconfirmMessageIds = new ConcurrentDictionary<string, SortedList<ulong, string>>();
 
         private readonly IHummingbirdCache<bool> _cacheManager;
-        private readonly RetryPolicy _eventBusRetryPolicy = null;
+        private readonly RetryPolicy _eventBusSenderRetryPolicy = null;
+        private readonly IAsyncPolicy _eventBusReceiverPolicy = null;
 
         public EventBusRabbitMQ(
            IHummingbirdCache<bool> cacheManager,
@@ -68,8 +68,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
            IRabbitMQPersisterConnectionLoadBalancer senderLoadBlancer,
            ILogger<IEventBus> logger,
            IServiceProvider lifetimeScope,
-           int reveiverMaxDegreeOfParallelism = 10,
-            int retryCount = 3,
+            int reveiverMaxDegreeOfParallelism = 10,
+            int receiverAcquireRetryAttempts=3,
+            int receiverHandlerTimeoutMillseconds=2000,
+            int senderRetryCount = 3,
             ushort preFetch = 1,
             int IdempotencyDuration = 15,
             string exchange = "amp.topic",
@@ -82,19 +84,42 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             this._lifetimeScope = lifetimeScope ?? throw new ArgumentNullException(nameof(lifetimeScope));
             this._IdempotencyDuration = IdempotencyDuration;
             this._cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
-            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this._retryCount = retryCount;
+            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));            
             this._preFetch = preFetch;
             this._exchange = exchange;
             this._exchangeType = exchangeType;
-            this._eventBusRetryPolicy = RetryPolicy.Handle<BrokerUnreachableException>()
-           .Or<SocketException>()
-           .Or<System.IO.IOException>()
-           .Or<AlreadyClosedException>()
-           .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)), (ex, time) =>
-           {
-               _logger.LogWarning(ex.ToString());
-           });
+
+            #region 生产端策略
+            this._eventBusSenderRetryPolicy = RetryPolicy.Handle<BrokerUnreachableException>()
+               .Or<SocketException>()
+               .Or<System.IO.IOException>()
+               .Or<AlreadyClosedException>()
+               .WaitAndRetry(senderRetryCount, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+               {
+                   _logger.LogWarning(ex.ToString());
+               });
+            #endregion
+
+
+            #region 消费者策略
+            _eventBusReceiverPolicy = Policy.NoOpAsync();//创建一个空的Policy
+
+            //设置重试策略
+            _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.Handle<Exception>()
+                   .RetryAsync(receiverAcquireRetryAttempts, (ex, time) =>
+                   {
+                       _logger.LogError(ex, ex.ToString());
+                   }));
+
+            // 设置超时
+            _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.TimeoutAsync(
+                TimeSpan.FromSeconds(receiverHandlerTimeoutMillseconds),
+                TimeoutStrategy.Pessimistic,
+                (context, timespan, task) =>
+                {
+                    return Task.FromResult(true);
+                }));
+            #endregion
         }
 
         /// <summary>
@@ -216,7 +241,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     }
                 };
 
-                await _eventBusRetryPolicy.Execute(async () =>
+                await _eventBusSenderRetryPolicy.Execute(async () =>
                 {
                     await Task.Run(() =>
                     {
@@ -249,7 +274,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 }
                 var _channel = persistentConnection.GetModel();
 
-                _eventBusRetryPolicy.Execute(() =>
+                _eventBusSenderRetryPolicy.Execute(() =>
                 {
                     _channel.ConfirmSelect();
                 });
@@ -259,7 +284,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                 for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
                 {
-                    _eventBusRetryPolicy.Execute(() =>
+                    _eventBusSenderRetryPolicy.Execute(() =>
                     {
                         var MessageId = Events[eventIndex].MessageId;
                         var EventId = Events[eventIndex].EventId;
@@ -316,7 +341,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     });
                 };
 
-                await _eventBusRetryPolicy.Execute(async () =>
+                await _eventBusSenderRetryPolicy.Execute(async () =>
                     {
                         await Task.Run(() =>
                         {
@@ -362,11 +387,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 System.Threading.Tasks.Task.Run(() =>
                 {
 
-                    var _channel = persistentConnection.CreateModel();
-                    var policy = createPolicy();
-                    var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false)
-                        .WrapAsync(policy);
-
+                    var _channel = persistentConnection.CreateModel();                    
+                    var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false).WrapAsync(_eventBusReceiverPolicy);
                     var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
                     var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
                     var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventHandler<TD>;
@@ -410,7 +432,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     bytes = ea.Body;
                                     str = Encoding.UTF8.GetString(bytes);
                                     msg = JsonConvert.DeserializeObject<TD>(str);
-                                    Exception handlerException = null;
+                                    
                                     var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
                                     {
                                         return await EventAction.Handle(msg, cancellationToken);
@@ -508,7 +530,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
         private IAsyncPolicy createPolicy()
         {
-
+            
             IAsyncPolicy policy = Policy.NoOpAsync();//创建一个空的Policy
 
             //设置熔断策略
@@ -579,9 +601,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             for (int parallelism = 0; parallelism < _reveiverMaxDegreeOfParallelism; parallelism++)
             {
                 var _channel = persistentConnection.CreateModel();
-                var policy = createPolicy();
-                var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false)
-                    .WrapAsync(policy);
+                var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false).WrapAsync(_eventBusReceiverPolicy);
                 var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
                 var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
                 var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventBatchHandler<TD>;
