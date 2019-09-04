@@ -394,7 +394,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 {
 
                     var _channel = persistentConnection.CreateModel();                    
-                    var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false).WrapAsync(_eventBusReceiverPolicy);
                     var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
                     var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
                     var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventHandler<TD>;
@@ -439,7 +438,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     str = Encoding.UTF8.GetString(bytes);
                                     msg = JsonConvert.DeserializeObject<TD>(str);
                                     
-                                    var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
+                                    var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
                                     {
                                         return await EventAction.Handle(msg, cancellationToken);
 
@@ -467,7 +466,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         var requeue = true;
 
                                         //执行回调，等待业务层确认是否重新入队
-                                        if (_subscribeNackHandler != null && !string.IsNullOrEmpty(MessageId))
+                                        if (_subscribeNackHandler != null)
                                         {
                                             requeue = await _subscribeNackHandler(new string[] { MessageId }, _queueName, null, new dynamic[] { msg });
                                         }
@@ -483,7 +482,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     var requeue = true;
 
                                     //执行回调，等待业务层的处理结果
-                                    if (_subscribeNackHandler != null && !string.IsNullOrEmpty(MessageId))
+                                    if (_subscribeNackHandler != null)
                                     {
                                         requeue = await _subscribeNackHandler(new string[] { MessageId }, _queueName, ex, new dynamic[] { msg });
                                     }
@@ -534,55 +533,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             return this;
         }
 
-        private IAsyncPolicy createPolicy()
-        {
-            
-            IAsyncPolicy policy = Policy.NoOpAsync();//创建一个空的Policy
 
-            //设置熔断策略
-            policy = policy.WrapAsync(Policy.Handle<Exception>()
-                .AdvancedCircuitBreakerAsync(
-                    failureThreshold: 0.5, // Break on >=50% actions result in handled exceptions...
-                    samplingDuration: TimeSpan.FromSeconds(10), // ... over any 10 second period
-                    minimumThroughput: 8, // ... provided at least 8 actions in the 10 second period.
-                    durationOfBreak: TimeSpan.FromSeconds(30), // Break for 30 seconds.
-                    onBreak: (Exception exception, TimeSpan timeSpan) =>
-                    {
-                        Console.WriteLine("onBreak!");
-                    },
-                    onHalfOpen: () =>
-                    {
-                        Console.WriteLine("onReset!");
-                    },
-                    onReset: () =>
-                    {
-                        Console.WriteLine("onReset!");
-                    }));
-
-            //设置重试策略
-            policy = policy.WrapAsync(Policy.Handle<Exception>()
-                   .RetryAsync(3, (ex, time) =>
-                   {
-                       _logger.LogError(ex, ex.ToString());
-                   }));
-
-
-            // 设置超时
-            policy = policy.WrapAsync(Policy.TimeoutAsync(
-                TimeSpan.FromSeconds(2),
-                TimeoutStrategy.Pessimistic,
-                (context, timespan, task) =>
-                {
-                    Console.WriteLine("Timeout!");
-
-                    return Task.FromResult(true);
-                }));
-
-
-
-            return policy;
-
-        }
 
         /// <summary>
         /// 订阅消息（同一类消息可以重复订阅）
@@ -607,7 +558,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             for (int parallelism = 0; parallelism < _reveiverMaxDegreeOfParallelism; parallelism++)
             {
                 var _channel = persistentConnection.CreateModel();
-                var msgHandlerPolicy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false).WrapAsync(_eventBusReceiverPolicy);
                 var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
                 var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
                 var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventBatchHandler<TD>;
@@ -682,7 +632,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 try
                                 {
 
-                                    var handlerOK = await msgHandlerPolicy.ExecuteAsync(async (cancellationToken) =>
+                                    var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
                                      {
                                          return await EventAction.Handle(bodys, cancellationToken);
 

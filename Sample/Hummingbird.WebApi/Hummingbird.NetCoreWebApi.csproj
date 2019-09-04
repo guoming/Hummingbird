@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hummingbird.Extersions.EventBus.RabbitMQ" Version="1.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\..\Hummingbird.EventHandler\Hummingbird.Evens.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
