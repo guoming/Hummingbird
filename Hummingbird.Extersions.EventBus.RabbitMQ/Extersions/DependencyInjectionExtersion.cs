@@ -70,17 +70,24 @@ namespace Microsoft.Extensions.DependencyInjection
         /// 消费端设置
         /// </summary>
         /// <param name="ReceiverMaxConnections">消费最大连接数</param>
-        /// <param name="AcquireRetryAttempts">最大重试次数</param>
+        /// <param name="ReceiverAcquireRetryAttempts">最大重试次数</param>
         /// <param name="IdempotencyDurationSeconds">幂等持续时间（秒）</param>
         /// <param name="PreFetch">预取数量</param>
-        public void WithReceiver(int ReceiverMaxConnections = 2, int ReveiverMaxDegreeOfParallelism = 10, int AcquireRetryAttempts = 3, string LoadBalancer= "RoundRobinLoadBalancer", int IdempotencyDurationSeconds=15, ushort PreFetch=1)
+        public void WithReceiver(
+            int ReceiverMaxConnections = 2, 
+            int ReveiverMaxDegreeOfParallelism = 10,
+            int ReceiverAcquireRetryAttempts = 0, 
+            int ReceiverHandlerTimeoutMillseconds=0,
+            string LoadBalancer= "RoundRobinLoadBalancer", int IdempotencyDurationSeconds=15, ushort PreFetch=1)
         {
             this.ReceiverMaxConnections = ReceiverMaxConnections;
             this.ReveiverMaxDegreeOfParallelism = ReveiverMaxDegreeOfParallelism;
-            this.ReceiverAcquireRetryAttempts = AcquireRetryAttempts;
+            this.ReceiverAcquireRetryAttempts = ReceiverAcquireRetryAttempts;
+            this.ReceiverHandlerTimeoutMillseconds = ReceiverHandlerTimeoutMillseconds;
             this.IdempotencyDuration = IdempotencyDurationSeconds;
             this.PreFetch = PreFetch;
             this.ReceiverLoadBalancer = LoadBalancer;
+            
         }
 
         #region Endpoint

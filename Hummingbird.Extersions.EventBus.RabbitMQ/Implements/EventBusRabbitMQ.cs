@@ -69,8 +69,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
            ILogger<IEventBus> logger,
            IServiceProvider lifetimeScope,
             int reveiverMaxDegreeOfParallelism = 10,
-            int receiverAcquireRetryAttempts=3,
-            int receiverHandlerTimeoutMillseconds=2000,
+            int receiverAcquireRetryAttempts=0,
+            int receiverHandlerTimeoutMillseconds=0,
             int senderRetryCount = 3,
             ushort preFetch = 1,
             int IdempotencyDuration = 15,
@@ -96,7 +96,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                .Or<AlreadyClosedException>()
                .WaitAndRetry(senderRetryCount, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)), (ex, time) =>
                {
-                   _logger.LogWarning(ex.ToString());
+                   _logger.LogError(ex.ToString());
                });
             #endregion
 
@@ -104,21 +104,27 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             #region 消费者策略
             _eventBusReceiverPolicy = Policy.NoOpAsync();//创建一个空的Policy
 
-            //设置重试策略
-            _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.Handle<Exception>()
-                   .RetryAsync(receiverAcquireRetryAttempts, (ex, time) =>
-                   {
-                       _logger.LogError(ex, ex.ToString());
-                   }));
+            if (receiverAcquireRetryAttempts > 0)
+            {
+                //设置重试策略
+                _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.Handle<Exception>()
+                       .RetryAsync(receiverAcquireRetryAttempts, (ex, time) =>
+                       {
+                           _logger.LogError(ex, ex.ToString());
+                       }));
+            }
 
-            // 设置超时
-            _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.TimeoutAsync(
-                TimeSpan.FromSeconds(receiverHandlerTimeoutMillseconds),
-                TimeoutStrategy.Pessimistic,
-                (context, timespan, task) =>
-                {
-                    return Task.FromResult(true);
-                }));
+            if (receiverHandlerTimeoutMillseconds > 0)
+            {
+                // 设置超时
+                _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.TimeoutAsync(
+                    TimeSpan.FromSeconds(receiverHandlerTimeoutMillseconds),
+                    TimeoutStrategy.Pessimistic,
+                    (context, timespan, task) =>
+                    {
+                        return Task.FromResult(true);
+                    }));
+            }
             #endregion
         }
 
