@@ -51,8 +51,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly int _IdempotencyDuration;
         private readonly int _reveiverMaxDegreeOfParallelism;
 
-        private Action<string[], string> _subscribeAckHandler = null;
-        private Func<string[], string, Exception, dynamic[], Task<bool>> _subscribeNackHandler = null;
+        private Action<(string[] MessageIds, string QueueName,string RouteKey)> _subscribeAckHandler = null;
+        private Func<(string[] MessageIds, string QuueName,string RouteKey, Exception exception, dynamic[] Events), Task<bool>> _subscribeNackHandler = null;
         private static List<IModel> _subscribeChannels = new List<IModel>();
         private readonly SemaphoreSlim readLock = new SemaphoreSlim(1, 1);
         private static ConcurrentDictionary<string, SortedList<string, bool>> _channelAllReturnMessageIds = new ConcurrentDictionary<string, SortedList<string, bool>>();
@@ -448,7 +448,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     {
                                         if (_subscribeAckHandler != null && !string.IsNullOrEmpty(MessageId))
                                         {
-                                            _subscribeAckHandler(new string[] { MessageId }, _queueName);
+                                            _subscribeAckHandler((new string[] { MessageId }, _queueName,_routeKey));
                                         }
 
                                         //确认消息
@@ -468,7 +468,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         //执行回调，等待业务层确认是否重新入队
                                         if (_subscribeNackHandler != null)
                                         {
-                                            requeue = await _subscribeNackHandler(new string[] { MessageId }, _queueName, null, new dynamic[] { msg });
+                                            requeue = await _subscribeNackHandler((new string[] { MessageId }, _queueName,_routeKey, null, new dynamic[] { msg }));
                                         }
 
                                         //确认消息
@@ -484,7 +484,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     //执行回调，等待业务层的处理结果
                                     if (_subscribeNackHandler != null)
                                     {
-                                        requeue = await _subscribeNackHandler(new string[] { MessageId }, _queueName, ex, new dynamic[] { msg });
+                                        requeue = await _subscribeNackHandler((new string[] { MessageId }, _queueName,_routeKey, ex, new dynamic[] { msg }));
                                     }
 
                                     //确认消息
@@ -643,7 +643,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         #region 消息处理成功
                                         if (_subscribeAckHandler != null && messageIds.Length > 0)
                                         {
-                                            _subscribeAckHandler(messageIds, _queueName);
+                                            _subscribeAckHandler((messageIds, _queueName,_routeKey));
                                         }
 
                                         //确认消息被处理
@@ -667,7 +667,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                         if (_subscribeNackHandler != null && messageIds.Length > 0)
                                         {
-                                            requeue = await _subscribeNackHandler(messageIds, _queueName, null, bodys);
+                                            requeue = await _subscribeNackHandler((messageIds, _queueName,_routeKey, null, bodys));
                                         }
 
                                         _channel.BasicNack(batchLastDeliveryTag, true, requeue);
@@ -682,7 +682,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                     if (_subscribeNackHandler != null && messageIds.Length > 0)
                                     {
-                                        requeue = await _subscribeNackHandler(messageIds, _queueName, ex, bodys);
+                                        requeue = await _subscribeNackHandler((messageIds, _queueName,_routeKey, ex, bodys));
                                     }
                                     _channel.BasicNack(batchLastDeliveryTag, true, requeue);
 
@@ -704,9 +704,16 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             return this;
         }
 
-        public IEventBus Subscribe(
-            Action<string[], string> ackHandler,
-            Func<string[], string, Exception, dynamic[], Task<bool>> nackHandler)
+
+        /// <summary>
+        /// 订阅消息
+        /// </summary>
+        /// <param name="ackHandler"></param>
+        /// <param name="nackHandler"></param>
+        /// <returns></returns>
+       public  IEventBus Subscribe(
+        Action<(string[] MessageIds, string QueueName, string RouteKey)> ackHandler,
+        Func<(string[] MessageIds, string QuueName, string RouteKey, Exception exception, dynamic[] Events), Task<bool>> nackHandler)
         {
             _subscribeAckHandler = ackHandler;
             _subscribeNackHandler = nackHandler;
