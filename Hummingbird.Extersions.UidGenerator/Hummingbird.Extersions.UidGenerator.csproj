@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="1.50.5" />
-    <PackageReference Include="Snowflake.Core" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
