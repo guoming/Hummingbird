@@ -1,6 +1,4 @@
-﻿using Autofac;
-using Hummingbird.Extersions.Cache;
-using Hummingbird.Extersions.EventBus;
+﻿using Hummingbird.Extersions.Cacheing;
 using Hummingbird.Extersions.EventBus.Abstractions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -18,8 +16,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
-using System.Collections.Concurrent;
 
 namespace Hummingbird.Extersions.EventBus.RabbitMQ
 {
@@ -58,12 +54,12 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private static ConcurrentDictionary<string, SortedList<string, bool>> _channelAllReturnMessageIds = new ConcurrentDictionary<string, SortedList<string, bool>>();
         private static ConcurrentDictionary<string, SortedList<ulong, string>> _channelAllUnconfirmMessageIds = new ConcurrentDictionary<string, SortedList<ulong, string>>();
 
-        private readonly IHummingbirdCache<bool> _cacheManager;
+        private readonly ICacheManager _cacheManager;
         private readonly RetryPolicy _eventBusSenderRetryPolicy = null;
         private readonly IAsyncPolicy _eventBusReceiverPolicy = null;
 
         public EventBusRabbitMQ(
-           IHummingbirdCache<bool> cacheManager,
+           ICacheManager cacheManager,
            IRabbitMQPersisterConnectionLoadBalancer receiveLoadBlancer,
            IRabbitMQPersisterConnectionLoadBalancer senderLoadBlancer,
            ILogger<IEventBus> logger,
@@ -430,7 +426,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                             var MessageId = ea.BasicProperties.MessageId;
 
-                            if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.Exists($"{_queueName}:{MessageId}", "Events"))
+                            if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.KeyExists($"Events:{_queueName}:{MessageId}"))
                             {
                                 try
                                 {
@@ -457,7 +453,15 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         //幂等保证
                                         if (_IdempotencyDuration > 0 && !string.IsNullOrEmpty(MessageId))
                                         {
-                                            _cacheManager.Add($"{_queueName}:{MessageId}", true, TimeSpan.FromSeconds(_IdempotencyDuration), "Events");
+                                            try
+                                            {
+                                                _cacheManager.StringSet($"Events:{_queueName}:{MessageId}", true, TimeSpan.FromSeconds(_IdempotencyDuration));
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                _logger.LogError(ex, ex.Message);
+                                            }
+
                                         }
                                     }
                                     else
@@ -595,7 +599,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     var MessageId = ea.BasicProperties.MessageId;
 
                                     //消息编号不为空, 消息没有被处理过则写入待处理列表
-                                    if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.Exists($"{_queueName}:{MessageId}", "Events"))
+                                    if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.KeyExists($"Events:{_queueName}:{MessageId}"))
                                     {
                                         if (string.IsNullOrEmpty(MessageId))
                                         {
@@ -654,7 +658,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         {
                                             for (int i = 0; i < messageIds.Length; i++)
                                             {
-                                                _cacheManager.Add($"{_queueName}:{messageIds[i].ToString()}", true, TimeSpan.FromSeconds(_IdempotencyDuration), "Events");
+                                                try
+                                                {
+                                                    _cacheManager.StringSet($"Events:{_queueName}:{messageIds[i].ToString()}", true, TimeSpan.FromSeconds(_IdempotencyDuration));
+                                                }
+                                                catch(Exception ex)
+                                                {
+                                                    _logger.LogError(ex, ex.Message);
+                                                }
                                             }
                                         }
 

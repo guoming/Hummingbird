@@ -105,26 +105,32 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var eventBus = serviceProvider.GetRequiredService<IEventBus>();
             var logger = serviceProvider.GetRequiredService<ILogger<IEventLogger>>();
-            //消息处理的策略(降级时返回处理失败)
-            var policy = Policy<Boolean>.Handle<Exception>().FallbackAsync(false).WrapAsync(createPolicy(logger));
-
 
             //订阅消息
-            eventBus.Subscribe((eventIds, queueName) =>
+            eventBus.Subscribe((obj) =>
            {
-              
-              
-
-           }, (eventIds, queueName, outEx, eventObjs) =>
-           {
-               //消息消费失败执行以下代码
-               if (outEx != null)
+               foreach (var messageId in obj.MessageIds)
                {
-                   logger.LogError(outEx, outEx.Message);
+                   logger.LogDebug($"ACK: queue {obj.QueueName} routeKey={obj.RouteKey} MessageId:{messageId}");
+                }
+              
+           }, async (obj) =>
+           {
+
+               foreach (var messageId in obj.MessageIds)
+               {
+                   logger.LogError($"NAck: queue {obj.QuueName} routeKey={obj.RouteKey} MessageId:{messageId}");
                }
 
-               return Task.FromResult(true);
+               //消息消费失败执行以下代码
+               if (obj.exception != null)
+               {
+                   logger.LogError(obj.exception, obj.exception.Message);
+               }
 
+               var ret = !(await eventBus.PublishAsync(obj.Events.Select(@event => new Hummingbird.Extersions.EventBus.Models.EventLogEntry($"{obj.RouteKey}", @event)).ToList(), 60));
+
+               return ret;
            });
 
        

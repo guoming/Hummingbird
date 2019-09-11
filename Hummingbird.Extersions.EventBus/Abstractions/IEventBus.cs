@@ -51,8 +51,8 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         /// <param name="nackHandler"></param>
         /// <returns></returns>
         IEventBus Subscribe(
-        Action<string[], string> ackHandler,
-        Func<string[], string, Exception, dynamic[], Task<bool>> nackHandler);
+        Action<(string[] MessageIds, string QueueName,string RouteKey)> ackHandler,
+        Func<(string[] MessageIds, string QuueName, string RouteKey, Exception exception, dynamic[] Events), Task<bool>> nackHandler);
 
     }
 

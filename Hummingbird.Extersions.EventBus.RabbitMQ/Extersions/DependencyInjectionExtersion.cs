@@ -215,7 +215,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             hostBuilder.Services.AddSingleton<IEventBus, EventBusRabbitMQ>(sp =>
             {
-                var cache = sp.GetRequiredService<Hummingbird.Extersions.Cache.IHummingbirdCache<bool>>();                
+                var cache = sp.GetRequiredService<Hummingbird.Extersions.Cacheing.ICacheManager>();                
                 var logger = sp.GetRequiredService<ILogger<IEventBus>>();
                 var loggerConnection = sp.GetRequiredService<ILogger<IRabbitMQPersistentConnection>>();
                 var rabbitMQPersisterConnectionLoadBalancerFactory = sp.GetRequiredService<IRabbitMQPersisterConnectionLoadBalancerFactory>();

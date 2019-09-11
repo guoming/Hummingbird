@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Hummingbird.Core\Hummingbird.Core.csproj" />
-    <ProjectReference Include="..\..\Hummingbird.EventHandler\Hummingbird.Evens.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.Redis\Hummingbird.Extensions.HealthChecks.Redis.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
