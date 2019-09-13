@@ -13,6 +13,7 @@ using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using System.Linq;
 using System.Net.NetworkInformation;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -42,48 +43,53 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static IHummingbirdApplicationBuilder UseServiceRegistry(this IHummingbirdApplicationBuilder hostBuilder, Action<ServiceConfig> setup)
         {
-            var serviceConfig = new ServiceConfig();
             var lifetime = hostBuilder.app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
             var env = hostBuilder.app.ApplicationServices.GetRequiredService<IHostingEnvironment>();
             var configuration = hostBuilder.app.ApplicationServices.GetRequiredService<IConfiguration>();
+            var logger = hostBuilder.app.ApplicationServices.GetRequiredService<ILogger<ConsulClient>>();
 
-            if (setup != null)
+            try
             {
-                setup(serviceConfig);
-            }
 
-            var urls = configuration["urls"].TrimEnd('/');
-            if (urls.Contains("/") && urls.Contains(":"))
-            {
-                var str = urls.Split('/').LastOrDefault().Split(':');
-                var _ip = str.FirstOrDefault();
-                var _port = Convert.ToInt32(str.LastOrDefault());
-                var _ips = new List<string>();
-                _ips.AddRange(getIps());
-                if (!_ips.Contains(_ip))
+                var serviceConfig = new ServiceConfig();
+
+                if (setup != null)
                 {
-                    _ips.Add(_ip);
+                    setup(serviceConfig);
                 }
 
-                if (_port > 0)
+                var urls = configuration["urls"].TrimEnd('/');
+                if (urls.Contains("/") && urls.Contains(":"))
                 {
-
-                    var policy = RetryPolicy.Handle<Exception>().Or<System.IO.IOException>()
-                       .WaitAndRetryForever(a => { return TimeSpan.FromSeconds(5); }, (ex, time) =>
-                       {
-                           Console.WriteLine("WaitAndRetryForever" + ex.Message);
-                       });
-                    if (string.IsNullOrEmpty(serviceConfig.SERVICE_SELF_REGISTER) || serviceConfig.SERVICE_SELF_REGISTER == bool.TrueString.ToString().ToLower())
+                    var str = urls.Split('/').LastOrDefault().Split(':');
+                    var _ip = str.FirstOrDefault();
+                    var _port = Convert.ToInt32(str.LastOrDefault());
+                    var _ips = new List<string>();
+                    _ips.AddRange(getIps());
+                    if (!_ips.Contains(_ip))
                     {
-                        var client = new ConsulClient(obj =>
-                        {
-                            obj.Address = new Uri($"http://{serviceConfig.SERVICE_REGISTRY_ADDRESS}:{serviceConfig.SERVICE_REGISTRY_PORT}");
-                            obj.Datacenter = serviceConfig.SERVICE_REGION;
-                            obj.Token = serviceConfig.SERVICE_REGISTRY_TOKEN;
-                        });
+                        _ips.Add(_ip);
+                    }
 
-                        policy.Execute(() =>
+                    if (_port > 0)
+                    {
+                        var policy = RetryPolicy.Handle<Exception>().Or<System.IO.IOException>()
+                           .WaitAndRetryForever(a => { return TimeSpan.FromSeconds(5); }, (ex, time) =>
+                           {
+                               logger.LogError(ex, ex.Message);
+
+                           });
+
+                        if (string.IsNullOrEmpty(serviceConfig.SERVICE_SELF_REGISTER) || serviceConfig.SERVICE_SELF_REGISTER.ToLower() == bool.TrueString.ToString().ToLower())
                         {
+                            var client = new ConsulClient(obj =>
+                            {
+                                obj = new ConsulClientConfiguration();
+                                obj.Address = new Uri($"http://{serviceConfig.SERVICE_REGISTRY_ADDRESS}:{serviceConfig.SERVICE_REGISTRY_PORT}");
+                                obj.Datacenter = serviceConfig.SERVICE_REGION;
+                                obj.Token = serviceConfig.SERVICE_REGISTRY_TOKEN;
+                                obj.WaitTime = TimeSpan.FromSeconds(5);
+                            });
 
                             var registrations = new List<AgentServiceRegistration>();
 
@@ -111,32 +117,76 @@ namespace Microsoft.Extensions.DependencyInjection
 
                             foreach (var registration in registrations)
                             {
-                                var result = client.Agent.ServiceRegister(registration).Result;
+                                policy.Execute(async () =>
+                                {
+                                    logger.LogInformation($"service {registration.ID} registration");
+
+                                    var ret = await client.Agent.ServiceRegister(registration);
+
+                                    logger.LogInformation($"service {registration.ID} registered. time={ret.RequestTime},statusCode={ret.StatusCode}");
+
+                                });
                             }
 
                             lifetime.ApplicationStopping.Register(() =>
                             {
+
                                 foreach (var registration in registrations)
                                 {
-                                    policy.Execute(() =>
+                                    policy.Execute(async () =>
                                     {
+                                        logger.LogInformation($"service {registration.ID} deregister");
                                     //服务停止时取消注册
-                                    client.Agent.ServiceDeregister(registration.ID).Wait();
+                                    var ret = await client.Agent.ServiceDeregister(registration.ID);
+
+                                        logger.LogInformation($"service {registration.ID} Deregistered. time={ret.RequestTime},statusCode={ret.StatusCode}");
                                         return Task.FromResult(true);
                                     });
                                 }
+
                             });
 
-                        });
+                            AppDomain.CurrentDomain.ProcessExit += new EventHandler(delegate (object sender, EventArgs e)
+                            {
+
+                                foreach (var registration in registrations)
+                                {
+                                    policy.Execute(async () =>
+                                    {
+                                        logger.LogInformation($"service {registration.ID} deregister");
+                                    //服务停止时取消注册
+                                    var ret = await client.Agent.ServiceDeregister(registration.ID);
+
+                                        logger.LogInformation($"service {registration.ID} Deregistered. time={ret.RequestTime},statusCode={ret.StatusCode}");
+
+                                        return Task.FromResult(true);
+                                    });
+                                }
+
+                            });
+
+                        }
+                        else
+                        {
+                            logger.LogWarning("No registration service");
+                        }
+                    }
+                    else
+                    {
+                        logger.LogWarning("No registration service. port invalid");
                     }
                 }
+                else
+                {
+                    logger.LogWarning("No registration service. Configuration URLs could not be found");
+                }
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
             }
 
             return hostBuilder;
         }
-
- 
-
-    
     }
 }
