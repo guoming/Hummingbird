@@ -84,7 +84,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         {
                             var client = new ConsulClient(obj =>
                             {
-                                obj = new ConsulClientConfiguration();
                                 obj.Address = new Uri($"http://{serviceConfig.SERVICE_REGISTRY_ADDRESS}:{serviceConfig.SERVICE_REGISTRY_PORT}");
                                 obj.Datacenter = serviceConfig.SERVICE_REGION;
                                 obj.Token = serviceConfig.SERVICE_REGISTRY_TOKEN;
