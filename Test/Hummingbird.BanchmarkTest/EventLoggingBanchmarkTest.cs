@@ -18,7 +18,10 @@ namespace Hummingbird.BanchmarkTest
         {
             var _dbConnection = new DbConnectionFactory("Data Source=192.168.109.227,63341;Initial Catalog=zongteng_TMS-dev;User ID=zt-2874-dev;pwd=qXSW!9vXYfFxQYbg");
             var uniqueIdGenerator = new Hummingbird.Extersions.UidGenerator.SnowflakeUniqueIdGenerator(1, 1);
-            var eventLogger = new SqlServerEventLogger(uniqueIdGenerator,_dbConnection);
+            var SqlConfig = new SqlServerConfiguration();
+            SqlConfig.WithEndpoint(_dbConnection.ConnectionString);
+
+            var eventLogger = new SqlServerEventLogger(uniqueIdGenerator,_dbConnection, SqlConfig);
 
             var items = new System.Collections.Generic.List<object> {
                 new { EventId = "1" },
@@ -33,7 +36,7 @@ namespace Hummingbird.BanchmarkTest
 
                 using (var transaction = db.BeginTransaction())
                 {
-                    eventLogger.SaveEventAsync(items, transaction).Wait();
+                    eventLogger.SaveEventAsync(items.Select(@event=>new Hummingbird.Extersions.EventBus.Models.EventLogEntry("",@event)).ToList(), transaction).Wait();
                     transaction.Commit();
                 }
             }
@@ -44,7 +47,9 @@ namespace Hummingbird.BanchmarkTest
         {
             var _dbConnection = new DbConnectionFactory("Data Source=192.168.109.227,63341;Initial Catalog=zongteng_TMS-dev;User ID=zt-2874-dev;pwd=qXSW!9vXYfFxQYbg");
             var uniqueIdGenerator = new Hummingbird.Extersions.UidGenerator.SnowflakeUniqueIdGenerator(1, 1);
-            var eventLogger = new SqlServerEventLogger(uniqueIdGenerator, _dbConnection);
+            var SqlConfig = new SqlServerConfiguration();
+            SqlConfig.WithEndpoint(_dbConnection.ConnectionString);
+            var eventLogger = new SqlServerEventLogger(uniqueIdGenerator, _dbConnection, SqlConfig);
 
             var items = new System.Collections.Generic.List<object> {
                 new { EventId = "1" },
@@ -59,7 +64,7 @@ namespace Hummingbird.BanchmarkTest
 
                 using (var transaction = db.BeginTransaction())
                 {
-                    var task = eventLogger.SaveEventAsync(items, transaction);
+                    var task = eventLogger.SaveEventAsync(items.Select(@event=>new Hummingbird.Extersions.EventBus.Models.EventLogEntry("",@event)).ToList(), transaction);
                     task.Wait();
                     
                     eventLogger.MarkEventAsPublishedAsync(task.Result.Select(a=>a.EventId).ToList(), System.Threading.CancellationToken.None).Wait();

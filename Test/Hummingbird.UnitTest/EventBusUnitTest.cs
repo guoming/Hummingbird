@@ -1,6 +1,7 @@
 using Hummingbird.Extersions.EventBus.SqlServerLogging;
 using System.Threading;
 using Xunit;
+using System.Linq;
 namespace Hummingbird.UnitTest
 {
     public class EventBusUnitTest
@@ -13,7 +14,10 @@ namespace Hummingbird.UnitTest
         {
             var cacheManager = Hummingbird.Extersions.Cache.CacheFactory.Build<bool>(config => { });
             var uniqueIdGenerator = new Hummingbird.Extersions.UidGenerator.SnowflakeUniqueIdGenerator(1, 1);
-            eventLogger = new SqlServerEventLogger(uniqueIdGenerator,new DbConnectionFactory(ConnectionString));
+            var SqlConfig = new SqlServerConfiguration();
+            SqlConfig.WithEndpoint(ConnectionString);
+
+            eventLogger = new SqlServerEventLogger(uniqueIdGenerator,new DbConnectionFactory(ConnectionString), SqlConfig);
         }
 
         [Fact]
@@ -44,8 +48,10 @@ namespace Hummingbird.UnitTest
             System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
             var _dbConnection = new DbConnectionFactory("Server=10.2.29.234;Database=HealthCloud.PharmacyService;User Id=sa;Password=kmdb@2016");
+            var SqlConfig = new SqlServerConfiguration();
+            SqlConfig.WithEndpoint(_dbConnection.ConnectionString);
 
-            var eventLis = new System.Collections.Generic.List<object> {
+            var eventList = new System.Collections.Generic.List<object> {
                 new { EventId = "1" },
                 new { EventId = "2" } };
 
@@ -59,7 +65,7 @@ namespace Hummingbird.UnitTest
                 using (var transaction = db.BeginTransaction())
                 {
 
-                    eventLogger.SaveEventAsync(eventLis, transaction).Wait();
+                    eventLogger.SaveEventAsync(eventList.Select(@event=>new Hummingbird.Extersions.EventBus.Models.EventLogEntry("",@event)).ToList(), transaction).Wait();
                     transaction.Commit();
                 }
             }

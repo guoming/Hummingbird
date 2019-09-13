@@ -9,7 +9,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
     public class ServiceConfig
     {
 
-        public static string GetIpAddress()
+        internal static string GetIpAddress()
         {
             String hostName = Dns.GetHostName();
             IPHostEntry ipH = Dns.GetHostEntry(hostName);
@@ -43,17 +43,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
         /// </summary>
         public string SERVICE_SELF_REGISTER { get; set; } = "false";
 
-        /// <summary>
-        /// 服务唯一ID（ServiceName:HostName:Port）
-        /// </summary>
-        public string SERVICE_ID
-        {
-            get
-            {
-               return $"{SERVICE_NAME}:{ SERVICE_ADDRESS}:{SERVICE_PORT}";
-            }
-        }
-
+ 
         /// <summary>
         /// 服务名称（服务发现名称）
         /// </summary>
@@ -66,35 +56,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
         /// <summary>
         /// 服务区域（隔离）
         /// </summary>
-        public string SERVICE_REGION { get; set; } = "";
-
-        string _SERVICE_ADDRESS;
-        /// <summary>
-        /// 服务访问地址（DNS或IP）
-        /// </summary>
-        ///<value>默认自动获取</value>
-        public string SERVICE_ADDRESS
-        {
-
-            get
-            {
-                if (string.IsNullOrEmpty(_SERVICE_ADDRESS))
-                {
-                   _SERVICE_ADDRESS= GetIpAddress();
-                }
-
-                return _SERVICE_ADDRESS;
-            }
-            set
-            {
-
-                _SERVICE_ADDRESS = value;
-            }
-        }
-        /// <summary>
-        /// 服务端口号(默认:80)
-        /// </summary>
-        public string SERVICE_PORT { get; set; } = "80";
+        public string SERVICE_REGION { get; set; } = "dc1";
 
         /// <summary>
         /// Http健康检查地址(默认:/healthcheck)

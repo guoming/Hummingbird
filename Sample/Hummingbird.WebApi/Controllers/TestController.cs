@@ -70,7 +70,7 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
             {
                 await _eventBus.PublishNonConfirmAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
 
-                        new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new Hummingbird.WebApi.Events.NewMsgEvent{
+                        new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new  {
 
                                 Value=i
                             })
@@ -90,7 +90,7 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
 
                 var r= await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
 
-                        new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new Hummingbird.WebApi.Events.NewMsgEvent{
+                        new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new {
 
                                 Value=0
                             })
