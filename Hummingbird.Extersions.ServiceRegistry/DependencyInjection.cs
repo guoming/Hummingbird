@@ -97,16 +97,16 @@ namespace Microsoft.Extensions.DependencyInjection
                             {
                                 registrations.Add(new AgentServiceRegistration()
                                 {
-                                    ID = $"{serviceConfig.SERVICE_NAME}:{ _ip}:{_port}",
+                                    ID = $"{serviceConfig.SERVICE_NAME}:{ ipEndPoint}:{_port}",
                                     Name = serviceConfig.SERVICE_NAME,
-                                    Address = _ip,
+                                    Address = ipEndPoint,
                                     Port = _port,
                                     Tags = new[] { serviceConfig.SERVICE_TAGS, env.EnvironmentName, env.ApplicationName },
                                     EnableTagOverride = true,
                                     Check = new AgentServiceCheck()
                                     {
                                         Status = HealthStatus.Passing,
-                                        HTTP = $"http://{_ip}:{_port}/{serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
+                                        HTTP = $"http://{ipEndPoint}:{_port}/{serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
                                         Interval = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s'))), //5秒执行一次健康检查
                                         Timeout = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s'))),//超时时间3秒
                                         TTL = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')) * 3),//生存周期3个心跳包
