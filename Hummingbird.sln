@@ -49,6 +49,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extersions.Cach
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extersions.EventBus.MongodbLogging", "Hummingbird.Extersions.EventBus.MongodbLogging\Hummingbird.Extersions.EventBus.MongodbLogging.csproj", "{D0AFCB56-2A1E-4E51-8DAF-3AFB6BC7EE77}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.NetCoreConsole", "Sample\Hummingbird.NetCoreConsole\Hummingbird.NetCoreConsole.csproj", "{9A3E500A-0E3E-41C3-BD3D-03D2D1F086D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -131,6 +133,10 @@ Global
 		{D0AFCB56-2A1E-4E51-8DAF-3AFB6BC7EE77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0AFCB56-2A1E-4E51-8DAF-3AFB6BC7EE77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0AFCB56-2A1E-4E51-8DAF-3AFB6BC7EE77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A3E500A-0E3E-41C3-BD3D-03D2D1F086D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A3E500A-0E3E-41C3-BD3D-03D2D1F086D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A3E500A-0E3E-41C3-BD3D-03D2D1F086D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A3E500A-0E3E-41C3-BD3D-03D2D1F086D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -156,6 +162,7 @@ Global
 		{3D3F5653-D615-4BAE-975F-AE85353A93DD} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{91E88120-CB43-4E54-A3A9-F98C6A89F61A} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{D0AFCB56-2A1E-4E51-8DAF-3AFB6BC7EE77} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{9A3E500A-0E3E-41C3-BD3D-03D2D1F086D1} = {DE0F9CBC-8B94-4D7D-805F-FE652AC26BFD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

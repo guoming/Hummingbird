@@ -87,6 +87,7 @@ namespace Hummingbird.WebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+           
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -96,15 +97,7 @@ namespace Hummingbird.WebApi
             {
                 humming.UseServiceRegistry(s =>
                 {
-                    s.SERVICE_REGISTRY_ADDRESS = Configuration["SERVICE_REGISTRY_ADDRESS"];
-                    s.SERVICE_REGISTRY_PORT = Configuration["SERVICE_REGISTRY_PORT"];
-                    s.SERVICE_SELF_REGISTER = Configuration["SERVICE_SELF_REGISTER"];
-                    s.SERVICE_REGION = Configuration["SERVICE_REGION"];
-                    s.SERVICE_NAME = Configuration["SERVICE_NAME"];
-                    s.SERVICE_80_CHECK_HTTP = Configuration["SERVICE_80_CHECK_HTTP"];
-                    s.SERVICE_80_CHECK_INTERVAL = Configuration["SERVICE_80_CHECK_INTERVAL"];
-                    s.SERVICE_80_CHECK_TIMEOUT = Configuration["SERVICE_80_CHECK_TIMEOUT"];
-                    s.SERVICE_TAGS = Configuration["SERVICE_TAGS"];
+                    s.WithConfig(Configuration.Get<Extersions.ServiceRegistry.ServiceConfig>());
                 });
                 humming.UseEventBus(sp =>
                 {

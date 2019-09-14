@@ -58,127 +58,243 @@ namespace Microsoft.Extensions.DependencyInjection
                     setup(serviceConfig);
                 }
 
-                var urls = configuration["urls"].TrimEnd('/');
-                if (urls.Contains("/") && urls.Contains(":"))
+
+                var policy = RetryPolicy.Handle<Exception>().Or<System.IO.IOException>()
+                         .WaitAndRetryForever(a => { return TimeSpan.FromSeconds(5); }, (ex, time) =>
+                         {
+                             logger.LogError(ex, ex.Message);
+
+                         });
+
+                if (string.IsNullOrEmpty(serviceConfig.SERVICE_SELF_REGISTER) || serviceConfig.SERVICE_SELF_REGISTER.ToLower() == bool.TrueString.ToString().ToLower())
                 {
-                    var str = urls.Split('/').LastOrDefault().Split(':');
-                    var _ip = str.FirstOrDefault();
-                    var _port = Convert.ToInt32(str.LastOrDefault());
-                    var _ips = new List<string>();
-                    _ips.AddRange(getIps());
-                    if (!_ips.Contains(_ip))
+                    var client = new ConsulClient(obj =>
                     {
-                        _ips.Add(_ip);
-                    }
+                        obj.Address = new Uri($"http://{serviceConfig.SERVICE_REGISTRY_ADDRESS}:{serviceConfig.SERVICE_REGISTRY_PORT}");
+                        obj.Datacenter = serviceConfig.SERVICE_REGION;
+                        obj.Token = serviceConfig.SERVICE_REGISTRY_TOKEN;
+                    });
 
-                    if (_port > 0)
+                    var registrations = new List<AgentServiceRegistration>();
+
+                    var urls = configuration["urls"].TrimEnd('/');
+                    if (urls.Contains("/") && urls.Contains(":"))
                     {
-                        var policy = RetryPolicy.Handle<Exception>().Or<System.IO.IOException>()
-                           .WaitAndRetryForever(a => { return TimeSpan.FromSeconds(5); }, (ex, time) =>
-                           {
-                               logger.LogError(ex, ex.Message);
-
-                           });
-
-                        if (string.IsNullOrEmpty(serviceConfig.SERVICE_SELF_REGISTER) || serviceConfig.SERVICE_SELF_REGISTER.ToLower() == bool.TrueString.ToString().ToLower())
+                        var str = urls.Split('/').LastOrDefault().Split(':');
+                        var _ip = str.FirstOrDefault();
+                        var _port = Convert.ToInt32(str.LastOrDefault());
+                        var _ips = new List<string>();
+                        _ips.AddRange(getIps());
+                        if (!_ips.Contains(_ip))
                         {
-                            var client = new ConsulClient(obj =>
-                            {
-                                obj.Address = new Uri($"http://{serviceConfig.SERVICE_REGISTRY_ADDRESS}:{serviceConfig.SERVICE_REGISTRY_PORT}");
-                                obj.Datacenter = serviceConfig.SERVICE_REGION;
-                                obj.Token = serviceConfig.SERVICE_REGISTRY_TOKEN;
-                                obj.WaitTime = TimeSpan.FromSeconds(5);
-                            });
+                            _ips.Add(_ip);
+                        }
 
-                            var registrations = new List<AgentServiceRegistration>();
-
+                        if (_port > 0)
+                        {
                             foreach (var ipEndPoint in _ips)
                             {
-                                registrations.Add(new AgentServiceRegistration()
+                                var registration = new AgentServiceRegistration()
                                 {
                                     ID = $"{serviceConfig.SERVICE_NAME}:{ ipEndPoint}:{_port}",
                                     Name = serviceConfig.SERVICE_NAME,
                                     Address = ipEndPoint,
                                     Port = _port,
                                     Tags = new[] { serviceConfig.SERVICE_TAGS, env.EnvironmentName, env.ApplicationName },
-                                    EnableTagOverride = true,
-                                    Check = new AgentServiceCheck()
+                                    EnableTagOverride = true
+
+                                };
+                                var checks = new List<AgentServiceCheck>();
+                                if (!string.IsNullOrEmpty(serviceConfig.SERVICE_80_CHECK_HTTP))
+                                {
+                                    checks.Add(new AgentServiceCheck()
                                     {
-                                        Status = HealthStatus.Passing,
+                                        Status = HealthStatus.Critical,
                                         HTTP = $"http://{ipEndPoint}:{_port}/{serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
                                         Interval = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s'))), //5秒执行一次健康检查
                                         Timeout = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s'))),//超时时间3秒
-                                        TTL = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')) * 3),//生存周期3个心跳包
                                         DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')) * 3), //2个心跳包结束
-                                    }
-                                });
-                            }
-
-                            foreach (var registration in registrations)
-                            {
-                                policy.Execute(async () =>
+                                    });
+                                }
+                                else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_TCP))
                                 {
-                                    logger.LogInformation($"service {registration.ID} registration");
-
-                                    var ret = await client.Agent.ServiceRegister(registration);
-
-                                    logger.LogInformation($"service {registration.ID} registered. time={ret.RequestTime},statusCode={ret.StatusCode}");
-
-                                });
-                            }
-
-                            lifetime.ApplicationStopping.Register(() =>
-                            {
-
-                                foreach (var registration in registrations)
-                                {
-                                    policy.Execute(async () =>
+                                    checks.Add(new AgentServiceCheck()
                                     {
-                                        logger.LogInformation($"service {registration.ID} deregister");
-                                    //服务停止时取消注册
-                                    var ret = await client.Agent.ServiceDeregister(registration.ID);
-
-                                        logger.LogInformation($"service {registration.ID} Deregistered. time={ret.RequestTime},statusCode={ret.StatusCode}");
-                                        return Task.FromResult(true);
+                                        Status = HealthStatus.Critical,
+                                        TCP = serviceConfig.SERVICE_CHECK_TCP,
+                                        Interval = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s'))), //5秒执行一次健康检查
+                                        Timeout = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s'))),//超时时间3秒
+                                        DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')) * 3), //2个心跳包结束
+                                    });
+                                }
+                                else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_SCRIPT))
+                                {
+                                    checks.Add(new AgentServiceCheck()
+                                    {
+                                        Status = HealthStatus.Critical,
+                                        Script = serviceConfig.SERVICE_CHECK_SCRIPT,
+                                        Interval = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s'))), //5秒执行一次健康检查
+                                        Timeout = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s'))),//超时时间3秒
+                                        DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')) * 3), //2个心跳包结束 
+                                    });
+                                }
+                                else if (serviceConfig.SERVICE_CHECK_TTL.HasValue)
+                                {
+                                    checks.Add(new AgentServiceCheck()
+                                    {
+                                        Status = HealthStatus.Critical,
+                                        TTL = TimeSpan.FromSeconds(serviceConfig.SERVICE_CHECK_TTL.Value),
                                     });
                                 }
 
-                            });
+                                registration.Checks = checks.ToArray();
 
-                            AppDomain.CurrentDomain.ProcessExit += new EventHandler(delegate (object sender, EventArgs e)
-                            {
-
-                                foreach (var registration in registrations)
-                                {
-                                    policy.Execute(async () =>
-                                    {
-                                        logger.LogInformation($"service {registration.ID} deregister");
-                                    //服务停止时取消注册
-                                    var ret = await client.Agent.ServiceDeregister(registration.ID);
-
-                                        logger.LogInformation($"service {registration.ID} Deregistered. time={ret.RequestTime},statusCode={ret.StatusCode}");
-
-                                        return Task.FromResult(true);
-                                    });
-                                }
-
-                            });
-
+                                registrations.Add(registration);
+                            }
                         }
                         else
                         {
-                            logger.LogWarning("No registration service");
+                            logger.LogWarning("No registration service. port invalid");
                         }
                     }
                     else
                     {
-                        logger.LogWarning("No registration service. port invalid");
+                        var registration = new AgentServiceRegistration()
+                        {
+                            ID = $"{serviceConfig.SERVICE_NAME}",
+                            Name = serviceConfig.SERVICE_NAME,
+                            Tags = new[] { serviceConfig.SERVICE_TAGS, env.EnvironmentName, env.ApplicationName },
+                            EnableTagOverride = true
+
+                        };
+                        var checks = new List<AgentServiceCheck>();
+
+                         if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_TCP))
+                        {
+                            checks.Add(new AgentServiceCheck()
+                            {
+                                Status = HealthStatus.Critical,
+                                TCP = serviceConfig.SERVICE_CHECK_TCP,
+                                Interval = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s'))), //5秒执行一次健康检查
+                                Timeout = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s'))),//超时时间3秒
+                                DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')) * 3), //2个心跳包结束
+                            });
+                        }
+                        else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_SCRIPT))
+                        {
+                            checks.Add(new AgentServiceCheck()
+                            {
+                                Status = HealthStatus.Critical,
+                                Script = serviceConfig.SERVICE_CHECK_SCRIPT,
+                                Interval = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s'))), //5秒执行一次健康检查
+                                Timeout = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s'))),//超时时间3秒
+                                DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')) * 3), //2个心跳包结束 
+                            });
+                        }
+                        else if (serviceConfig.SERVICE_CHECK_TTL.HasValue)
+                        {
+                            checks.Add(new AgentServiceCheck()
+                            {
+                                Status = HealthStatus.Critical,
+                                TTL = TimeSpan.FromSeconds(serviceConfig.SERVICE_CHECK_TTL.Value),
+                            });
+                        }
+
+                        registration.Checks = checks.ToArray();
+                        registrations.Add(registration);
                     }
+
+
+                    lifetime.ApplicationStarted.Register(() =>
+                    {
+                        foreach (var registration in registrations)
+                        {
+                            policy.Execute(async () =>
+                            {
+                                logger.LogInformation($"service {registration.ID} registration");
+
+                                var ret = await client.Agent.ServiceRegister(registration);
+
+                                logger.LogInformation($"service {registration.ID} registered. time={ret.RequestTime},statusCode={ret.StatusCode}");
+
+                            });
+                        }
+
+                        if (serviceConfig.SERVICE_CHECK_TTL.HasValue && !string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_INTERVAL))
+                        {
+                            try
+                            {
+                                var timer = new System.Timers.Timer(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL) * 1000);
+                                timer.Elapsed += new System.Timers.ElapsedEventHandler(async delegate (object sender, System.Timers.ElapsedEventArgs e)
+                                {
+                                    foreach (var registration in registrations)
+                                    {
+                                        try
+                                        {
+                                            await client.Agent.PassTTL("service:" + registration.ID, "");
+
+                                            logger.LogDebug($"service {registration.ID} ttl passing");
+                                        }
+                                        catch
+                                        { }
+
+                                    }
+                                });
+                                timer.Start();
+                            }
+                            catch
+                            { }
+                        }
+
+                    });
+
+                    lifetime.ApplicationStopping.Register(() =>
+                    {
+                        try
+                        {
+                            foreach (var registration in registrations)
+                            {
+                                policy.Execute(async () =>
+                                {
+                                    logger.LogInformation($"service {registration.ID} deregister");
+                                    //服务停止时取消注册
+                                    var ret = await client.Agent.ServiceDeregister(registration.ID);
+
+                                    logger.LogInformation($"service {registration.ID} Deregistered. time={ret.RequestTime},statusCode={ret.StatusCode}");
+                                    return Task.FromResult(true);
+                                });
+                            }
+                        }
+                        catch (Exception ex)
+                        { }
+
+                    });
+
+                    AppDomain.CurrentDomain.ProcessExit += new EventHandler(delegate (object sender, EventArgs e)
+                    {
+
+                        foreach (var registration in registrations)
+                        {
+                            policy.Execute(async () =>
+                            {
+                                logger.LogInformation($"service {registration.ID} deregister");
+                                //服务停止时取消注册
+                                var ret = await client.Agent.ServiceDeregister(registration.ID);
+
+                                logger.LogInformation($"service {registration.ID} Deregistered. time={ret.RequestTime},statusCode={ret.StatusCode}");
+
+                                return Task.FromResult(true);
+                            });
+                        }
+
+                    });
+
                 }
                 else
                 {
-                    logger.LogWarning("No registration service. Configuration URLs could not be found");
+                    logger.LogWarning("No registration service");
                 }
+
             }
             catch(Exception ex)
             {
@@ -187,5 +303,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return hostBuilder;
         }
+
+   
     }
 }
