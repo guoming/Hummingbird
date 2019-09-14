@@ -72,11 +72,11 @@ namespace Hummingbird.WebApi
                         factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
                         factory.WithReceiver();
                         factory.WithSender(10);
-                    })               
-                    .AddSqlServerEventLogging(a =>
-                     {
-                         a.WithEndpoint(DatabaseConnectionString);
-                     });
+                    });             
+                    //.AddSqlServerEventLogging(a =>
+                    // {
+                    //     a.WithEndpoint(DatabaseConnectionString);
+                    // });
                 });
 
             });
@@ -118,6 +118,9 @@ namespace Hummingbird.WebApi
 
             });
             app.UseMvc();
+
+            var ip = Configuration["Ip"];
+
         }
     }
 }
