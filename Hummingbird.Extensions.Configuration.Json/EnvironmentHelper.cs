@@ -17,6 +17,8 @@ namespace Hummingbird.Extensions.Configuration.Json
                 if (!string.IsNullOrEmpty(param))
                 {
                     var env = Environment.GetEnvironmentVariable(param);
+                    result = result.Replace("${" + param + "|L}", env.ToLower());
+                    result = result.Replace("${" + param + "|U}", env.ToUpper());
                     result = result.Replace("${" + param + "}", env);
                 }
             }
@@ -49,11 +51,11 @@ namespace Hummingbird.Extensions.Configuration.Json
         private static List<string> GetParameters(string text)
         {
             var matchVale = new List<string>();
-            string Reg = @"(?<=\${)[^\${}]*(?=})";
+            string Reg = @"(?<=\${)[^\${}]*[UL]?(?=})";
             string key = string.Empty;
             foreach (Match m in Regex.Matches(text, Reg))
             {
-                matchVale.Add(m.Value);
+                matchVale.Add(m.Value.TrimEnd('|','U', 'L'));
             }
             return matchVale;
         }
