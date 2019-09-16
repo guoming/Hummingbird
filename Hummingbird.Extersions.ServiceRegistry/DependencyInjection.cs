@@ -21,6 +21,22 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjection
     { 
+      
+        public static IHummingbirdApplicationBuilder UseServiceRegistry(this IHummingbirdApplicationBuilder hostBuilder, Action<ServiceConfig> setup)
+        {
+            ServiceRegistryBootstraper.Register(hostBuilder.app.ApplicationServices, setup);
+            return hostBuilder;
+        }
+    }
+
+
+
+}
+
+namespace Hummingbird.Extersions.ServiceRegistry
+{
+    public static class ServiceRegistryBootstraper
+    {
         /**获取ip地址*/
         public static List<string> getIps()
         {
@@ -38,19 +54,20 @@ namespace Microsoft.Extensions.DependencyInjection
             return ips;
 
         }
-        public static IHummingbirdApplicationBuilder UseServiceRegistry(this IHummingbirdApplicationBuilder hostBuilder, Action<ServiceConfig> setup)
+
+        public static void Register(IServiceProvider serviceProvider, Action<ServiceConfig> setup)
         {
-            var lifetime = ServiceProviderServiceExtensions.GetRequiredService<IApplicationLifetime>(hostBuilder.app.ApplicationServices);
-            var hosting = ServiceProviderServiceExtensions.GetRequiredService<IHostingEnvironment>(hostBuilder.app.ApplicationServices);
-            var configuration = ServiceProviderServiceExtensions.GetRequiredService<IConfiguration>(hostBuilder.app.ApplicationServices);
-            var logger = ServiceProviderServiceExtensions.GetRequiredService<ILogger<ConsulClient>>(hostBuilder.app.ApplicationServices);
+            var lifetime = ServiceProviderServiceExtensions.GetRequiredService<IApplicationLifetime>(serviceProvider);
+            var hosting = ServiceProviderServiceExtensions.GetRequiredService<IHostingEnvironment>(serviceProvider);
+            var configuration = ServiceProviderServiceExtensions.GetRequiredService<IConfiguration>(serviceProvider);
+            var logger = ServiceProviderServiceExtensions.GetRequiredService<ILogger<ConsulClient>>(serviceProvider);
             try
             {
                 ServiceConfig serviceConfig = new ServiceConfig();
                 setup?.Invoke(serviceConfig);
                 RetryPolicy policy = Policy.Handle<Exception>().Or<IOException>().WaitAndRetryForever((int a) => TimeSpan.FromSeconds(5.0), delegate (Exception ex, TimeSpan time)
                 {
-                    logger.LogError( ex, ex.Message, Array.Empty<object>());
+                    logger.LogError(ex, ex.Message, Array.Empty<object>());
                 });
 
                 if (string.IsNullOrEmpty(serviceConfig.SERVICE_SELF_REGISTER) || serviceConfig.SERVICE_SELF_REGISTER.ToLower() == bool.TrueString.ToString().ToLower())
@@ -62,7 +79,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         obj.Token = serviceConfig.SERVICE_REGISTRY_TOKEN;
                     });
                     List<AgentServiceRegistration> registrations = new List<AgentServiceRegistration>();
-                    string text = configuration["urls"].TrimEnd('/');
+                    string text = configuration["urls"]?.TrimEnd('/');
                     if (text.Contains("/") && text.Contains(":"))
                     {
                         string[] source = text.Split('/', StringSplitOptions.None).LastOrDefault().Split(':', StringSplitOptions.None);
@@ -100,7 +117,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                         HTTP = $"http://{item2}:{num}/{serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
                                         Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')))),
                                         Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s')))),
-                                        //DeregisterCriticalServiceAfter = new TimeSpan?(TimeSpan.FromSeconds((double)(int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')) * 3)))
+                                        DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
                                     });
                                 }
                                 else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_TCP))
@@ -111,7 +128,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                         TCP = serviceConfig.SERVICE_CHECK_TCP,
                                         Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
                                         Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
-                                       // DeregisterCriticalServiceAfter = new TimeSpan?(TimeSpan.FromSeconds((double)(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')) * 3)))
+                                        DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
                                     });
                                 }
                                 else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_SCRIPT))
@@ -122,7 +139,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                         Script = serviceConfig.SERVICE_CHECK_SCRIPT,
                                         Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
                                         Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
-                                      //  DeregisterCriticalServiceAfter = new TimeSpan?(TimeSpan.FromSeconds((double)(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')) * 3)))
+                                        DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
                                     });
                                 }
                                 else if (serviceConfig.SERVICE_CHECK_TTL.HasValue)
@@ -139,7 +156,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         }
                         else
                         {
-                            logger.LogWarning( "No registration service. port invalid", Array.Empty<object>());
+                            logger.LogWarning("No registration service. port invalid", Array.Empty<object>());
                         }
                     }
                     else
@@ -164,7 +181,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                 TCP = serviceConfig.SERVICE_CHECK_TCP,
                                 Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
                                 Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
-                               // DeregisterCriticalServiceAfter = new TimeSpan?(TimeSpan.FromSeconds((double)(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')) * 3)))
+                                DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
                             });
                         }
                         else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_SCRIPT))
@@ -175,7 +192,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                 Script = serviceConfig.SERVICE_CHECK_SCRIPT,
                                 Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
                                 Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
-                                //DeregisterCriticalServiceAfter = new TimeSpan?(TimeSpan.FromSeconds((double)(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')) * 3)))
+                                DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
                             });
                         }
                         else if (serviceConfig.SERVICE_CHECK_TTL.HasValue)
@@ -198,7 +215,7 @@ namespace Microsoft.Extensions.DependencyInjection
                             {
                                 logger.LogInformation("service " + item3.ID + " registration", Array.Empty<object>());
                                 WriteResult ret3 = await client.Agent.ServiceRegister(item3, default(CancellationToken));
-                                logger.LogInformation( $"service {item3.ID} registered. time={ret3.RequestTime},statusCode={ret3.StatusCode}", Array.Empty<object>());
+                                logger.LogInformation($"service {item3.ID} registered. time={ret3.RequestTime},statusCode={ret3.StatusCode}", Array.Empty<object>());
                             });
                         }
                         if (serviceConfig.SERVICE_CHECK_TTL.HasValue && !string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_INTERVAL))
@@ -217,7 +234,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                             try
                                             {
                                                 await client.Agent.PassTTL("service:" + registration4.ID, "", default(CancellationToken));
-                                                logger.LogDebug( "service " + registration4.ID + " ttl passing", Array.Empty<object>());
+                                                logger.LogDebug("service " + registration4.ID + " ttl passing", Array.Empty<object>());
                                             }
                                             catch
                                             {
@@ -246,9 +263,9 @@ namespace Microsoft.Extensions.DependencyInjection
                             {
                                 policy.Execute(async delegate
                                 {
-                                    logger.LogInformation( "service " + item4.ID + " deregister", Array.Empty<object>());
+                                    logger.LogInformation("service " + item4.ID + " deregister", Array.Empty<object>());
                                     WriteResult ret2 = await client.Agent.ServiceDeregister(item4.ID, default(CancellationToken));
-                                    logger.LogInformation( $"service {item4.ID} Deregistered. time={ret2.RequestTime},statusCode={ret2.StatusCode}", Array.Empty<object>());
+                                    logger.LogInformation($"service {item4.ID} Deregistered. time={ret2.RequestTime},statusCode={ret2.StatusCode}", Array.Empty<object>());
                                     return Task.FromResult(true);
                                 });
                             }
@@ -263,9 +280,9 @@ namespace Microsoft.Extensions.DependencyInjection
                         {
                             policy.Execute(async delegate
                             {
-                                logger.LogInformation( "service " + item5.ID + " deregister", Array.Empty<object>());
+                                logger.LogInformation("service " + item5.ID + " deregister", Array.Empty<object>());
                                 WriteResult ret = await client.Agent.ServiceDeregister(item5.ID, default(CancellationToken));
-                                logger.LogInformation( $"service {item5.ID} Deregistered. time={ret.RequestTime},statusCode={ret.StatusCode}", Array.Empty<object>());
+                                logger.LogInformation($"service {item5.ID} Deregistered. time={ret.RequestTime},statusCode={ret.StatusCode}", Array.Empty<object>());
                                 return Task.FromResult(true);
                             });
                         }
@@ -273,14 +290,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
                 else
                 {
-                    logger.LogWarning( "No registration service", Array.Empty<object>());
+                    logger.LogWarning("No registration service", Array.Empty<object>());
                 }
             }
             catch (Exception ex2)
             {
-                logger.LogError( ex2, ex2.Message, Array.Empty<object>());
+                logger.LogError(ex2, ex2.Message, Array.Empty<object>());
             }
-            return hostBuilder;
         }
     }
+
 }
