@@ -1,21 +1,19 @@
 ﻿using Consul;
-using Microsoft.AspNetCore.Builder;
-using System;
+using Hummingbird.Core;
+using Hummingbird.Extersions.ServiceRegistry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
-using Hummingbird.Extersions.ServiceRegistry;
-using Hummingbird.Core;
-using System.Net;
-using Microsoft.AspNetCore.Hosting;
-using System.Linq;
-using System.Net.NetworkInformation;
-using Microsoft.Extensions.Logging;
-using System.Threading;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -30,12 +28,37 @@ namespace Microsoft.Extensions.DependencyInjection
     }
 
 
+    public static partial class DependencyInjectionExtersion
+    {
+        public static IServiceCollection AddServiceRegisterHostedService(this IServiceCollection services,IConfiguration configuration)
+        {
+            services.AddSingleton<Hummingbird.Extersions.ServiceRegistry.ServiceConfig>(a =>
+            {
+                return configuration.Get<Hummingbird.Extersions.ServiceRegistry.ServiceConfig>();
+            });
+                
+            services.AddHostedService<ServiceRegisterHostedService>();
+            return services;
+        }
 
+        public static IServiceCollection AddServiceRegisterHostedService(this IServiceCollection services, Action<Hummingbird.Extersions.ServiceRegistry.ServiceConfig> setup)
+        {
+            services.AddSingleton<Hummingbird.Extersions.ServiceRegistry.ServiceConfig>(a =>
+            {
+                var config = new Hummingbird.Extersions.ServiceRegistry.ServiceConfig();
+                setup(config);
+                return config;
+            });
+
+            services.AddHostedService<ServiceRegisterHostedService>();
+            return services;
+        }
+    }
 }
 
 namespace Hummingbird.Extersions.ServiceRegistry
 {
-    public static class ServiceRegistryBootstraper
+    internal static class ServiceRegistryBootstraper
     {
         /**获取ip地址*/
         public static List<string> getIps()
@@ -80,7 +103,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
                     });
                     List<AgentServiceRegistration> registrations = new List<AgentServiceRegistration>();
                     string text = configuration["urls"]?.TrimEnd('/');
-                    if (text.Contains("/") && text.Contains(":"))
+                    if (!string.IsNullOrEmpty(text) && text.Contains("/") && text.Contains(":"))
                     {
                         string[] source = text.Split('/', StringSplitOptions.None).LastOrDefault().Split(':', StringSplitOptions.None);
                         string item = source.FirstOrDefault();

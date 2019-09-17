@@ -19,8 +19,8 @@ namespace Hummingbird.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-         
-          
+
+            services.AddServiceRegisterHostedService(Configuration);
             services.AddHummingbird(hummingbird =>
             {
                 hummingbird                
