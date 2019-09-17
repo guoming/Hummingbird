@@ -51,6 +51,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extersions.Even
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Configuration.Json", "Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj", "{3D87352D-910D-48B6-9F46-220A7D8758DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{9E103F55-D7C1-4DF8-8F6A-E3DC0B2C00C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -137,6 +139,10 @@ Global
 		{3D87352D-910D-48B6-9F46-220A7D8758DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D87352D-910D-48B6-9F46-220A7D8758DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D87352D-910D-48B6-9F46-220A7D8758DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E103F55-D7C1-4DF8-8F6A-E3DC0B2C00C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E103F55-D7C1-4DF8-8F6A-E3DC0B2C00C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E103F55-D7C1-4DF8-8F6A-E3DC0B2C00C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E103F55-D7C1-4DF8-8F6A-E3DC0B2C00C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -163,6 +169,7 @@ Global
 		{91E88120-CB43-4E54-A3A9-F98C6A89F61A} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{D0AFCB56-2A1E-4E51-8DAF-3AFB6BC7EE77} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{3D87352D-910D-48B6-9F46-220A7D8758DE} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{9E103F55-D7C1-4DF8-8F6A-E3DC0B2C00C1} = {DE0F9CBC-8B94-4D7D-805F-FE652AC26BFD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

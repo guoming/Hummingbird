@@ -84,6 +84,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
             var hosting = ServiceProviderServiceExtensions.GetRequiredService<IHostingEnvironment>(serviceProvider);
             var configuration = ServiceProviderServiceExtensions.GetRequiredService<IConfiguration>(serviceProvider);
             var logger = ServiceProviderServiceExtensions.GetRequiredService<ILogger<ConsulClient>>(serviceProvider);
+            
             try
             {
                 ServiceConfig serviceConfig = new ServiceConfig();
@@ -185,7 +186,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
                     else
                     {
                         AgentServiceRegistration agentServiceRegistration = new AgentServiceRegistration();
-                        agentServiceRegistration.ID = (serviceConfig.SERVICE_NAME ?? "");
+                        agentServiceRegistration.ID = $"{serviceConfig.SERVICE_NAME}:{Guid.NewGuid().ToString("N")}";
                         agentServiceRegistration.Name = serviceConfig.SERVICE_NAME;
                         agentServiceRegistration.Tags = new string[3]
                         {
