@@ -171,7 +171,8 @@ namespace Hummingbird.Extersions.ServiceRegistry
                                     list2.Add(new AgentServiceCheck
                                     {
                                         Status = HealthStatus.Critical,
-                                        TTL = new TimeSpan?(TimeSpan.FromSeconds((double)serviceConfig.SERVICE_CHECK_TTL.Value))
+                                        TTL = new TimeSpan?(TimeSpan.FromSeconds((double)serviceConfig.SERVICE_CHECK_TTL.Value)),
+                                        DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
                                     });
                                 }
                                 agentServiceRegistration2.Checks = list2.ToArray();
@@ -205,7 +206,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
                                 TCP = serviceConfig.SERVICE_CHECK_TCP,
                                 Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
                                 Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
-                                DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
+                                DeregisterCriticalServiceAfter = new TimeSpan?(TimeSpan.FromSeconds(10*(double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s'))))
                             });
                         }
                         else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_SCRIPT))
@@ -216,7 +217,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
                                 Script = serviceConfig.SERVICE_CHECK_SCRIPT,
                                 Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
                                 Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
-                                DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
+                                DeregisterCriticalServiceAfter = new TimeSpan?(TimeSpan.FromSeconds(10 * (double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s'))))
                             });
                         }
                         else if (serviceConfig.SERVICE_CHECK_TTL.HasValue)
@@ -224,7 +225,8 @@ namespace Hummingbird.Extersions.ServiceRegistry
                             list3.Add(new AgentServiceCheck
                             {
                                 Status = HealthStatus.Critical,
-                                TTL = new TimeSpan?(TimeSpan.FromSeconds((double)serviceConfig.SERVICE_CHECK_TTL.Value))
+                                TTL = new TimeSpan?(TimeSpan.FromSeconds((double)serviceConfig.SERVICE_CHECK_TTL.Value)),
+                                DeregisterCriticalServiceAfter = new TimeSpan?(TimeSpan.FromSeconds(10 * (double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s'))))
                             });
                         }
                         agentServiceRegistration3.Checks = list3.ToArray();
