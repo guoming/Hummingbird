@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-
+using Microsoft.Extensions.HealthChecks;
 namespace Hummingbird.WebApi
 {
     public class Startup
@@ -19,7 +19,18 @@ namespace Hummingbird.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddHealthChecks(checks =>
+            {
+                checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
+                checks.AddUrlCheck("http://123.com");
 
+             
+              
+
+                checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);
+         
+
+            });
             services.AddServiceRegisterHostedService(Configuration);
             services.AddHummingbird(hummingbird =>
             {
@@ -112,7 +123,6 @@ namespace Hummingbird.WebApi
             });
             app.UseMvc();
 
-            var ip = Configuration["Ip"];
 
         }
     }

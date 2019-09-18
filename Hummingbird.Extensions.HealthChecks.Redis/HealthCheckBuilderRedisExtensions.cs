@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.HealthChecks
             {
                 try
                 {
-                    ConnectionMultiplexer connect = ConnectionMultiplexer.Connect(new ConfigurationOptions() { });
+                    ConnectionMultiplexer connect = ConnectionMultiplexer.Connect(ConfigurationOptions.Parse(connectionString));
                     var response = connect.GetStatus();
 
                     if (response != null && response.Any())

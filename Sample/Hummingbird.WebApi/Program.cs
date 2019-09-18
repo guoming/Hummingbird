@@ -24,11 +24,12 @@ namespace Hummingbird.WebApi
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
+                .UseHealthChecks("/healthcheck")
                 .ConfigureAppConfiguration((builderContext, config) =>
                   {
                       config.SetBasePath(Directory.GetCurrentDirectory());
-                      config.AddJsonFileEx("appsettings.json");
-                      config.AddJsonFileEx("cache.json");
+                      config.AddJsonFile("appsettings.json");
+                      config.AddJsonFile("cache.json");
                       config.AddEnvironmentVariables();
                   })
                 .Build();
