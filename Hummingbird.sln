@@ -55,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Heal
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.AspNet.HealthChecks", "Hummingbird.AspNet.HealthChecks\Hummingbird.AspNet.HealthChecks.csproj", "{A5B6C1C2-9B5E-44D4-910E-755C8E4E31E3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummibgbird.AspNetCore.HealthChecks", "Hummingbird.AspNetCore.HealthChecks\Hummibgbird.AspNetCore.HealthChecks.csproj", "{D7F05A8A-2741-44E8-A668-BFB2FD453622}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.AspNetCore.HealthChecks", "Hummingbird.AspNetCore.HealthChecks\Hummingbird.AspNetCore.HealthChecks.csproj", "{D7F05A8A-2741-44E8-A668-BFB2FD453622}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
