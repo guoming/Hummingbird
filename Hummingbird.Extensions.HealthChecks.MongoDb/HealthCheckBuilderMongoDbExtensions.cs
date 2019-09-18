@@ -5,6 +5,7 @@ using MongoDB.Driver;
 namespace Microsoft.Extensions.HealthChecks
 {
     using System.Linq;
+    using Hummingbird.Extensions.HealthChecks;
     using MongoDB.Driver.Core.Servers;
 
     public static class HealthCheckBuilderMongoDbExtensions

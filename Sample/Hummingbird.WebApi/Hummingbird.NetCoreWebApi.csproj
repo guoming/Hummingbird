@@ -31,7 +31,6 @@
     <ProjectReference Include="..\..\Hummingbird.Extersions.Resilience.Http\Hummingbird.Extersions.Resilience.Http.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.ServiceRegistry\Hummingbird.Extersions.ServiceRegistry.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.UidGenerator\Hummingbird.Extersions.UidGenerator.csproj" />
-    <ProjectReference Include="..\..\Microsoft.AspNetCore.HealthChecks\Microsoft.AspNetCore.HealthChecks.csproj" />
     <ProjectReference Include="..\..\Test\Hummingbird.Extensions.HealthChecks.MongoDbUnitTest\Hummingbird.Extensions.HealthChecks.MongoDbUnitTest.csproj" />
   </ItemGroup>
 

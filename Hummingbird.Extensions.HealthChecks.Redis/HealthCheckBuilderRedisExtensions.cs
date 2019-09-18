@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using Hummingbird.Extensions.HealthChecks;
+using StackExchange.Redis;
 using System;
 using System.Linq;
 
