@@ -29,7 +29,10 @@ namespace Hummingbird.Extersions.ServiceRegistry
         /// </summary>
         public string SERVICE_SELF_REGISTER { get; set; } = "false";
 
- 
+        /// <summary>
+        /// 服务Id
+        /// </summary>
+        public string SERVICE_ID { get; set; }
         /// <summary>
         /// 服务名称（服务发现名称）
         /// </summary>

@@ -107,29 +107,47 @@ namespace Hummingbird.Extersions.ServiceRegistry
                     if (!string.IsNullOrEmpty(text) && text.Contains("/") && text.Contains(":"))
                     {
                         string[] source = text.Split('/', StringSplitOptions.None).LastOrDefault().Split(':', StringSplitOptions.None);
-                        string item = source.FirstOrDefault();
-                        int num = Convert.ToInt32(source.LastOrDefault());
-                        List<string> list = new List<string>();
-                        list.AddRange(getIps());
-                        if (!list.Contains(item))
+                        string ip = source.FirstOrDefault();
+                        int port = Convert.ToInt32(source.LastOrDefault());
+                        List<string> ipList = new List<string>();
+
+                        if (ip == "0.0.0.0")
                         {
-                            list.Add(item);
+                            ipList.AddRange(getIps());
                         }
-                        if (num > 0)
+
+                        if (!ipList.Contains(ip))
                         {
-                            foreach (string item2 in list)
+                            ipList.Add(ip);
+                        }
+
+                        if (port > 0)
+                        {
+                            foreach (string item2 in ipList)
                             {
                                 AgentServiceRegistration agentServiceRegistration = new AgentServiceRegistration();
-                                agentServiceRegistration.ID = $"{serviceConfig.SERVICE_NAME}:{item2}:{num}";
+                                agentServiceRegistration.ID = string.IsNullOrEmpty(serviceConfig.SERVICE_ID) ? $"{serviceConfig.SERVICE_NAME}:{item2}:{port}" : $"{serviceConfig.SERVICE_NAME}:{serviceConfig.SERVICE_ID}";
                                 agentServiceRegistration.Name = serviceConfig.SERVICE_NAME;
                                 agentServiceRegistration.Address = item2;
-                                agentServiceRegistration.Port = num;
-                                agentServiceRegistration.Tags = new string[3]
+                                agentServiceRegistration.Port = port;
+                                var tags = new List<string>();
+                                if(!string.IsNullOrEmpty(hosting.EnvironmentName))
                                 {
-                                    serviceConfig.SERVICE_TAGS,
-                                    hosting.EnvironmentName,
-                                    hosting.ApplicationName
-                                };
+                                    tags.Add(hosting.EnvironmentName);
+                                }
+
+                                if (!string.IsNullOrEmpty(hosting.ApplicationName))
+                                {
+                                    tags.Add(hosting.ApplicationName);
+                                }
+
+                                if (!string.IsNullOrEmpty(serviceConfig.SERVICE_TAGS))
+                                {
+                                    tags.AddRange(serviceConfig.SERVICE_TAGS.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                                }
+
+                                agentServiceRegistration.Tags = tags.ToArray();
+
                                 agentServiceRegistration.EnableTagOverride = true;
                                 AgentServiceRegistration agentServiceRegistration2 = agentServiceRegistration;
                                 List<AgentServiceCheck> list2 = new List<AgentServiceCheck>();
@@ -138,7 +156,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
                                     list2.Add(new AgentServiceCheck
                                     {
                                         Status = HealthStatus.Critical,
-                                        HTTP = $"http://{item2}:{num}/{serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
+                                        HTTP = $"http://{item2}:{port}/{serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
                                         Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')))),
                                         Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s')))),
                                         DeregisterCriticalServiceAfter = TimeSpan.FromDays(7)
@@ -186,15 +204,26 @@ namespace Hummingbird.Extersions.ServiceRegistry
                     }
                     else
                     {
-                        AgentServiceRegistration agentServiceRegistration = new AgentServiceRegistration();
-                        agentServiceRegistration.ID = $"{serviceConfig.SERVICE_NAME}:{Guid.NewGuid().ToString("N")}";
+                        AgentServiceRegistration agentServiceRegistration = new AgentServiceRegistration();                        
+                        agentServiceRegistration.ID = string.IsNullOrEmpty(serviceConfig.SERVICE_ID) ? $"{serviceConfig.SERVICE_NAME}:{Guid.NewGuid().ToString()}" : $"{serviceConfig.SERVICE_NAME}:{serviceConfig.SERVICE_ID}";
                         agentServiceRegistration.Name = serviceConfig.SERVICE_NAME;
-                        agentServiceRegistration.Tags = new string[3]
+                        var tags = new List<string>();
+                        if (!string.IsNullOrEmpty(hosting.EnvironmentName))
                         {
-                            serviceConfig.SERVICE_TAGS,
-                            hosting.EnvironmentName,
-                            hosting.ApplicationName
-                        };
+                            tags.Add(hosting.EnvironmentName);
+                        }
+
+                        if (!string.IsNullOrEmpty(hosting.ApplicationName))
+                        {
+                            tags.Add(hosting.ApplicationName);
+                        }
+
+                        if (!string.IsNullOrEmpty(serviceConfig.SERVICE_TAGS))
+                        {
+                            tags.AddRange(serviceConfig.SERVICE_TAGS.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                        }
+
+                        agentServiceRegistration.Tags = tags.ToArray();
                         agentServiceRegistration.EnableTagOverride = true;
                         AgentServiceRegistration agentServiceRegistration3 = agentServiceRegistration;
                         List<AgentServiceCheck> list3 = new List<AgentServiceCheck>();
