@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Microsoft.Extensions.HealthChecks;
+using Hummingbird.Extensions.HealthChecks;
+
 namespace Hummingbird.WebApi
 {
     public class Startup
@@ -24,11 +26,8 @@ namespace Hummingbird.WebApi
                 checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
                 checks.AddUrlCheck("http://123.com");
 
-             
-              
-
-                checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);
-         
+                checks.AddSqlCheck("123", "Data Source=test.sqlserver.service.consul,63341;Initial Catalog=ZT_ConfigCenter_TEST;User Id=tms-test;Password=qtvf12Croexy4cXH7lZB");
+                checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);        
 
             });
             services.AddServiceRegisterHostedService(Configuration);
