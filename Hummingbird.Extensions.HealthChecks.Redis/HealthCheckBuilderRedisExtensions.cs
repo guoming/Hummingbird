@@ -27,13 +27,13 @@ namespace Microsoft.Extensions.HealthChecks
 
                     if (response != null && response.Any())
                     {
-                        return HealthCheckResult.Healthy($"RedisCheck({name}): Healthy");
+                        return HealthCheckResult.Healthy($"Healthy");
                     }
-                    return HealthCheckResult.Unhealthy($"RedisCheck({name}): Unhealthy");
+                    return HealthCheckResult.Unhealthy($"Unhealthy");
                 }
                 catch (Exception ex)
                 {
-                    return HealthCheckResult.Unhealthy($"RedisCheck({name}): Exception during check: {ex.GetType().FullName}");
+                    return HealthCheckResult.Unhealthy($"{ex.GetType().FullName}");
                 }
             }, cacheDuration);
 

@@ -24,7 +24,6 @@ namespace Hummingbird.Extensions.HealthChecks
             {
                 try
                 {
-                    //TODO: There is probably a much better way to do this.
                     using (var connection = new MySqlConnection(connectionString))
                     {
                         connection.Open();
@@ -32,19 +31,19 @@ namespace Hummingbird.Extensions.HealthChecks
                         {
                             command.CommandType = CommandType.Text;
                             command.CommandText = "SELECT 1";
-                            var result = (int)await command.ExecuteScalarAsync().ConfigureAwait(false);
-                            if (result == 1)
+                            var result = await command.ExecuteScalarAsync().ConfigureAwait(false);
+                            if (result.ToString() == "1")
                             {
-                                return HealthCheckResult.Healthy($"MySqlCheck({name}): Healthy");
+                                return HealthCheckResult.Healthy($"Healthy");
                             }
 
-                            return HealthCheckResult.Unhealthy($"MySqlCheck({name}): Unhealthy");
+                            return HealthCheckResult.Unhealthy($"Unhealthy");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    return HealthCheckResult.Unhealthy($"MySqlCheck({name}): Exception during check: {ex.GetType().FullName}");
+                    return HealthCheckResult.Unhealthy($"{ex.GetType().FullName}");
                 }
             }, cacheDuration);
 

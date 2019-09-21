@@ -35,16 +35,16 @@ namespace Hummingbird.Extensions.HealthChecks
                             var result = (int)await command.ExecuteScalarAsync().ConfigureAwait(false);
                             if (result == 1)
                             {
-                                return HealthCheckResult.Healthy($"SqlServerCheck({name}): Healthy");
+                                return HealthCheckResult.Healthy($"Healthy");
                             }
 
-                            return HealthCheckResult.Unhealthy($"SqlServerCheck({name}): Unhealthy");
+                            return HealthCheckResult.Unhealthy($"Unhealthy");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    return HealthCheckResult.Unhealthy($"SqlServerCheck({name}): Exception during check: {ex.GetType().FullName}");
+                    return HealthCheckResult.Unhealthy($"{ex.GetType().FullName}");
                 }
             }, cacheDuration);
 

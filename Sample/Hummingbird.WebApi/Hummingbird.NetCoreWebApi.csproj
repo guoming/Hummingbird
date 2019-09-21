@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.MySql\Hummingbird.Extensions.HealthChecks.MySql.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.Rabbitmq\Hummingbird.Extensions.HealthChecks.Rabbitmq.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.Redis\Hummingbird.Extensions.HealthChecks.Redis.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.SqlServer\Hummingbird.Extensions.HealthChecks.SqlServer.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Cacheing\Hummingbird.Extersions.Cacheing.csproj" />

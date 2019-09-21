@@ -16,23 +16,19 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtersion
     {
-        public static List<object> channels = new List<object>();
-
-
-
 
         public static IHummingbirdHostBuilder AddEventBus(this IHummingbirdHostBuilder hostBuilder, Action<IHummingbirdEventBusHostBuilder> setup)
         {
             var types = AppDomain.CurrentDomain.GetAssemblies()
                        .SelectMany(a => a.GetTypes().Where(type => Array.Exists(type.GetInterfaces(), t => t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IEventHandler<>) || t.GetGenericTypeDefinition() == typeof(IEventBatchHandler<>)))))
                        .ToArray();
-      
+
             foreach (var type in types)
             {
                 hostBuilder.Services.AddSingleton(type);
             }
 
-            var builder = new HummingbirdEventBusHostBuilder(hostBuilder.Services); ;
+            var builder = new HummingbirdEventBusHostBuilder(hostBuilder.Services);
             setup(builder);
            
             return hostBuilder;
@@ -45,53 +41,6 @@ namespace Microsoft.Extensions.DependencyInjection
             setupSubscriberHandler(hummingbirdApplicationBuilder.app.ApplicationServices);
 
             return hummingbirdApplicationBuilder;
-        }
-
-        private static IAsyncPolicy createPolicy(ILogger<IEventLogger> logger) {
-
-            
-            IAsyncPolicy policy = Policy.NoOpAsync();
-            // 设置超时
-            policy = Policy.TimeoutAsync(
-                TimeSpan.FromMilliseconds(500),
-                TimeoutStrategy.Pessimistic,
-                (context, timespan, task) =>
-                {
-                    return Task.FromResult(true);
-                }).WrapAsync(policy);
-
-            //设置重试策略
-            policy = Policy.Handle<Exception>()
-                   .RetryAsync(3, (ex, time) =>
-                   {
-                       logger.LogError(ex, ex.ToString());
-                   }).WrapAsync(policy);
-
-
-            //设置熔断策略
-            policy = policy.WrapAsync(Policy.Handle<Exception>()
-                .AdvancedCircuitBreakerAsync(
-                    failureThreshold: 0.5, // Break on >=50% actions result in handled exceptions...
-                    samplingDuration: TimeSpan.FromSeconds(10), // ... over any 10 second period
-                    minimumThroughput: 8, // ... provided at least 8 actions in the 10 second period.
-                    durationOfBreak: TimeSpan.FromSeconds(30), // Break for 30 seconds.
-                    onBreak: (Exception ex, TimeSpan timeSpan) =>
-                    {
-                        logger.LogError(ex, ex.ToString());
-                    },
-                    onHalfOpen: () =>
-                    {
-
-                    },
-                    onReset: () =>
-                    {
-
-                    }));
-
-
-
-            return policy;
-
         }
 
 

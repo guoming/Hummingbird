@@ -32,17 +32,17 @@ namespace Microsoft.Extensions.HealthChecks
                                           ?? ServerState.Disconnected;
                     if (serverState == ServerState.Disconnected)
                     {
-                        return HealthCheckResult.Unhealthy($"MongoDbCheck({name}): Unhealthy");
+                        return HealthCheckResult.Unhealthy($"Unhealthy");
                     }
                     else
                     {
 
-                        return HealthCheckResult.Healthy($"MongoDbCheck({name}): Healthy");
+                        return HealthCheckResult.Healthy($"Healthy");
                     }
                 }
                 catch (Exception ex)
                 {
-                    return HealthCheckResult.Unhealthy($"MongoDbCheck({name}): Exception during check: {ex.GetType().FullName}");
+                    return HealthCheckResult.Unhealthy($"{ex.GetType().FullName}");
                 }
             }, cacheDuration);
 

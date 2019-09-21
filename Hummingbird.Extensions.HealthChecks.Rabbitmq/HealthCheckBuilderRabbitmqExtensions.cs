@@ -112,18 +112,18 @@ namespace Hummingbird.Extensions.HealthChecks
                     {
                         if(connection.IsOpen)
                         {
-                            return HealthCheckResult.Healthy($"RabbitMqCheck({name}): Healthy");
+                            return HealthCheckResult.Healthy($"Healthy");
                         }
                         else
                         {
-                            return HealthCheckResult.Unhealthy($"RabbitMqCheck({name}): Unhealthy");
+                            return HealthCheckResult.Unhealthy($"Unhealthy");
 
                         }
                     }                    
                 }
                 catch (Exception ex)
                 {
-                    return HealthCheckResult.Unhealthy($"RabbitMqCheck({name}): Exception during check: {ex.GetType().FullName}");
+                    return HealthCheckResult.Unhealthy($"{ex.GetType().FullName}");
                 }
             }, cacheDuration);
 
