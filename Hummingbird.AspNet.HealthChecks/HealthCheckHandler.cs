@@ -9,7 +9,7 @@ using Hummingbird.AspNet.HealthChecks;
 using Hummingbird.Extensions.HealthChecks;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNet.HealthChecks
+namespace Hummingbird.AspNet.HealthChecks
 {
     public class HealthCheckHandler : HttpTaskAsyncHandler
     {

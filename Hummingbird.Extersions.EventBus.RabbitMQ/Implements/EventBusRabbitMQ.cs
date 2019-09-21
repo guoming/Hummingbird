@@ -1,5 +1,6 @@
 ﻿using Hummingbird.Extersions.Cacheing;
 using Hummingbird.Extersions.EventBus.Abstractions;
+using Hummingbird.Extersions.EventBus.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Polly;
@@ -19,16 +20,6 @@ using System.Threading.Tasks;
 
 namespace Hummingbird.Extersions.EventBus.RabbitMQ
 {
-    public struct EventMessage
-    {
-        public long EventId { get; set; }
-
-        public string MessageId { get; set; }
-        public string Body { get; set; }
-
-        public string RouteKey { get; set; }
-    }
-
 
     /// <summary>
     /// 消息队列
@@ -37,24 +28,36 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
     /// </summary>
     public class EventBusRabbitMQ : IEventBus
     {
+        public struct EventMessage
+        {
+            public long EventId { get; set; }
+
+            public string MessageId { get; set; }
+            public string Body { get; set; }
+
+            public string RouteKey { get; set; }
+
+            public IDictionary<string,object> Headers { get; set; }
+        
+        }
+
         private readonly IServiceProvider _lifetimeScope;
         private readonly IRabbitMQPersisterConnectionLoadBalancer _receiveLoadBlancer;
         private readonly IRabbitMQPersisterConnectionLoadBalancer _senderLoadBlancer;
         private readonly ILogger<IEventBus> _logger;
         private readonly string _exchange = "amq.topic";
         private readonly string _exchangeType = "topic";
-        private readonly ushort _preFetch = 1;        
+        private readonly ushort _preFetch = 1;
         private readonly int _IdempotencyDuration;
         private readonly int _reveiverMaxDegreeOfParallelism;
 
-        private Action<(string[] MessageIds, string QueueName,string RouteKey)> _subscribeAckHandler = null;
-        private Func<(string[] MessageIds, string QuueName,string RouteKey, Exception exception, dynamic[] Events), Task<bool>> _subscribeNackHandler = null;
+        private Action<EventResponse[]> _subscribeAckHandler = null;
+        private Func<(EventResponse[] Messages, Exception exception), Task<bool>> _subscribeNackHandler = null;
         private static List<IModel> _subscribeChannels = new List<IModel>();
         private readonly SemaphoreSlim readLock = new SemaphoreSlim(1, 1);
         private static ConcurrentDictionary<string, SortedList<string, bool>> _channelAllReturnMessageIds = new ConcurrentDictionary<string, SortedList<string, bool>>();
         private static ConcurrentDictionary<string, SortedList<ulong, string>> _channelAllUnconfirmMessageIds = new ConcurrentDictionary<string, SortedList<ulong, string>>();
 
-        private readonly ICacheManager _cacheManager;
         private readonly RetryPolicy _eventBusSenderRetryPolicy = null;
         private readonly IAsyncPolicy _eventBusReceiverPolicy = null;
 
@@ -65,11 +68,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
            ILogger<IEventBus> logger,
            IServiceProvider lifetimeScope,
             int reveiverMaxDegreeOfParallelism = 10,
-            int receiverAcquireRetryAttempts=0,
-            int receiverHandlerTimeoutMillseconds=0,
+            int receiverAcquireRetryAttempts = 0,
+            int receiverHandlerTimeoutMillseconds = 0,
             int senderRetryCount = 3,
             ushort preFetch = 1,
-            int IdempotencyDuration = 15,
             string exchange = "amp.topic",
             string exchangeType = "topic")
         {
@@ -78,9 +80,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             this._receiveLoadBlancer = receiveLoadBlancer;
             this._senderLoadBlancer = senderLoadBlancer;
             this._lifetimeScope = lifetimeScope ?? throw new ArgumentNullException(nameof(lifetimeScope));
-            this._IdempotencyDuration = IdempotencyDuration;
-            this._cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
-            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));            
+            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._preFetch = preFetch;
             this._exchange = exchange;
             this._exchangeType = exchangeType;
@@ -127,50 +127,44 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// <summary>
         /// 发送消息
         /// </summary>
-        public async Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events,
-            int EventDelaySeconds = 0)
+        public async Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events)
         {
-
             var evtDicts = Events.Select(a => new EventMessage()
             {
                 Body = a.Content,
                 MessageId = a.MessageId.ToString(),
                 EventId = a.EventId,
-                RouteKey = a.EventTypeName
+                RouteKey = a.EventTypeName,
+                Headers = a.Headers,
             }).ToList();
 
-            await EnqueueNoConfirm(evtDicts, EventDelaySeconds);
+            await EnqueueNoConfirm(evtDicts);
         }
-
-
 
         /// <summary>
         /// 发送消息
         /// </summary>
-        public async Task<bool> PublishAsync(
-            List<Models.EventLogEntry> Events,
-            int EventDelaySeconds = 0)
+        public async Task<bool> PublishAsync(List<Models.EventLogEntry> Events)
         {
             var evtDicts = Events.Select(a => new EventMessage()
             {
                 Body = a.Content,
                 MessageId = a.MessageId.ToString(),
                 EventId = a.EventId,
-                RouteKey = a.EventTypeName
+                RouteKey = a.EventTypeName,
+                Headers=a.Headers,           
+
             }).ToList();
 
             bool result = true;
 
-            await EnqueueConfirm(evtDicts, EventDelaySeconds);
+            await EnqueueConfirm(evtDicts);
 
             return result;
         }
 
-        async Task EnqueueNoConfirm(
-            List<EventMessage> Events,
-          int EventDelaySeconds)
+        async Task EnqueueNoConfirm(List<EventMessage> Events)
         {
-
             var persistentConnection = await _senderLoadBlancer.Lease();
 
             try
@@ -202,44 +196,46 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     properties.Headers = new Dictionary<string, Object>();
                     properties.Headers["EventId"] = EventId;
 
-
-                    //需要发送延时消息
-                    if (EventDelaySeconds > 0)
+                    foreach (var key in Events[eventIndex].Headers.Keys)
                     {
-                        var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
-
-                        Dictionary<string, object> dic = new Dictionary<string, object>();
-                        dic.Add("x-expires", EventDelaySeconds * 10000);//队列过期时间 
-                        dic.Add("x-message-ttl", EventDelaySeconds * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
-                        dic.Add("x-dead-letter-exchange", _exchange);//过期消息转向路由  
-                        dic.Add("x-dead-letter-routing-key", routeKey);//过期消息转向路由相匹配routingkey 
+                        if (!properties.Headers.ContainsKey(key))
+                        {
+                            properties.Headers.Add(key, Events[eventIndex].Headers[key]);
+                        }
+                    }
+                    
+                    
+                    if (Events[eventIndex].Headers.ContainsKey("x-first-death-queue"))
+                    {
+                        //延时队列或者直接写死信的情况
+                        var newQueue = Events[eventIndex].Headers["x-first-death-queue"].ToString();
 
                         //创建一个队列                         
                         _channel.QueueDeclare(
-                                queue: newQueue,
-                                durable: true,
-                                exclusive: false,
-                                autoDelete: false,
-                                arguments: dic);
+                                    queue: newQueue,
+                                    durable: true,
+                                    exclusive: false,
+                                    autoDelete: false,
+                                    arguments: Events[eventIndex].Headers);
+
 
                         //发送至延时队列，延时结束后会写入正式度列
                         _batchPublish.Add(
-                            exchange: "",
-                            mandatory: true,
-                            routingKey: newQueue,
-                            properties: properties,
-                            body: bytes);
-
+                                exchange: "",
+                                mandatory: true,
+                                routingKey: newQueue,
+                                properties: properties,
+                                body: bytes);
                     }
                     else
                     {
-                        //发送到正常队列，如果Reject会写入死信队列
+                        //发送到正常队列
                         _batchPublish.Add(
-                            exchange: _exchange,
-                            mandatory: true,
-                            routingKey: routeKey,
-                            properties: properties,
-                            body: bytes);
+                                exchange: _exchange,
+                                mandatory: true,
+                                routingKey: routeKey,
+                                properties: properties,
+                                body: bytes);
                     }
                 };
 
@@ -261,10 +257,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         }
 
 
-
-        async Task EnqueueConfirm(
-          List<EventMessage> Events,
-          int EventDelaySeconds)
+        async Task EnqueueConfirm(List<EventMessage> Events)
         {
             var persistentConnection = await _senderLoadBlancer.Lease();
 
@@ -299,18 +292,20 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         properties.DeliveryMode = 2;
                         properties.MessageId = MessageId;
                         properties.Headers = new Dictionary<string, Object>();
+                        properties.Headers["EventId"] = EventId;
 
-
-                        //需要发送延时消息
-                        if (EventDelaySeconds > 0)
+                        foreach(var key in  Events[eventIndex].Headers.Keys)
                         {
-                            var newQueue = routeKey + ".DELAY." + EventDelaySeconds;
+                            if (!properties.Headers.ContainsKey(key))
+                            {
+                                properties.Headers.Add(key, Events[eventIndex].Headers[key]);
+                            }
+                        }
 
-                            Dictionary<string, object> dic = new Dictionary<string, object>();
-                            dic.Add("x-expires", EventDelaySeconds * 10000);//队列过期时间 
-                            dic.Add("x-message-ttl", EventDelaySeconds * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
-                            dic.Add("x-dead-letter-exchange", _exchange);//过期消息转向路由  
-                            dic.Add("x-dead-letter-routing-key", routeKey);//过期消息转向路由相匹配routingkey 
+                        if (Events[eventIndex].Headers.ContainsKey("x-first-death-queue"))
+                        {
+                            //延时队列或者直接写死信的情况
+                            var newQueue = Events[eventIndex].Headers["x-first-death-queue"].ToString();                     
 
                             //创建一个队列                         
                             _channel.QueueDeclare(
@@ -318,20 +313,18 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         durable: true,
                                         exclusive: false,
                                         autoDelete: false,
-                                        arguments: dic);
-
-                            //发送至延时队列，延时结束后会写入正式度列
+                                        arguments: Events[eventIndex].Headers);
+                            
                             _batchPublish.Add(
                                     exchange: "",
                                     mandatory: true,
                                     routingKey: newQueue,
                                     properties: properties,
                                     body: bytes);
-
                         }
                         else
                         {
-                            //发送到正常队列，如果Reject会写入死信队列
+                            //发送到正常队列
                             _batchPublish.Add(
                                     exchange: _exchange,
                                     mandatory: true,
@@ -389,7 +382,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 System.Threading.Tasks.Task.Run(() =>
                 {
 
-                    var _channel = persistentConnection.CreateModel();                    
+                    var _channel = persistentConnection.CreateModel();
                     var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
                     var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
                     var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventHandler<TD>;
@@ -407,6 +400,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     _channel.QueueDeclare(_queueName, true, false, false, null);
                     //绑定交换器和队列
                     _channel.QueueBind(_queueName, _exchange, _routeKey);
+                    //绑定交换器和队列
+                    _channel.QueueBind(_queueName, _exchange, _queueName);
                     //输入1，那如果接收一个消息，但是没有应答，则客户端不会收到下一个消息
                     _channel.BasicQos(0, _preFetch, false);
                     //在队列上定义一个消费者a
@@ -420,20 +415,18 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             {
                                 persistentConnection.TryConnect();
                             }
-                            byte[] bytes;
-                            string str = string.Empty;
-                            var msg = default(TD);
 
+                            var json = Encoding.UTF8.GetString(ea.Body);
                             var MessageId = ea.BasicProperties.MessageId;
 
-                            if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.KeyExists($"Events:{_queueName}:{MessageId}"))
+                            if (!string.IsNullOrEmpty(json))
                             {
+                                var msg = JsonConvert.DeserializeObject<TD>(json);
+                                var headers = ea.BasicProperties.Headers;
+
+
                                 try
                                 {
-                                    bytes = ea.Body;
-                                    str = Encoding.UTF8.GetString(bytes);
-                                    msg = JsonConvert.DeserializeObject<TD>(str);
-                                    
                                     var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
                                     {
                                         return await EventAction.Handle(msg, cancellationToken);
@@ -444,35 +437,47 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     {
                                         if (_subscribeAckHandler != null && !string.IsNullOrEmpty(MessageId))
                                         {
-                                            _subscribeAckHandler((new string[] { MessageId }, _queueName,_routeKey));
+                                            _subscribeAckHandler(new EventResponse[] {
+                                                new EventResponse(){
+                                                    MessageId =MessageId,
+                                                    Headers=headers,
+                                                    Body=msg,
+                                                    QueueName=_queueName,
+                                                    RouteKey =_routeKey
+
+                                                }
+                                            });
                                         }
 
                                         //确认消息
                                         _channel.BasicAck(ea.DeliveryTag, false);
 
-                                        //幂等保证
-                                        if (_IdempotencyDuration > 0 && !string.IsNullOrEmpty(MessageId))
-                                        {
-                                            try
-                                            {
-                                                _cacheManager.StringSet($"Events:{_queueName}:{MessageId}", true, TimeSpan.FromSeconds(_IdempotencyDuration));
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                _logger.LogError(ex, ex.Message);
-                                            }
-
-                                        }
                                     }
                                     else
                                     {
                                         //重新入队，默认：是
                                         var requeue = true;
 
-                                        //执行回调，等待业务层确认是否重新入队
-                                        if (_subscribeNackHandler != null)
+                                        try
                                         {
-                                            requeue = await _subscribeNackHandler((new string[] { MessageId }, _queueName,_routeKey, null, new dynamic[] { msg }));
+                                            //执行回调，等待业务层确认是否重新入队
+                                            if (_subscribeNackHandler != null)
+                                            {
+                                                requeue = await _subscribeNackHandler((new EventResponse[] {
+                                                                new EventResponse(){
+                                                                    MessageId =MessageId,
+                                                                    Headers=headers,
+                                                                    Body=msg,
+                                                                    QueueName=_queueName,
+                                                                    RouteKey =_routeKey
+                                                                }
+                                                            }, null));
+
+                                            }
+                                        }
+                                        catch (Exception innterEx)
+                                        {
+                                            _logger.LogError(innterEx, innterEx.Message);
                                         }
 
                                         //确认消息
@@ -485,18 +490,36 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     //重新入队，默认：是
                                     var requeue = true;
 
-                                    //执行回调，等待业务层的处理结果
-                                    if (_subscribeNackHandler != null)
+                                    try
                                     {
-                                        requeue = await _subscribeNackHandler((new string[] { MessageId }, _queueName,_routeKey, ex, new dynamic[] { msg }));
+                                        //执行回调，等待业务层的处理结果
+                                        if (_subscribeNackHandler != null)
+                                        {
+                                            requeue = await _subscribeNackHandler((new EventResponse[] {
+                                                                new EventResponse(){
+                                                                    MessageId =MessageId,
+                                                                    Headers=headers,
+                                                                    Body=msg,
+                                                                    QueueName=_queueName,
+                                                                    RouteKey =_routeKey
+                                                                }
+                                                            }, ex));
+                                        }
+                                    }
+                                    catch (Exception innterEx)
+                                    {
+                                        _logger.LogError(innterEx, innterEx.Message);
                                     }
 
                                     //确认消息
                                     _channel.BasicReject(ea.DeliveryTag, requeue);
                                 }
+
                             }
                             else
                             {
+                                _logger.LogWarning($"QueueName:{_queueName} MessageId={MessageId} Message Empty");
+
                                 //确认处理（消息被丢弃）
                                 _channel.BasicAck(ea.DeliveryTag, false);
                             }
@@ -578,6 +601,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 _channel.QueueDeclare(_queueName, true, false, false, null);
                 //绑定交换器和队列
                 _channel.QueueBind(_queueName, _exchange, _routeKey);
+                _channel.QueueBind(_queueName, _exchange, _queueName);
                 //输入1，那如果接收一个消息，但是没有应答，则客户端不会收到下一个消息
                 _channel.BasicQos(0, (ushort)BatchSize, false);
 
@@ -587,36 +611,30 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     {
                         try
                         {
-                            var batchPool = new List<(string MessageId, TD Body)>();
-                            ulong batchLastDeliveryTag = 0;
+                            var batchPool = new List<(string MessageId, BasicGetResult ea)>();
+                            var batchLastDeliveryTag = 0UL;
 
                             #region batch Pull
                             for (var i = 0; i < BatchSize; i++)
                             {
                                 var ea = _channel.BasicGet(_queueName, false);
+
                                 if (ea != null)
                                 {
                                     var MessageId = ea.BasicProperties.MessageId;
 
-                                    //消息编号不为空, 消息没有被处理过则写入待处理列表
-                                    if (string.IsNullOrEmpty(MessageId) || _IdempotencyDuration == 0 || !_cacheManager.KeyExists($"Events:{_queueName}:{MessageId}"))
-                                    {
-                                        if (string.IsNullOrEmpty(MessageId))
-                                        {
-                                            batchPool.Add((Guid.NewGuid().ToString("N"), JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body))));
-                                        }
-                                        else
-                                        {
-                                            batchPool.Add((ea.BasicProperties.MessageId, JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body))));
-                                        }
 
-                                        batchLastDeliveryTag = ea.DeliveryTag;                                      
+                                    if (string.IsNullOrEmpty(MessageId))
+                                    {
+                                        batchPool.Add((Guid.NewGuid().ToString("N"), ea));
                                     }
                                     else
                                     {
-                                        //丢弃，消息已经被处理或者没有消息编号
-                                        _channel.BasicNack(ea.DeliveryTag, false, false);
+                                        batchPool.Add((ea.BasicProperties.MessageId, ea));
                                     }
+
+                                    batchLastDeliveryTag = ea.DeliveryTag;
+
                                 }
                                 else
                                 {
@@ -626,64 +644,66 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                             #endregion
 
-
                             //队列不为空
                             if (batchPool.Count > 0)
                             {
-                                var messageIds = batchPool.Select(a => a.MessageId).ToArray();
-                                var bodys = batchPool.Select(a => a.Body).ToArray();
+                                var basicGetResults = batchPool.Select(a => a.ea).ToArray();
+
+                                EventResponse[] Messages = null;
 
                                 try
                                 {
-
-                                    var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
-                                     {
-                                         return await EventAction.Handle(bodys, cancellationToken);
-
-                                     }, CancellationToken.None);
-
-                                    if (handlerOK)
+                                    Messages = basicGetResults.Select(ea => new EventResponse()
                                     {
-                                        #region 消息处理成功
-                                        if (_subscribeAckHandler != null && messageIds.Length > 0)
-                                        {
-                                            _subscribeAckHandler((messageIds, _queueName,_routeKey));
-                                        }
+                                        MessageId = ea.BasicProperties.MessageId,
+                                        Headers = ea.BasicProperties.Headers,
+                                        Body = (dynamic)JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)),
+                                        RouteKey = _routeKey,
+                                        QueueName = _queueName
+                                    }).ToArray();
 
-                                        //确认消息被处理
-                                        _channel.BasicAck(batchLastDeliveryTag, true);
-
-                                        //消息幂等
-                                        if (_IdempotencyDuration > 0 && messageIds.Length > 0)
+                                    if (Messages != null && Messages.Any())
+                                    {
+                                        var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
                                         {
-                                            for (int i = 0; i < messageIds.Length; i++)
+                                            return await EventAction.Handle(Messages.Select(a => (TD)a.Body).ToArray(), cancellationToken);
+
+                                        }, CancellationToken.None);
+
+                                        if (handlerOK)
+                                        {
+                                            #region 消息处理成功
+                                            if (_subscribeAckHandler != null && Messages.Length > 0)
                                             {
-                                                try
+                                                _subscribeAckHandler(Messages);
+                                            }
+
+                                            //确认消息被处理
+                                            _channel.BasicAck(batchLastDeliveryTag, true);
+
+                                            #endregion
+                                        }
+                                        else
+                                        {
+                                            #region 消息处理失败
+                                            var requeue = true;
+                                            try
+                                            {
+                                                if (_subscribeNackHandler != null && Messages.Length > 0)
                                                 {
-                                                    _cacheManager.StringSet($"Events:{_queueName}:{messageIds[i].ToString()}", true, TimeSpan.FromSeconds(_IdempotencyDuration));
-                                                }
-                                                catch(Exception ex)
-                                                {
-                                                    _logger.LogError(ex, ex.Message);
+                                                    requeue = await _subscribeNackHandler((Messages, null));
                                                 }
                                             }
+                                            catch (Exception innterEx)
+                                            {
+                                                _logger.LogError(innterEx.Message, innterEx);
+                                            }
+
+                                            _channel.BasicNack(batchLastDeliveryTag, true, requeue);
+
+                                            #endregion
                                         }
 
-                                        #endregion
-                                    }
-                                    else
-                                    {
-                                        #region 消息处理失败
-                                        var requeue = true;
-
-                                        if (_subscribeNackHandler != null && messageIds.Length > 0)
-                                        {
-                                            requeue = await _subscribeNackHandler((messageIds, _queueName,_routeKey, null, bodys));
-                                        }
-
-                                        _channel.BasicNack(batchLastDeliveryTag, true, requeue);
-
-                                        #endregion
                                     }
                                 }
                                 catch (Exception ex)
@@ -691,9 +711,16 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     #region 业务处理消息出现异常，消息重新写入队列，超过最大重试次数后不再写入队列
                                     var requeue = true;
 
-                                    if (_subscribeNackHandler != null && messageIds.Length > 0)
+                                    try
                                     {
-                                        requeue = await _subscribeNackHandler((messageIds, _queueName,_routeKey, ex, bodys));
+                                        if (_subscribeNackHandler != null && Messages.Length > 0)
+                                        {
+                                            requeue = await _subscribeNackHandler((Messages, ex));
+                                        }
+                                    }
+                                    catch (Exception innterEx)
+                                    {
+                                        _logger.LogError(innterEx.Message, innterEx);
                                     }
                                     _channel.BasicNack(batchLastDeliveryTag, true, requeue);
 
@@ -722,9 +749,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// <param name="ackHandler"></param>
         /// <param name="nackHandler"></param>
         /// <returns></returns>
-       public  IEventBus Subscribe(
-        Action<(string[] MessageIds, string QueueName, string RouteKey)> ackHandler,
-        Func<(string[] MessageIds, string QuueName, string RouteKey, Exception exception, dynamic[] Events), Task<bool>> nackHandler)
+        public IEventBus Subscribe(
+         Action<EventResponse[]> ackHandler,
+         Func<(EventResponse[] Messages, Exception Exception), Task<bool>> nackHandler)
         {
             _subscribeAckHandler = ackHandler;
             _subscribeNackHandler = nackHandler;

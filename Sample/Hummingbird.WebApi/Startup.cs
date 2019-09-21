@@ -1,9 +1,14 @@
 ﻿using Hummingbird.Extensions.HealthChecks;
+using Hummingbird.Extersions.EventBus.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Hummingbird.WebApi
 {
@@ -13,7 +18,7 @@ namespace Hummingbird.WebApi
         {
             Configuration = configuration;
 
-            
+
         }
 
         public IConfiguration Configuration { get; }
@@ -42,7 +47,7 @@ namespace Hummingbird.WebApi
             services.AddServiceRegisterHostedService(Configuration);
             services.AddHummingbird(hummingbird =>
             {
-                hummingbird                
+                hummingbird
                  .AddResilientHttpClient(option =>
                  {
                      option.DurationSecondsOfBreak = int.Parse(Configuration["HttpClient:DurationSecondsOfBreak"]);
@@ -55,7 +60,8 @@ namespace Hummingbird.WebApi
                     option.ConfigName = "HummingbirdCache";
                     option.CacheRegion = Configuration["SERVICE_NAME"];
                 })
-                .AddCacheing(option => {
+                .AddCacheing(option =>
+                {
 
                     option.WithDb(0);
                     option.WithKeyPrefix("");
@@ -69,7 +75,7 @@ namespace Hummingbird.WebApi
                     option.Druation = TimeSpan.FromMinutes(5);
                     option.CacheRegion = "Idempotency";
                 })
-          
+
                 .AddUniqueIdGenerator(IdGenerator =>
                 {
                     IdGenerator.CenterId = 0;
@@ -91,7 +97,7 @@ namespace Hummingbird.WebApi
                         factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
                         factory.WithReceiver();
                         factory.WithSender(10);
-                    });             
+                    });
                     //.AddSqlServerEventLogging(a =>
                     // {
                     //     a.WithEndpoint(DatabaseConnectionString);
@@ -106,7 +112,9 @@ namespace Hummingbird.WebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-           
+            var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
+            var logger = app.ApplicationServices.GetRequiredService<ILogger<IEventLogger>>();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -123,8 +131,38 @@ namespace Hummingbird.WebApi
                     sp.UseSubscriber(eventbus =>
                     {
                         //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
-                        //eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
+                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
                         //eventbus.RegisterBatch<ChangeDataCaptureEvent, ChangeDataCaptureEventToESIndexHandler>("", "#");
+
+
+
+                        //订阅消息
+                        eventbus.Subscribe((Messages) =>
+                        {
+                            foreach (var message in Messages)
+                            {
+                                logger.LogDebug($"ACK: queue {message.QueueName} route={message.RouteKey} messageId:{message.MessageId}");
+                            }
+
+                        }, async (obj) =>
+                        {
+                            foreach (var message in obj.Messages)
+                            {
+                                logger.LogError($"NAck: queue {message.QueueName} route={message.RouteKey} messageId:{message.MessageId}");
+                            }
+
+                            //消息消费失败执行以下代码
+                            if (obj.Exception != null)
+                            {
+                                logger.LogError(obj.Exception, obj.Exception.Message);
+                            }
+
+                            var events = obj.Messages.Select(message => message.WaitAndRetry(3,a => 5)).ToList();
+
+                            var ret = !(await eventBus.PublishAsync(events));
+
+                            return ret;
+                        });
                     });
                 });
 
@@ -132,6 +170,17 @@ namespace Hummingbird.WebApi
             app.UseMvc();
 
 
+        }
+    }
+
+    public class NewMsgEvent
+    { }
+
+    public class NewMsgEventHandler : Hummingbird.Extersions.EventBus.Abstractions.IEventHandler<NewMsgEvent>
+    {
+        public Task<bool> Handle(NewMsgEvent @event, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

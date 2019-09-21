@@ -1,4 +1,5 @@
 ﻿using Hummingbird.Extersions.EventBus;
+using Hummingbird.Extersions.EventBus.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,12 +14,10 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
     /// </summary>
     public interface IEventBus
     {
-        Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events,int EventDelaySeconds = 0);
+            Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events);
 
    
-        Task<bool> PublishAsync(
-         List<Models.EventLogEntry> Events,
-         int EventDelaySeconds = 0);
+            Task<bool> PublishAsync(List<Models.EventLogEntry> Events);
 
             /// <summary>
             /// 订阅消息（同一类消息可以重复订阅）
@@ -51,8 +50,8 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         /// <param name="nackHandler"></param>
         /// <returns></returns>
         IEventBus Subscribe(
-        Action<(string[] MessageIds, string QueueName,string RouteKey)> ackHandler,
-        Func<(string[] MessageIds, string QuueName, string RouteKey, Exception exception, dynamic[] Events), Task<bool>> nackHandler);
+        Action<EventResponse[]> ackHandler,
+        Func<(EventResponse[] Messages, Exception Exception), Task<bool>> nackHandler);
 
     }
 

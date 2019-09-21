@@ -2,9 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Hummingbird.Extensions.HealthChecks;
+using Microsoft.AspNetCore.Hosting;
 using System;
 
-namespace Microsoft.AspNetCore.Hosting
+namespace Hummingbird.AspNetCore.HealthChecks
 {
     public static class HealthCheckWebHostExtensions
     {
@@ -12,6 +13,7 @@ namespace Microsoft.AspNetCore.Hosting
 
         public static void RunWhenHealthy(this IWebHost webHost)
         {
+            
             webHost.RunWhenHealthy(TimeSpan.FromSeconds(DEFAULT_TIMEOUT_SECONDS));
         }
 

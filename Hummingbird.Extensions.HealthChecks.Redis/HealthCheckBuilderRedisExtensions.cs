@@ -3,7 +3,7 @@ using StackExchange.Redis;
 using System;
 using System.Linq;
 
-namespace Microsoft.Extensions.HealthChecks
+namespace Hummingbird.Extensions.HealthChecks
 {
     public static class HealthCheckBuilderRedisExtensions
     {

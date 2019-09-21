@@ -12,20 +12,32 @@ namespace Hummingbird.Extersions.EventBus.Models
             this.CreationTime = DateTime.Now;
             this.State = EventStateEnum.NotPublished;
             this.TimesSent = 0;
+        
         }
 
 
-        public EventLogEntry(string EventTypeName, object @event):this()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="EventTypeName">路由名称</param>
+        /// <param name="event">消息主体</param>
+        /// <param name="TTL">延期时间（秒）</param>
+        public EventLogEntry(string EventTypeName, object @event) :this()
         {
+            this.Headers = new Dictionary<string, object>();
             this.EventTypeName = string.IsNullOrEmpty(EventTypeName)? @event.GetType().FullName: EventTypeName;
             this.Content = JsonConvert.SerializeObject(@event);
             this.EventId = -1;
-            this.MessageId = Guid.NewGuid().ToString("N");
+            this.MessageId = Guid.NewGuid().ToString("N");  
         }
+
+        public IDictionary<string, object> Headers { get; set; }
+
         /// <summary>
         /// 事件编号
         /// </summary>
         public long EventId { get; set; }
+    
 
         public string MessageId { get; set; }
         /// <summary>
@@ -50,4 +62,19 @@ namespace Hummingbird.Extersions.EventBus.Models
         /// </summary>
         public string Content { get; set; }
     }
+
+    public class EventResponse
+    {
+        public string MessageId { get; set; }
+
+        public IDictionary<string, object> Headers { get; set; }
+
+        public dynamic Body { get; set; }
+
+        public string QueueName { get; set; }
+
+        public string RouteKey { get; set; }    
+
+    }
+
 }

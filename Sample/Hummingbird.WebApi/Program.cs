@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Hummingbird.AspNetCore.HealthChecks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Hummingbird.Extensions.Configuration.Json;
-using Microsoft.Extensions.DependencyInjection;
+using System.IO;
+
 namespace Hummingbird.WebApi
 {
     public class Program

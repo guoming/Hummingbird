@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Hummibgbird.AspNetCore.HealthChecks
+namespace Hummingbird.AspNetCore.HealthChecks
 {
     public class HealthCheckStartupFilter : IStartupFilter
     {

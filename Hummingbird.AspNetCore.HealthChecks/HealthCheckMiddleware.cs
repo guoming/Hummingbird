@@ -9,7 +9,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Hummibgbird.AspNetCore.HealthChecks
+namespace Hummingbird.AspNetCore.HealthChecks
 {
     public class HealthCheckMiddleware
     {

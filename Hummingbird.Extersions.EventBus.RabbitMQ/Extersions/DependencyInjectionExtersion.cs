@@ -1,6 +1,7 @@
 ﻿
 using Hummingbird.Extersions.EventBus;
 using Hummingbird.Extersions.EventBus.Abstractions;
+using Hummingbird.Extersions.EventBus.Models;
 using Hummingbird.Extersions.EventBus.RabbitMQ;
 using Hummingbird.Extersions.EventBus.RabbitMQ.LoadBalancers;
 using Microsoft.Extensions.Configuration;
@@ -249,7 +250,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     receiverAcquireRetryAttempts: option.ReceiverAcquireRetryAttempts,
                     receiverHandlerTimeoutMillseconds: option.ReceiverHandlerTimeoutMillseconds,
                     preFetch:option.PreFetch,
-                    IdempotencyDuration: option.IdempotencyDuration,
                     exchange: option.Exchange,
                     exchangeType: option.ExchangeType
                     );
@@ -257,6 +257,149 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return hostBuilder;
            
+        }
+    }
+
+    public static class EventLogEntryExtersions
+    {
+        /// <summary>
+        /// 设置重试策略
+        /// </summary>
+        /// <param name="event"></param>
+        /// <param name="MaxRetries">最大重试次数</param>
+        /// <param name="NumberOfRetries">当前重试次数</param>
+        /// <returns></returns>
+        public static void WithRetry(this EventLogEntry @event, int MaxRetries, int NumberOfRetries = 0)
+        {
+            @event.Headers.Add("x-message-max-retries", MaxRetries);
+            @event.Headers.Add("x-message-retries", NumberOfRetries);
+        }
+
+        /// <summary>
+        /// 设置延时策略
+        /// </summary>
+        /// <param name="event"></param>
+        /// <param name="TTL">延时时间（秒）</param>
+        /// <returns></returns>
+        public static void WithWaitSeconds(this EventLogEntry @event, int TTL)
+        {
+            @event.Headers.Add("x-first-death-queue", $"{@event.EventTypeName}@Delay#{TTL}"); //死信队列名称
+            @event.Headers.Add("x-message-ttl", TTL * 1000);//当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
+            @event.Headers.Add("x-dead-letter-exchange", "amq.topic");//过期消息转向路由  
+            @event.Headers.Add("x-dead-letter-routing-key",@event.EventTypeName);//过期消息转向路由相匹配routingkey 
+        }
+
+       
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="event"></param>
+        /// <param name="expires">消息过期时间</param>
+        public static void WithNoRetry(this EventLogEntry @event)
+        {
+            @event.Headers.Add("x-first-death-queue", $"{@event.EventTypeName}@Failed"); //死信队列名称
+            @event.Headers.Add("x-dead-letter-exchange", "amq.topic");//过期消息转向路由  
+            @event.Headers.Add("x-dead-letter-routing-key", @event.EventTypeName);//过期消息转向路由相匹配routingkey 
+
+            //if (expires >0)
+            //{
+            //    @event.Headers.Add("x-expires", expires * 1000);//队列过期时间 
+            //}
+        }
+        /// <summary>
+        /// 不断重试（有等待时间，无重试次数限制)
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public static EventLogEntry RetryForever(this EventResponse response)
+        {
+            var numberOfRetries = 0;
+
+            if (response.Headers.ContainsKey("x-message-retries"))
+            {
+                if (int.TryParse(response.Headers["x-message-retries"].ToString(), out numberOfRetries))
+                {
+                    numberOfRetries++;
+                }
+            }
+
+            var @event = new Hummingbird.Extersions.EventBus.Models.EventLogEntry($"{response.QueueName}", response.Body);
+            @event.WithRetry(0, numberOfRetries);
+            return @event;
+
+        }
+
+        /// <summary>
+        /// 不断重试（有等待时间，无重试次数限制)
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public static EventLogEntry WaitAndRetryForever(this EventResponse response,Func<int,int> func )
+        {
+            var numberOfRetries = 0;
+
+            if (response.Headers.ContainsKey("x-message-retries"))
+            {
+                if (int.TryParse(response.Headers["x-message-retries"].ToString(), out numberOfRetries))
+                {
+                    numberOfRetries++;
+                }
+            }
+
+            var ttl = func(numberOfRetries);
+            var @event = new Hummingbird.Extersions.EventBus.Models.EventLogEntry($"{response.QueueName}", response.Body);
+            @event.WithWaitSeconds(ttl);
+            @event.WithRetry(0, numberOfRetries);
+            return @event;
+
+        }
+
+        /// <summary>
+        /// 重试，（有等待时间，有重试次数限制）
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        public static EventLogEntry WaitAndRetry(this EventResponse response,int maxRetries, Func<int, int> func)
+        {
+            var numberOfRetries = 0;
+
+            if (response.Headers.ContainsKey("x-message-retries"))
+            {
+                if (int.TryParse(response.Headers["x-message-retries"].ToString(), out numberOfRetries))
+                {
+                    numberOfRetries++;
+                }
+            }
+
+            var ttl = func(numberOfRetries);
+            var @event = new Hummingbird.Extersions.EventBus.Models.EventLogEntry($"{response.QueueName}", response.Body);
+
+            //当前重试次数小于最大重试次数
+            if (numberOfRetries < maxRetries)
+            {
+                @event.WithWaitSeconds(ttl);
+                @event.WithRetry(maxRetries, numberOfRetries);
+            }
+            else
+            {
+                @event.WithNoRetry();
+            }
+
+            return @event;
+        }
+
+        /// <summary>
+        /// 重试，（有等待时间，有重试次数限制）
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        public static EventLogEntry NoRetry(this EventResponse response)
+        {
+            var @event = new Hummingbird.Extersions.EventBus.Models.EventLogEntry($"{response.QueueName}", response.Body);
+            @event.WithNoRetry();
+            return @event;
         }
     }
 }

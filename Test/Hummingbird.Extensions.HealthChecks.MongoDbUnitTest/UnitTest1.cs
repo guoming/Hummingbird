@@ -1,9 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.HealthChecks;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Servers;
-using System;
 using System.Linq;
 using Xunit;
 

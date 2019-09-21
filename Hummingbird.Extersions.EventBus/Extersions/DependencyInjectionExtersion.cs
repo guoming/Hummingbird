@@ -50,44 +50,44 @@ namespace Microsoft.Extensions.DependencyInjection
         /// 日期：2017年11月21日
         /// </summary>
         /// <param name="app"></param>
-        public static IServiceProvider UseSubscriber(this IServiceProvider serviceProvider, Action<IEventBus> setupSubscriberHandler)
+        public static IServiceProvider UseSubscriber(this IServiceProvider serviceProvider, Action<IEventBus> setupSubscriberHandler=null)
         {
-            var eventBus = serviceProvider.GetRequiredService<IEventBus>();
-            var logger = serviceProvider.GetRequiredService<ILogger<IEventLogger>>();
+           var eventBus = serviceProvider.GetRequiredService<IEventBus>();
+           var logger = serviceProvider.GetRequiredService<ILogger<IEventLogger>>();
 
             //订阅消息
-            eventBus.Subscribe((obj) =>
+            eventBus.Subscribe((Messages) =>
            {
-               foreach (var messageId in obj.MessageIds)
+               foreach (var message in Messages)
                {
-                   logger.LogDebug($"ACK: queue {obj.QueueName} routeKey={obj.RouteKey} MessageId:{messageId}");
-                }
-              
+                   logger.LogDebug($"ACK: queue {message.QueueName} route={message.RouteKey} messageId:{message.MessageId}");
+               }
+
            }, async (obj) =>
            {
-
-               foreach (var messageId in obj.MessageIds)
+               foreach (var message in obj.Messages)
                {
-                   logger.LogError($"NAck: queue {obj.QuueName} routeKey={obj.RouteKey} MessageId:{messageId}");
+                   logger.LogError($"NAck: queue {message.QueueName} route={message.RouteKey} messageId:{message.MessageId}");
                }
 
                //消息消费失败执行以下代码
-               if (obj.exception != null)
+               if (obj.Exception != null)
                {
-                   logger.LogError(obj.exception, obj.exception.Message);
+                   logger.LogError(obj.Exception, obj.Exception.Message);
                }
 
-               var ret = !(await eventBus.PublishAsync(obj.Events.Select(@event => new Hummingbird.Extersions.EventBus.Models.EventLogEntry($"{obj.RouteKey}", @event)).ToList(), 60));
-
-               return ret;
+               return true;
            });
 
-       
-            setupSubscriberHandler(eventBus);
-           
+
+            if (setupSubscriberHandler != null)
+            {
+                setupSubscriberHandler(eventBus);
+            }           
 
             return serviceProvider;
         }
+
 
 
         public static IEventBus Register<TD, TH>(this IEventBus eventBus,string QueueName="", string EventTypeName = "")

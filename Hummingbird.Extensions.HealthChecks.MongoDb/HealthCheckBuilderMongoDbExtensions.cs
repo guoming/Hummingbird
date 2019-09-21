@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Microsoft.Extensions.HealthChecks
+namespace Hummingbird.Extensions.HealthChecks
 {
     using System.Linq;
     using Hummingbird.Extensions.HealthChecks;
