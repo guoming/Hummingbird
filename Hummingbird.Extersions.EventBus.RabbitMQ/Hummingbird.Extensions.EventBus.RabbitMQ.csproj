@@ -5,7 +5,7 @@
    <TargetFramework>netcoreapp2.1</TargetFramework>
     <ApplicationIcon />
     <StartupObject />
-    <Version>1.8.2</Version>
+    <Version>1.8.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Hummingbird.Extersions.Cacheing\Hummingbird.Extersions.Cacheing.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.Cacheing\Hummingbird.Extensions.Cacheing.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extensions.EventBus.csproj" />
   </ItemGroup>
 
 </Project>

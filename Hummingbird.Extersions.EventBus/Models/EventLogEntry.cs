@@ -31,6 +31,20 @@ namespace Hummingbird.Extersions.EventBus.Models
             this.MessageId = Guid.NewGuid().ToString("N");  
         }
 
+        public static EventLogEntry Clone(EventResponse response)
+        {
+            return new EventLogEntry(response.QueueName, response.Body) {
+                EventId = response.EventId,
+                MessageId = response.MessageId,
+                Headers= response.Headers,
+            };
+
+        }
+
+ 
+
+       
+
         public IDictionary<string, object> Headers { get; set; }
 
         /// <summary>
@@ -40,6 +54,8 @@ namespace Hummingbird.Extersions.EventBus.Models
     
 
         public string MessageId { get; set; }
+
+  
         /// <summary>
         /// 事件类型
         /// </summary>
@@ -66,6 +82,8 @@ namespace Hummingbird.Extersions.EventBus.Models
     public class EventResponse
     {
         public string MessageId { get; set; }
+
+        public long EventId { get; set; }
 
         public IDictionary<string, object> Headers { get; set; }
 

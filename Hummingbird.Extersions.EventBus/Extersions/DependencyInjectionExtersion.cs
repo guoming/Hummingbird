@@ -79,11 +79,7 @@ namespace Microsoft.Extensions.DependencyInjection
                return true;
            });
 
-
-            if (setupSubscriberHandler != null)
-            {
-                setupSubscriberHandler(eventBus);
-            }           
+            setupSubscriberHandler?.Invoke(eventBus);
 
             return serviceProvider;
         }

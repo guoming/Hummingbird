@@ -135,7 +135,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 MessageId = a.MessageId.ToString(),
                 EventId = a.EventId,
                 RouteKey = a.EventTypeName,
-                Headers = a.Headers,
+                Headers = a.Headers??new Dictionary<string, object>()
             }).ToList();
 
             await EnqueueNoConfirm(evtDicts);
@@ -152,7 +152,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 MessageId = a.MessageId.ToString(),
                 EventId = a.EventId,
                 RouteKey = a.EventTypeName,
-                Headers=a.Headers,           
+                Headers=a.Headers?? new Dictionary<string,object>()
 
             }).ToList();
 
@@ -194,7 +194,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     properties.DeliveryMode = 2;
                     properties.MessageId = MessageId;
                     properties.Headers = new Dictionary<string, Object>();
-                    properties.Headers["EventId"] = EventId;
+                    properties.Headers["x-eventId"] = EventId;
 
                     foreach (var key in Events[eventIndex].Headers.Keys)
                     {
@@ -202,8 +202,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         {
                             properties.Headers.Add(key, Events[eventIndex].Headers[key]);
                         }
-                    }
-                    
+                    }                    
                     
                     if (Events[eventIndex].Headers.ContainsKey("x-first-death-queue"))
                     {
@@ -282,8 +281,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     _eventBusSenderRetryPolicy.Execute(() =>
                     {
                         var MessageId = Events[eventIndex].MessageId;
-                        var EventId = Events[eventIndex].EventId;
-
                         var json = Events[eventIndex].Body;
                         var routeKey = Events[eventIndex].RouteKey;
                         byte[] bytes = Encoding.UTF8.GetBytes(json);
@@ -292,9 +289,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         properties.DeliveryMode = 2;
                         properties.MessageId = MessageId;
                         properties.Headers = new Dictionary<string, Object>();
-                        properties.Headers["EventId"] = EventId;
+                        properties.Headers["x-eventId"] = Events[eventIndex].EventId;
 
-                        foreach(var key in  Events[eventIndex].Headers.Keys)
+                        foreach (var key in  Events[eventIndex].Headers.Keys)
                         {
                             if (!properties.Headers.ContainsKey(key))
                             {
@@ -334,7 +331,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         }
 
                     });
-                };
+                }
 
                 await _eventBusSenderRetryPolicy.Execute(async () =>
                     {
@@ -415,95 +412,64 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             {
                                 persistentConnection.TryConnect();
                             }
-
-                            var json = Encoding.UTF8.GetString(ea.Body);
-                            var MessageId = ea.BasicProperties.MessageId;
-
-                            if (!string.IsNullOrEmpty(json))
+                          
+                            long EventId = -1;
+                            if (ea.BasicProperties.Headers != null && ea.BasicProperties.Headers.ContainsKey("x-eventId"))
                             {
-                                var msg = JsonConvert.DeserializeObject<TD>(json);
-                                var headers = ea.BasicProperties.Headers;
+                                long.TryParse(ea.BasicProperties.Headers["x-eventId"].ToString(), out EventId);
+                            }
 
+                            var eventResponse = new EventResponse()
+                            {
+                                EventId = EventId,
+                                MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId)?Guid.NewGuid().ToString("N"): ea.BasicProperties.MessageId,
+                                Headers = ea.BasicProperties.Headers ?? new Dictionary<string,object>(),
+                                Body = JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)),
+                                QueueName = _queueName,
+                                RouteKey = _routeKey
+                            };
 
-                                try
+                            if (!eventResponse.Headers.ContainsKey("x-exchange"))
+                            {
+                                eventResponse.Headers.Add("x-exchange", _exchange);
+                            }
+
+                            if (!eventResponse.Headers.ContainsKey("x-exchange-type"))
+                            {
+                                eventResponse.Headers.Add("x-exchange-type", _exchangeType);
+                            }
+
+                            try
+                            {
+                                var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
                                 {
-                                    var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
+                                    return await EventAction.Handle(eventResponse.Body, cancellationToken);
+
+                                }, CancellationToken.None);
+
+                                if (handlerOK)
+                                {
+                                    if (_subscribeAckHandler != null)
                                     {
-                                        return await EventAction.Handle(msg, cancellationToken);
-
-                                    }, CancellationToken.None);
-
-                                    if (handlerOK)
-                                    {
-                                        if (_subscribeAckHandler != null && !string.IsNullOrEmpty(MessageId))
-                                        {
-                                            _subscribeAckHandler(new EventResponse[] {
-                                                new EventResponse(){
-                                                    MessageId =MessageId,
-                                                    Headers=headers,
-                                                    Body=msg,
-                                                    QueueName=_queueName,
-                                                    RouteKey =_routeKey
-
-                                                }
-                                            });
-                                        }
-
-                                        //确认消息
-                                        _channel.BasicAck(ea.DeliveryTag, false);
-
+                                        _subscribeAckHandler(new EventResponse[] { eventResponse });
                                     }
-                                    else
-                                    {
-                                        //重新入队，默认：是
-                                        var requeue = true;
 
-                                        try
-                                        {
-                                            //执行回调，等待业务层确认是否重新入队
-                                            if (_subscribeNackHandler != null)
-                                            {
-                                                requeue = await _subscribeNackHandler((new EventResponse[] {
-                                                                new EventResponse(){
-                                                                    MessageId =MessageId,
-                                                                    Headers=headers,
-                                                                    Body=msg,
-                                                                    QueueName=_queueName,
-                                                                    RouteKey =_routeKey
-                                                                }
-                                                            }, null));
+                                    //确认消息
+                                    _channel.BasicAck(ea.DeliveryTag, false);
 
-                                            }
-                                        }
-                                        catch (Exception innterEx)
-                                        {
-                                            _logger.LogError(innterEx, innterEx.Message);
-                                        }
-
-                                        //确认消息
-                                        _channel.BasicReject(ea.DeliveryTag, requeue);
-
-                                    }
                                 }
-                                catch (Exception ex)
+                                else
                                 {
                                     //重新入队，默认：是
                                     var requeue = true;
 
                                     try
                                     {
-                                        //执行回调，等待业务层的处理结果
+                                        //执行回调，等待业务层确认是否重新入队
                                         if (_subscribeNackHandler != null)
                                         {
-                                            requeue = await _subscribeNackHandler((new EventResponse[] {
-                                                                new EventResponse(){
-                                                                    MessageId =MessageId,
-                                                                    Headers=headers,
-                                                                    Body=msg,
-                                                                    QueueName=_queueName,
-                                                                    RouteKey =_routeKey
-                                                                }
-                                                            }, ex));
+                                            requeue = await _subscribeNackHandler((new EventResponse[] {eventResponse}, null));
+
                                         }
                                     }
                                     catch (Exception innterEx)
@@ -513,16 +479,32 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                     //确认消息
                                     _channel.BasicReject(ea.DeliveryTag, requeue);
+
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                //重新入队，默认：是
+                                var requeue = true;
+
+                                try
+                                {
+                                    //执行回调，等待业务层的处理结果
+                                    if (_subscribeNackHandler != null)
+                                    {
+                                        requeue = await _subscribeNackHandler((new EventResponse[] { eventResponse }, ex));
+                                    }
+                                }
+                                catch (Exception innterEx)
+                                {
+                                    _logger.LogError(innterEx, innterEx.Message);
                                 }
 
+                                //确认消息
+                                _channel.BasicReject(ea.DeliveryTag, requeue);
                             }
-                            else
-                            {
-                                _logger.LogWarning($"QueueName:{_queueName} MessageId={MessageId} Message Empty");
 
-                                //确认处理（消息被丢弃）
-                                _channel.BasicAck(ea.DeliveryTag, false);
-                            }
+                         
                         }
                         catch (Exception ex)
                         {
@@ -655,12 +637,31 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 {
                                     Messages = basicGetResults.Select(ea => new EventResponse()
                                     {
-                                        MessageId = ea.BasicProperties.MessageId,
-                                        Headers = ea.BasicProperties.Headers,
+                                        EventId=-1,
+                                        MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
+                                        Headers = ea.BasicProperties.Headers ?? new Dictionary<string,object>(),
                                         Body = (dynamic)JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)),
                                         RouteKey = _routeKey,
                                         QueueName = _queueName
                                     }).ToArray();
+
+                                    for (int i = 0; i < Messages.Length; i++)
+                                    {
+                                        if(Messages[i].Headers.ContainsKey("x-eventId") && long.TryParse(Messages[i].Headers["x-eventId"].ToString(), out long EventId))
+                                        {
+                                            Messages[i].EventId = EventId;
+                                        }
+
+                                        if (!Messages[i].Headers.ContainsKey("x-exchange"))
+                                        {
+                                            Messages[i].Headers.Add("x-exchange", _exchange);
+                                        }
+
+                                        if (!Messages[i].Headers.ContainsKey("x-exchange-type"))
+                                        {
+                                            Messages[i].Headers.Add("x-exchange-type", _exchangeType);
+                                        }
+                                    }
 
                                     if (Messages != null && Messages.Any())
                                     {

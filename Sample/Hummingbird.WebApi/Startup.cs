@@ -1,5 +1,6 @@
 ﻿using Hummingbird.Extensions.HealthChecks;
 using Hummingbird.Extersions.EventBus.Abstractions;
+using Hummingbird.Extersions.EventBus.RabbitMQ;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -157,7 +158,7 @@ namespace Hummingbird.WebApi
                                 logger.LogError(obj.Exception, obj.Exception.Message);
                             }
 
-                            var events = obj.Messages.Select(message => message.WaitAndRetry(3,a => 5)).ToList();
+                            var events = obj.Messages.Select(message => message.WaitAndRetry(a => 5,3)).ToList();
 
                             var ret = !(await eventBus.PublishAsync(events));
 

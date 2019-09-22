@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+ <TargetFramework>netcoreapp2.1</TargetFramework>
+<Version>1.8.0</Version>
+<AssemblyName>Hummingbird.Extersions.EventBus.SqlServerLogging</AssemblyName>
+<RootNamespace>Hummingbird.Extersions.EventBus.SqlServerLogging</RootNamespace>
+<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+<PackageId>Hummingbird.Extersions.EventBus.SqlServerLogging</PackageId>
+<Authors>Hummingbird.Extersions.EventBus.SqlServerLogging</Authors>
+<Company>Hummingbird.Extersions.EventBus.SqlServerLogging</Company>
+<Product>Hummingbird.Extersions.EventBus.SqlServerLogging</Product>
+<RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
+<RepositoryType>git</RepositoryType>
+<Description>一致性消息，基于SqlServer消息持久化</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="db.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.50.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extensions.EventBus.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extersions.UidGenerator\Hummingbird.Extensions.UidGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <HintPath>..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.dependencyinjection.abstractions\2.0.0\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
