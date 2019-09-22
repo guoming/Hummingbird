@@ -132,7 +132,7 @@ namespace Hummingbird.WebApi
                     sp.UseSubscriber(eventbus =>
                     {
                         //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
-                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventHandler", "NewMsgEvent");
+                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("ZT.FLMS.OrderService.ChangeDataCaptureEventToDbIndexHandler", "ZT.FLMS.OrderService.ChangeDataCaptureEventToDbIndexHandler");
                         //eventbus.RegisterBatch<ChangeDataCaptureEvent, ChangeDataCaptureEventToESIndexHandler>("", "#");
 
 

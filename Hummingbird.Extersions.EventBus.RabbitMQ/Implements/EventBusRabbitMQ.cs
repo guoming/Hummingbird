@@ -268,6 +268,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 }
                 var _channel = persistentConnection.GetModel();
 
+             
+
                 _eventBusSenderRetryPolicy.Execute(() =>
                 {
                     _channel.ConfirmSelect();
@@ -284,14 +286,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         var json = Events[eventIndex].Body;
                         var routeKey = Events[eventIndex].RouteKey;
                         byte[] bytes = Encoding.UTF8.GetBytes(json);
-                        //设置消息持久化
-                        IBasicProperties properties = _channel.CreateBasicProperties();
+                    //设置消息持久化
+                    IBasicProperties properties = _channel.CreateBasicProperties();
                         properties.DeliveryMode = 2;
                         properties.MessageId = MessageId;
                         properties.Headers = new Dictionary<string, Object>();
                         properties.Headers["x-eventId"] = Events[eventIndex].EventId;
 
-                        foreach (var key in  Events[eventIndex].Headers.Keys)
+                        foreach (var key in Events[eventIndex].Headers.Keys)
                         {
                             if (!properties.Headers.ContainsKey(key))
                             {
@@ -301,17 +303,17 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         if (Events[eventIndex].Headers.ContainsKey("x-first-death-queue"))
                         {
-                            //延时队列或者直接写死信的情况
-                            var newQueue = Events[eventIndex].Headers["x-first-death-queue"].ToString();                     
+                        //延时队列或者直接写死信的情况
+                        var newQueue = Events[eventIndex].Headers["x-first-death-queue"].ToString();
 
-                            //创建一个队列                         
-                            _channel.QueueDeclare(
+                        //创建一个队列                         
+                        _channel.QueueDeclare(
                                         queue: newQueue,
                                         durable: true,
                                         exclusive: false,
                                         autoDelete: false,
                                         arguments: Events[eventIndex].Headers);
-                            
+
                             _batchPublish.Add(
                                     exchange: "",
                                     mandatory: true,
@@ -321,8 +323,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         }
                         else
                         {
-                            //发送到正常队列
-                            _batchPublish.Add(
+                        //发送到正常队列
+                        _batchPublish.Add(
                                     exchange: _exchange,
                                     mandatory: true,
                                     routingKey: routeKey,
@@ -337,13 +339,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     {
                         await Task.Run(() =>
                         {
-                            //批量提交
-                            _batchPublish.Publish();
+                        //批量提交
+                        _batchPublish.Publish();
 
                             _channel.WaitForConfirmsOrDie();
                         });
                     });
 
+           
             }
             catch (Exception ex)
             {

@@ -20,9 +20,12 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// <param name="MaxRetries">最大重试次数</param>
         /// <param name="NumberOfRetries">当前重试次数</param>
         /// <returns></returns>
-        public static void WithRetry(this EventLogEntry @event, int MaxRetries)
+        public static void WithRetry(this EventLogEntry @event, int MaxRetries,int NumberOfRetries)
         {
+            
             @event.Headers["x-message-max-retries"]=MaxRetries;
+            @event.Headers["x-message-retries"] = NumberOfRetries;
+
         }
 
         /// <summary>
@@ -37,6 +40,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             @event.Headers["x-message-ttl"] = TTL * 1000; //当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
             @event.Headers["x-dead-letter-exchange"] = @event.Headers["x-exchange"];//过期消息转向路由  
             @event.Headers["x-dead-letter-routing-key"]= @event.EventTypeName;//过期消息转向路由相匹配routingkey 
+
+     
         }
 
 
@@ -61,7 +66,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         public static EventLogEntry RetryForever(this EventResponse response)
         {
             var @event = Hummingbird.Extersions.EventBus.Models.EventLogEntry.Clone(response);
-            @event.WithRetry(0);
+            var numberOfRetries = response.GetNumberOfRetries();
+
+            @event.WithRetry(0,++numberOfRetries);
             return @event;
 
         }
@@ -75,8 +82,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         public static EventLogEntry WaitAndRetryForever(this EventResponse response,  int TTL)
         {
             var @event = Hummingbird.Extersions.EventBus.Models.EventLogEntry.Clone(response);
+            var numberOfRetries = response.GetNumberOfRetries();
             @event.WithWait(TTL);
-            @event.WithRetry(0);
+            @event.WithRetry(0,++numberOfRetries);
             return @event;
 
         }
@@ -93,7 +101,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             var ttl = retryAttempt(numberOfRetries);
             var @event = Hummingbird.Extersions.EventBus.Models.EventLogEntry.Clone(response);
             @event.WithWait(ttl);
-            @event.WithRetry(0);
+            @event.WithRetry(0, ++numberOfRetries);
             return @event;
 
         }
@@ -101,19 +109,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         public static int GetNumberOfRetries(this EventResponse response)
         {
             var numberOfRetries = 0;
-            if (response.Headers.ContainsKey("x-death"))
+            if (response.Headers.ContainsKey("x-message-retries"))
             {
-
-                var death = response.Headers["x-death"] as List<object>;
-                if (death != null && death.Count > 0)
-                {
-                    var dict = death[0] as Dictionary<string, object>;
-
-                    if (dict != null && dict.ContainsKey("count"))
-                    {
-                        int.TryParse(dict["count"].ToString(), out numberOfRetries);
-                    }
-                }
+                int.TryParse(response.Headers["x-message-retries"].ToString(), out numberOfRetries);
 
             }
 
@@ -133,7 +131,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             if (numberOfRetries < maxRetries)
             {
                 @event.WithWait(TTL);
-                @event.WithRetry(maxRetries);
+                @event.WithRetry(maxRetries,++numberOfRetries);
             }
             else
             {
@@ -158,7 +156,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             if (numberOfRetries < maxRetries)
             {
                 @event.WithWait(TTL);
-                @event.WithRetry(maxRetries);
+                @event.WithRetry(maxRetries,++ numberOfRetries);
             }
             else
             {

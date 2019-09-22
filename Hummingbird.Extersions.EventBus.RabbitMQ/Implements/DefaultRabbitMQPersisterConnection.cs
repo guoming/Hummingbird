@@ -62,6 +62,12 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 throw new InvalidOperationException("No RabbitMQ connections are available to perform this action");
             }
 
+            if (_model == null)
+            {
+                _model = CreateModel();
+
+            }
+
             return _model;
         }
 
@@ -110,9 +116,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             _connection.ConnectionShutdown += OnConnectionShutdown;
                             _connection.CallbackException += OnCallbackException;
                             _connection.ConnectionBlocked += OnConnectionBlocked;
-
-                            _logger.LogInformation($"RabbitMQ persistent connection acquired a connection {_connection.Endpoint.HostName} and is subscribed to failure events");
-
                             return true;
                         }
                         else
