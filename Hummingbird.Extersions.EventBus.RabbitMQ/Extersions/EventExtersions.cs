@@ -8,6 +8,26 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
     public static class EventLogEntryExtersions
     {
 
+        /// <summary>
+        /// 附加时间戳
+        /// </summary>
+        /// <param name="evnet"></param>
+        /// <param name="ts"></param>
+        public static void WithTimestamp(this EventLogEntry @evnet, long ts)
+        {
+            @evnet.Headers["x-ts"] = ts;
+        }
+
+        /// <summary>
+        /// 附加时间戳
+        /// </summary>
+        /// <param name="evnet"></param>
+        /// <param name="ts"></param>
+        public static void WithTimestamp(this EventLogEntry @evnet)
+        {
+            @evnet.Headers["x-ts"] = DateTime.UtcNow.ToTimestamp();
+        }
+
         public static void WithTracer(this EventLogEntry @evnet,string TraceId)
         {
             @evnet.Headers["x-traceId"] = TraceId;

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -132,7 +133,7 @@ namespace Hummingbird.WebApi
                     sp.UseSubscriber(eventbus =>
                     {
                         //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
-                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("ZT.FLMS.OrderService.ChangeDataCaptureEventToDbIndexHandler", "ZT.FLMS.OrderService.ChangeDataCaptureEventToDbIndexHandler");
+                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("ZT.FLMS.NumberSegmentUsageChangedEventHandler", "ZT.FLMS.NumberSegmentUsageChangedEventHandler");
                         //eventbus.RegisterBatch<ChangeDataCaptureEvent, ChangeDataCaptureEventToESIndexHandler>("", "#");
 
 
@@ -179,7 +180,7 @@ namespace Hummingbird.WebApi
 
     public class NewMsgEventHandler : Hummingbird.Extersions.EventBus.Abstractions.IEventHandler<NewMsgEvent>
     {
-        public Task<bool> Handle(NewMsgEvent @event, CancellationToken cancellationToken)
+        public Task<bool> Handle(NewMsgEvent @event, Dictionary<string, object> headers, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
