@@ -422,15 +422,25 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 long.TryParse(ea.BasicProperties.Headers["x-eventId"].ToString(), out EventId);
                             }
 
+                            var json = Encoding.UTF8.GetString(ea.Body);
                             var eventResponse = new EventResponse()
                             {
                                 EventId = EventId,
-                                MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId)?Guid.NewGuid().ToString("N"): ea.BasicProperties.MessageId,
-                                Headers = ea.BasicProperties.Headers ?? new Dictionary<string,object>(),
-                                Body = JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)),
+                                MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
+                                Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
+                                Body = default(TD),
                                 QueueName = _queueName,
                                 RouteKey = _routeKey
                             };
+
+                            try
+                            {
+                                eventResponse.Body = JsonConvert.DeserializeObject<TD>(json);
+                            }
+                            catch(Exception ex)
+                            {
+                                _logger.LogError(ex, ex.Message);
+                            }                           
 
                             if (!eventResponse.Headers.ContainsKey("x-exchange"))
                             {
@@ -634,19 +644,33 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             {
                                 var basicGetResults = batchPool.Select(a => a.ea).ToArray();
 
-                                EventResponse[] Messages = null;
+                                EventResponse[] Messages = new EventResponse[basicGetResults.Length];
 
                                 try
                                 {
-                                    Messages = basicGetResults.Select(ea => new EventResponse()
+                                    for(int i=0;i< basicGetResults.Length;i++)
                                     {
-                                        EventId=-1,
-                                        MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
-                                        Headers = ea.BasicProperties.Headers ?? new Dictionary<string,object>(),
-                                        Body = (dynamic)JsonConvert.DeserializeObject<TD>(Encoding.UTF8.GetString(ea.Body)),
-                                        RouteKey = _routeKey,
-                                        QueueName = _queueName
-                                    }).ToArray();
+                                        var ea = basicGetResults[i];                                    
+                                        Messages[i] = new EventResponse()
+                                        {
+                                            EventId = -1,
+                                            MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
+                                            Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
+                                            Body =  default(TD),
+                                            RouteKey = _routeKey,
+                                            QueueName = _queueName
+                                        };
+
+                                        try
+                                        {
+                                            var json = Encoding.UTF8.GetString(ea.Body);
+                                            Messages[i].Body = JsonConvert.DeserializeObject<TD>(json);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            _logger.LogError(ex, ex.Message);                                         
+                                        }
+                                    }                                    
 
                                     for (int i = 0; i < Messages.Length; i++)
                                     {
