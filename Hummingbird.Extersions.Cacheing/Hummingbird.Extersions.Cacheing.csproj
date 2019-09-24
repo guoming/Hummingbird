@@ -4,7 +4,7 @@
   <TargetFrameworks>netcoreapp2.1;net4.6.1;net4.5</TargetFrameworks>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-  <Version>1.5.12</Version>
+  <Version>1.6.2</Version>
   <Description></Description>
   <Authors>GUOMING</Authors>
   <Company>GUOMING</Company>
@@ -14,15 +14,20 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>NETCORE</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net4.6.1' ">
+    <DefineConstants>NET461</DefineConstants>
+  </PropertyGroup>
+  
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <PackageReference Include="Polly" Version="6.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />            
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net4.6.1' ">
     <PackageReference Include="Polly" Version="6.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="StackExchange.Redis" Version="2.0.519" />
+    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net4.5' ">
     <PackageReference Include="Polly" Version="6.1.2" />

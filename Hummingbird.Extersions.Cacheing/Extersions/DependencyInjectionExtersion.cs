@@ -1,13 +1,6 @@
-﻿
-#if NETCORE
-using Hummingbird.Core;
-#endif
-
-using Hummingbird.Extersions.Cacheing;
+﻿using Hummingbird.Extersions.Cacheing;
 using Hummingbird.Extersions.Cacheing.StackExchange;
 using Hummingbird.Extersions.Cacheing.StackExchangeImplement;
-
-
 using System;
 using System.Collections.Generic;
 
@@ -15,8 +8,9 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtersion
     {
-#if NETCORE
-        public static IHummingbirdHostBuilder AddCacheing(this IHummingbirdHostBuilder hostBuilder, Action<RedisCacheConfig> action)
+#if NET461 || NETCORE
+
+        public static Hummingbird.Core.IHummingbirdHostBuilder AddCacheing(this Hummingbird.Core.IHummingbirdHostBuilder hostBuilder, Action<RedisCacheConfig> action)
         {
             action = action ?? throw new ArgumentNullException(nameof(action));
 
@@ -27,7 +21,6 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 #endif
 
-       
     }
 
   
