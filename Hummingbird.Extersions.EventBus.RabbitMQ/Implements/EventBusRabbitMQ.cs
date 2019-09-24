@@ -1,5 +1,4 @@
-﻿using Hummingbird.Extersions.Cacheing;
-using Hummingbird.Extersions.EventBus.Abstractions;
+﻿using Hummingbird.Extersions.EventBus.Abstractions;
 using Hummingbird.Extersions.EventBus.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -62,7 +61,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly IAsyncPolicy _eventBusReceiverPolicy = null;
 
         public EventBusRabbitMQ(
-           ICacheManager cacheManager,
            IRabbitMQPersisterConnectionLoadBalancer receiveLoadBlancer,
            IRabbitMQPersisterConnectionLoadBalancer senderLoadBlancer,
            ILogger<IEventBus> logger,

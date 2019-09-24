@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Autofac.Extras.DynamicProxy" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Hummingbird.AspNetCore.HealthChecks\Hummingbird.AspNetCore.HealthChecks.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj" />
@@ -28,7 +32,6 @@
     <ProjectReference Include="..\..\Hummingbird.Extersions.Cacheing\Hummingbird.Extersions.Cacheing.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.DistributedLock\Hummingbird.Extersions.DistributedLock.csproj" />
-    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.MongodbLogging\Hummingbird.Extersions.EventBus.MongodbLogging.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.RabbitMQ\Hummingbird.Extersions.EventBus.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Idempotency\Hummingbird.Extersions.Idempotency.csproj" />
