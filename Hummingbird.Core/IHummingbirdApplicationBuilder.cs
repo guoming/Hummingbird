@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
+#if NETCORE
+using Microsoft.AspNetCore.Builder;
+#endif
 
 namespace Hummingbird.Core
 {
+#if NETCORE
     public interface IHummingbirdApplicationBuilder
     {
         IApplicationBuilder app { get; }
     }
+#endif
 }
 

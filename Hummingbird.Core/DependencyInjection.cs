@@ -1,6 +1,8 @@
 ﻿using Hummingbird.Core;
-using Microsoft.AspNetCore.Builder;
 using System;
+#if NETCORE
+using Microsoft.AspNetCore.Builder;
+#endif
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -20,12 +22,15 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
+#if NETCORE
+
         public static IHummingbirdApplicationBuilder UseHummingbird(this IApplicationBuilder app, Action<IHummingbirdApplicationBuilder> setup)
         {
             var builder = new HummingbirdApplicationBuilder(app);
             setup(builder);
             return builder;
         }
+#endif
 
     }
 }

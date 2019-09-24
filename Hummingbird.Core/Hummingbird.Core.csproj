@@ -1,19 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Version>1.0.22</Version>
+    <TargetFrameworks>netcoreapp2.1;netstandard2.0</TargetFrameworks>
+    <Version>1.1.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RootNamespace>Hummingbird.Core</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="MicroService.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
+    <DefineConstants>NETCORE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.1" />
   </ItemGroup>
-
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.0.2" />
+  </ItemGroup>
 </Project>

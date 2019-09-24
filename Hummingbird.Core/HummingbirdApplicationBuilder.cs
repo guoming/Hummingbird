@@ -1,14 +1,11 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿#if NETCORE
+using Microsoft.AspNetCore.Builder;
 
 namespace Hummingbird.Core
 {
     public class HummingbirdApplicationBuilder : IHummingbirdApplicationBuilder
     {
-        private IApplicationBuilder _app;
+        private readonly IApplicationBuilder _app;
 
         public HummingbirdApplicationBuilder(IApplicationBuilder app)
         {
@@ -26,3 +23,4 @@ namespace Hummingbird.Core
     }
 }
 
+#endif

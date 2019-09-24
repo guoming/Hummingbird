@@ -38,7 +38,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            Hummingbird.Extersions.ServiceRegistry.ServiceRegistryBootstraper.Register(_serviceProvider, a => a.WithConfig(serviceConfig));
+            Hummingbird.Extersions.ServiceRegistry.ServiceRegistryStartup.Configuration(_serviceProvider, a => a.WithConfig(serviceConfig));
 
             
         }

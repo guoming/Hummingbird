@@ -216,7 +216,6 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             hostBuilder.Services.AddSingleton<IEventBus, EventBusRabbitMQ>(sp =>
             {
-                var cache = sp.GetRequiredService<Hummingbird.Extersions.Cacheing.ICacheManager>();                
                 var logger = sp.GetRequiredService<ILogger<IEventBus>>();
                 var loggerConnection = sp.GetRequiredService<ILogger<IRabbitMQPersistentConnection>>();
                 var rabbitMQPersisterConnectionLoadBalancerFactory = sp.GetRequiredService<IRabbitMQPersisterConnectionLoadBalancerFactory>();
@@ -240,7 +239,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 var receiveLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> receiveConnections, option.ReceiverLoadBalancer);
                 var senderLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> senderConnections, option.SenderLoadBalancer);
                 
-                return new EventBusRabbitMQ(cache,
+                return new EventBusRabbitMQ(
                     receiveLoadBlancer,
                     senderLoadBlancer,
                     logger,

@@ -473,7 +473,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 {
                                     var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
                                     {
-                                        return await EventAction.Handle(eventResponse.Body,(Dictionary<string, object>) eventResponse.Headers, cancellationToken);
+                                        return await EventAction.Handle(eventResponse.Body, (Dictionary<string, object>)eventResponse.Headers, cancellationToken);
 
                                     }, CancellationToken.None);
 
@@ -484,19 +484,19 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                             _subscribeAckHandler(new EventResponse[] { eventResponse });
                                         }
 
-                                    //确认消息
-                                    _channel.BasicAck(ea.DeliveryTag, false);
+                                        //确认消息
+                                        _channel.BasicAck(ea.DeliveryTag, false);
 
                                     }
                                     else
                                     {
-                                    //重新入队，默认：是
-                                    var requeue = true;
+                                        //重新入队，默认：是
+                                        var requeue = true;
 
                                         try
                                         {
-                                        //执行回调，等待业务层确认是否重新入队
-                                        if (_subscribeNackHandler != null)
+                                            //执行回调，等待业务层确认是否重新入队
+                                            if (_subscribeNackHandler != null)
                                             {
                                                 requeue = await _subscribeNackHandler((new EventResponse[] { eventResponse }, null));
 
@@ -507,20 +507,20 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                             _logger.LogError(innterEx, innterEx.Message);
                                         }
 
-                                    //确认消息
-                                    _channel.BasicReject(ea.DeliveryTag, requeue);
+                                        //确认消息
+                                        _channel.BasicReject(ea.DeliveryTag, requeue);
 
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                //重新入队，默认：是
-                                var requeue = true;
+                                    //重新入队，默认：是
+                                    var requeue = true;
 
                                     try
                                     {
-                                    //执行回调，等待业务层的处理结果
-                                    if (_subscribeNackHandler != null)
+                                        //执行回调，等待业务层的处理结果
+                                        if (_subscribeNackHandler != null)
                                         {
                                             requeue = await _subscribeNackHandler((new EventResponse[] { eventResponse }, ex));
                                         }
@@ -530,10 +530,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         _logger.LogError(innterEx, innterEx.Message);
                                     }
 
-                                //确认消息
-                                _channel.BasicReject(ea.DeliveryTag, requeue);
+                                    //确认消息
+                                    _channel.BasicReject(ea.DeliveryTag, requeue);
                                 }
-
 
                             }
                             catch (Exception ex)

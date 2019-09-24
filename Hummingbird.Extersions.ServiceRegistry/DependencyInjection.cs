@@ -18,13 +18,15 @@ using System.Threading.Tasks;
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjection
-    { 
-      
+    {
+#if NETCORE
         public static IHummingbirdApplicationBuilder UseServiceRegistry(this IHummingbirdApplicationBuilder hostBuilder, Action<ServiceConfig> setup)
         {
-            ServiceRegistryBootstraper.Register(hostBuilder.app.ApplicationServices, setup);
+            ServiceRegistryStartup.Configuration(hostBuilder.app.ApplicationServices, setup);
             return hostBuilder;
         }
+#endif
+
     }
 
 
@@ -53,12 +55,38 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddHostedService<ServiceRegisterHostedService>();
             return services;
         }
+
+
+        public static IHummingbirdHostBuilder AddServiceRegisterHostedService(this IHummingbirdHostBuilder hostBuilder, IConfiguration configuration)
+        {
+            hostBuilder.Services.AddSingleton<Hummingbird.Extersions.ServiceRegistry.ServiceConfig>(a =>
+            {
+                return configuration.Get<Hummingbird.Extersions.ServiceRegistry.ServiceConfig>();
+            });
+
+            hostBuilder.Services.AddHostedService<ServiceRegisterHostedService>();
+            return hostBuilder;
+        }
+
+
+        public static IHummingbirdHostBuilder AddServiceRegisterHostedService(this IHummingbirdHostBuilder hostBuilder, Action<Hummingbird.Extersions.ServiceRegistry.ServiceConfig> setup)
+        {
+            hostBuilder.Services.AddSingleton<Hummingbird.Extersions.ServiceRegistry.ServiceConfig>(a =>
+            {
+                var config = new Hummingbird.Extersions.ServiceRegistry.ServiceConfig();
+                setup(config);
+                return config;
+            });
+
+            hostBuilder.Services.AddHostedService<ServiceRegisterHostedService>();
+            return hostBuilder;
+        }
     }
 }
 
 namespace Hummingbird.Extersions.ServiceRegistry
 {
-    internal static class ServiceRegistryBootstraper
+    internal static class ServiceRegistryStartup
     {
         /**获取ip地址*/
         public static List<string> getIps()
@@ -78,7 +106,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
 
         }
 
-        public static void Register(IServiceProvider serviceProvider, Action<ServiceConfig> setup)
+        public static void Configuration(IServiceProvider serviceProvider, Action<ServiceConfig> setup)
         {
             var lifetime = ServiceProviderServiceExtensions.GetRequiredService<IApplicationLifetime>(serviceProvider);
             var hosting = ServiceProviderServiceExtensions.GetRequiredService<IHostingEnvironment>(serviceProvider);
@@ -106,7 +134,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
                     string text = configuration["urls"]?.TrimEnd('/');
                     if (!string.IsNullOrEmpty(text) && text.Contains("/") && text.Contains(":"))
                     {
-                        string[] source = text.Split('/', StringSplitOptions.None).LastOrDefault().Split(':', StringSplitOptions.None);
+                        string[] source = text.Split('/').LastOrDefault().Split(':');
                         string ip = source.FirstOrDefault();
                         int port = Convert.ToInt32(source.LastOrDefault());
                         List<string> ipList = new List<string>();
@@ -143,7 +171,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
 
                                 if (!string.IsNullOrEmpty(serviceConfig.SERVICE_TAGS))
                                 {
-                                    tags.AddRange(serviceConfig.SERVICE_TAGS.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                                    tags.AddRange(serviceConfig.SERVICE_TAGS.Split(','));
                                 }
 
                                 agentServiceRegistration.Tags = tags.ToArray();
@@ -220,7 +248,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
 
                         if (!string.IsNullOrEmpty(serviceConfig.SERVICE_TAGS))
                         {
-                            tags.AddRange(serviceConfig.SERVICE_TAGS.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                            tags.AddRange(serviceConfig.SERVICE_TAGS.Split(','));
                         }
 
                         agentServiceRegistration.Tags = tags.ToArray();

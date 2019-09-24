@@ -1,9 +1,8 @@
 ﻿using Hummingbird.Core;
 using Hummingbird.Extersions.UidGenerator;
 using Hummingbird.Extersions.UidGenerator.WorkIdCreateStrategy;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using System;
+
 
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -21,6 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         internal IWorkIdCreateStrategy WorkIdCreateStrategy { get; set; }
     }
+
 
     public static class DependencyInjectionExtersion
     {
@@ -42,4 +42,5 @@ namespace Microsoft.Extensions.DependencyInjection
             option.WorkIdCreateStrategy = new StaticWorkIdCreateStrategy(WorkId);
         }
     }
+
 }
