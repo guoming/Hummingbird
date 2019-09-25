@@ -438,8 +438,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 {
                                     long.TryParse(ea.BasicProperties.Headers["x-eventId"].ToString(), out EventId);
                                 }
-
-                                var json = Encoding.UTF8.GetString(ea.Body);
+                                
                                 var eventResponse = new EventResponse()
                                 {
                                     EventId = EventId,
@@ -447,12 +446,13 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
                                     Body = default(TD),
                                     QueueName = _queueName,
-                                    RouteKey = _routeKey
+                                    RouteKey = _routeKey,
+                                    BodySource = Encoding.UTF8.GetString(ea.Body)
                                 };
 
                                 try
                                 {
-                                    eventResponse.Body = JsonConvert.DeserializeObject<TD>(json);
+                                    eventResponse.Body = JsonConvert.DeserializeObject<TD>(eventResponse.BodySource);
                                 }
                                 catch (Exception ex)
                                 {
@@ -681,13 +681,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                 Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
                                                 Body = default(TD),
                                                 RouteKey = _routeKey,
-                                                QueueName = _queueName
+                                                QueueName = _queueName,
+                                                BodySource = Encoding.UTF8.GetString(ea.Body)
                                             };
 
                                             try
                                             {
-                                                var json = Encoding.UTF8.GetString(ea.Body);
-                                                Messages[i].Body = JsonConvert.DeserializeObject<TD>(json);
+                                               
+                                                Messages[i].Body = JsonConvert.DeserializeObject<TD>(Messages[i].BodySource);
                                             }
                                             catch (Exception ex)
                                             {

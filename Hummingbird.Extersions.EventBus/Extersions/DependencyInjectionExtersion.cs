@@ -1,15 +1,8 @@
 ﻿using Hummingbird.Core;
 using Hummingbird.Extersions.EventBus;
 using Hummingbird.Extersions.EventBus.Abstractions;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Retry;
-using Polly.Timeout;
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -34,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return hostBuilder;
         }
 
-
+#if NETCORE
         public static IHummingbirdApplicationBuilder UseEventBus(this IHummingbirdApplicationBuilder hummingbirdApplicationBuilder, Action<IServiceProvider> setupSubscriberHandler)
         {
 
@@ -42,6 +35,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return hummingbirdApplicationBuilder;
         }
+#endif
 
 
         /// <summary>

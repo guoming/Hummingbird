@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-   <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <ApplicationIcon />
     <StartupObject />
-    <Version>1.9.2</Version>
+    <Version>1.9.4</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.6.0" />
     <PackageReference Include="Polly" Version="6.1.0" />
     <PackageReference Include="RabbitMQ.Client" Version="5.1.0" />
   </ItemGroup>

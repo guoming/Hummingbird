@@ -8,11 +8,12 @@ namespace Hummingbird.Extersions.EventBus.Models
 {
     public class EventLogEntry
     {
-        private EventLogEntry() {
+        private EventLogEntry()
+        {
             this.CreationTime = DateTime.Now;
             this.State = EventStateEnum.NotPublished;
             this.TimesSent = 0;
-        
+
         }
 
 
@@ -22,28 +23,29 @@ namespace Hummingbird.Extersions.EventBus.Models
         /// <param name="EventTypeName">路由名称</param>
         /// <param name="event">消息主体</param>
         /// <param name="TTL">延期时间（秒）</param>
-        public EventLogEntry(string EventTypeName, object @event) :this()
+        public EventLogEntry(string EventTypeName, object @event) : this()
         {
             this.Headers = new Dictionary<string, object>();
-            this.EventTypeName = string.IsNullOrEmpty(EventTypeName)? @event.GetType().FullName: EventTypeName;
+            this.EventTypeName = string.IsNullOrEmpty(EventTypeName) ? @event.GetType().FullName : EventTypeName;
             this.Content = JsonConvert.SerializeObject(@event);
             this.EventId = -1;
-            this.MessageId = Guid.NewGuid().ToString("N");  
+            this.MessageId = Guid.NewGuid().ToString("N");
         }
+
 
         public static EventLogEntry Clone(EventResponse response)
         {
-            return new EventLogEntry(response.QueueName, response.Body) {
+            return new EventLogEntry()
+            {
                 EventId = response.EventId,
                 MessageId = response.MessageId,
-                Headers= response.Headers,
+                Headers = response.Headers,
+                Content = response.BodySource,
+                EventTypeName = response.QueueName,
+                State = EventStateEnum.NotPublished,
+                TimesSent = 0
             };
-
         }
-
- 
-
-       
 
         public IDictionary<string, object> Headers { get; set; }
 
@@ -51,11 +53,11 @@ namespace Hummingbird.Extersions.EventBus.Models
         /// 事件编号
         /// </summary>
         public long EventId { get; set; }
-    
+
 
         public string MessageId { get; set; }
 
-  
+
         /// <summary>
         /// 事件类型
         /// </summary>
@@ -91,8 +93,8 @@ namespace Hummingbird.Extersions.EventBus.Models
 
         public string QueueName { get; set; }
 
-        public string RouteKey { get; set; }    
-
+        public string RouteKey { get; set; }
+        public string BodySource { get; set; }
     }
 
 }
