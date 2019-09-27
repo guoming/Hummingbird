@@ -23,6 +23,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         private static string _KeyPrefix = "";
 
+
         //虚拟节点数量
         private static readonly int _VIRTUAL_NODE_COUNT = 1024;
 
@@ -35,12 +36,16 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         #endregion
 
         #region 实例变量
-        private int DbNum = 0;
+        private readonly int _DbNum = 0;
+        private readonly int _NumberOfConnections = 10;
+
         #endregion
 
-        private RedisCacheManage(int DbNum)
+        private RedisCacheManage(int DbNum=0, int NumberOfConnections=10)
         {
-            this.DbNum = DbNum;
+            this._DbNum = DbNum;
+            this._NumberOfConnections = NumberOfConnections;
+            
         }
 
         /// <summary>
@@ -243,9 +248,9 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             {
                 var dbs = _nodeClients[nodeName];
 
-                if (dbs.ContainsKey(DbNum))
+                if (dbs.ContainsKey(_DbNum))
                 {
-                    return dbs[DbNum].Lease();
+                    return dbs[_DbNum].Lease();
                 }
                 else
                 {
@@ -267,32 +272,32 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
                 {
                     var dbs = _nodeClients[nodeName];
 
-                    if (!dbs.ContainsKey(DbNum))
+                    if (!dbs.ContainsKey(_DbNum))
                     {
-                        dbs[DbNum] = GetConnectionLoadBalancer(nodeName);
+                        dbs[_DbNum] = GetConnectionLoadBalancer(nodeName);
                     }
                 }
                 else
                 {
                     var node = new Dictionary<int, LoadBalancers.IConnectionLoadBalancer>();
-                    node[DbNum] = GetConnectionLoadBalancer(nodeName);
+                    node[_DbNum] = GetConnectionLoadBalancer(nodeName);
                     _nodeClients[nodeName] = node;
                 }
 
-                return _nodeClients[nodeName][DbNum].Lease();
+                return _nodeClients[nodeName][_DbNum].Lease();
             }
         }
 
         private LoadBalancers.IConnectionLoadBalancer GetConnectionLoadBalancer(string nodeName)
         {
+            
             return new LoadBalancers.RoundRobinLoadBalancer(() =>
             {
                 var clients = new List<RedisClientHelper>();
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < this._NumberOfConnections; i++)
                 {
-                    clients.Add(new RedisClientHelper(DbNum, _clusterConfigOptions[nodeName], _KeyPrefix));
+                    clients.Add(new RedisClientHelper(_DbNum, _clusterConfigOptions[nodeName], _KeyPrefix));
                 }
-
                 return clients;
             });
         }

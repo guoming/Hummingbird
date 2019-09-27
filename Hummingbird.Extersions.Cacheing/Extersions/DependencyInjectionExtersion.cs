@@ -2,13 +2,12 @@
 using Hummingbird.Extersions.Cacheing.StackExchange;
 using Hummingbird.Extersions.Cacheing.StackExchangeImplement;
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtersion
     {
-#if NET461 || NETCORE
+#if NET461 || NETSTANDARD
 
         public static Hummingbird.Core.IHummingbirdHostBuilder AddCacheing(this Hummingbird.Core.IHummingbirdHostBuilder hostBuilder, Action<RedisCacheConfig> action)
         {

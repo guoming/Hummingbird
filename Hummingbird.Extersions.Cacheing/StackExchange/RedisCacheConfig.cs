@@ -11,6 +11,12 @@ namespace Hummingbird.Extersions.Cacheing.StackExchange
     /// </summary>
     public class RedisCacheConfig
     {
+        public void WithNumberOfConnections(int NumberOfConnections)
+        {
+            this.NumberOfConnections = NumberOfConnections;
+
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -94,6 +100,8 @@ namespace Hummingbird.Extersions.Cacheing.StackExchange
         /// 默认数据库
         /// </summary>
         internal int DBNum { get; private set; } = 0;
+
+        internal int NumberOfConnections { get; private set; } = 10;
 
     }
 }
