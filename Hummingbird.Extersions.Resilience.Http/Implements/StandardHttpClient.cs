@@ -23,7 +23,7 @@ namespace Hummingbird.Extersions.Resilience.Http
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer")
+        public async Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -34,12 +34,60 @@ namespace Hummingbird.Extersions.Resilience.Http
                 requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
             }
 
-            var response = await _client.SendAsync(requestMessage);
+            if (dictionary != null)
+            {
+                foreach (var key in dictionary.Keys)
+                {
+                    requestMessage.Headers.Add(key, dictionary[key]);
+                }
+            }
 
+            var response = await _client.SendAsync(requestMessage);
             return await response.Content.ReadAsStringAsync();
         }
 
-        private async Task<HttpResponseMessage> DoPostPutAsync<T>(HttpMethod method, string uri, T item, string authorizationToken = null, string requestId = null, string authorizationMethod = "Bearer")
+        public async Task<HttpResponseMessage> PostAsync<T>(string uri, T item, string authorizationToken = null,  string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
+        {
+            return await DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken, authorizationMethod, dictionary);
+        }
+
+        public async Task<HttpResponseMessage> PutAsync<T>(string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
+        {
+            return await DoPostPutAsync(HttpMethod.Put, uri, item, authorizationToken, authorizationMethod, dictionary);
+        }
+
+        public async Task<HttpResponseMessage> DeleteAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
+        {
+            var requestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
+
+            SetAuthorizationHeader(requestMessage);
+
+            if (authorizationToken != null)
+            {
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
+            }
+
+            if (dictionary != null)
+            {
+                foreach (var key in dictionary.Keys)
+                {
+                    requestMessage.Headers.Add(key, dictionary[key]);
+                }
+            }
+
+            return await _client.SendAsync(requestMessage);
+        }
+
+        private void SetAuthorizationHeader(HttpRequestMessage requestMessage)
+        {
+            var authorizationHeader = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+            if (!string.IsNullOrEmpty(authorizationHeader))
+            {
+                requestMessage.Headers.Add("Authorization", new List<string>() { authorizationHeader });
+            }
+        }
+
+        private async Task<HttpResponseMessage> DoPostPutAsync<T>(HttpMethod method, string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
             if (method != HttpMethod.Post && method != HttpMethod.Put)
             {
@@ -57,13 +105,15 @@ namespace Hummingbird.Extersions.Resilience.Http
                 requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
             }
 
-            if (requestId != null)
+            if (dictionary != null)
             {
-                requestMessage.Headers.Add("x-requestid", requestId);
+                foreach (var key in dictionary.Keys)
+                {
+                    requestMessage.Headers.Add(key, dictionary[key]);
+                }
             }
 
             var response = await _client.SendAsync(requestMessage);
-
 
             if (response.StatusCode == HttpStatusCode.InternalServerError)
             {
@@ -73,43 +123,6 @@ namespace Hummingbird.Extersions.Resilience.Http
             return response;
         }
 
-
-        public async Task<HttpResponseMessage> PostAsync<T>(string uri, T item, string authorizationToken = null, string requestId = null, string authorizationMethod = "Bearer")
-        {
-            return await DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken, requestId, authorizationMethod);
-        }
-
-        public async Task<HttpResponseMessage> PutAsync<T>(string uri, T item, string authorizationToken = null, string requestId = null, string authorizationMethod = "Bearer")
-        {
-            return await DoPostPutAsync(HttpMethod.Put, uri, item, authorizationToken, requestId, authorizationMethod);
-        }
-        public async Task<HttpResponseMessage> DeleteAsync(string uri, string authorizationToken = null, string requestId = null, string authorizationMethod = "Bearer")
-        {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
-
-            SetAuthorizationHeader(requestMessage);
-
-            if (authorizationToken != null)
-            {
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
-            }
-
-            if (requestId != null)
-            {
-                requestMessage.Headers.Add("x-requestid", requestId);
-            }
-
-            return await _client.SendAsync(requestMessage);
-        }
-
-        private void SetAuthorizationHeader(HttpRequestMessage requestMessage)
-        {
-            var authorizationHeader = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-            if (!string.IsNullOrEmpty(authorizationHeader))
-            {
-                requestMessage.Headers.Add("Authorization", new List<string>() { authorizationHeader });
-            }
-        }
     }
 }
 

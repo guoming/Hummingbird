@@ -40,17 +40,17 @@ namespace Hummingbird.Extersions.Resilience.Http
         }
 
 
-        public Task<HttpResponseMessage> PostAsync<T>(string uri, T item, string authorizationToken = null, string requestId = null, string authorizationMethod = "Bearer")
+        public Task<HttpResponseMessage> PostAsync<T>(string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            return DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken, requestId, authorizationMethod);
+            return DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken,  authorizationMethod, dictionary);
         }
 
-        public Task<HttpResponseMessage> PutAsync<T>(string uri, T item, string authorizationToken = null, string requestId = null, string authorizationMethod = "Bearer")
+        public Task<HttpResponseMessage> PutAsync<T>(string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            return DoPostPutAsync(HttpMethod.Put, uri, item, authorizationToken, requestId, authorizationMethod);
+            return DoPostPutAsync(HttpMethod.Put, uri, item, authorizationToken,  authorizationMethod, dictionary);
         }
 
-        public Task<HttpResponseMessage> DeleteAsync(string uri, string authorizationToken = null, string requestId = null, string authorizationMethod = "Bearer")
+        public Task<HttpResponseMessage> DeleteAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
             var origin = GetOriginFromUri(uri);
 
@@ -65,9 +65,12 @@ namespace Hummingbird.Extersions.Resilience.Http
                     requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
                 }
 
-                if (requestId != null)
+                if (dictionary != null)
                 {
-                    requestMessage.Headers.Add("x-requestid", requestId);
+                    foreach (var key in dictionary.Keys)
+                    {
+                        requestMessage.Headers.Add(key, dictionary[key]);
+                    }
                 }
 
                 return await _client.SendAsync(requestMessage);
@@ -75,7 +78,7 @@ namespace Hummingbird.Extersions.Resilience.Http
         }
 
 
-        public Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer")
+        public Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
             var origin = GetOriginFromUri(uri);
 
@@ -90,6 +93,14 @@ namespace Hummingbird.Extersions.Resilience.Http
                     requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
                 }
 
+                if (dictionary != null)
+                {
+                    foreach (var key in dictionary.Keys)
+                    {
+                        requestMessage.Headers.Add(key, dictionary[key]);
+                    }
+                }
+
                 var response = await _client.SendAsync(requestMessage);
 
                 if (response.StatusCode == HttpStatusCode.InternalServerError)
@@ -101,7 +112,7 @@ namespace Hummingbird.Extersions.Resilience.Http
             });
         }
 
-        private Task<HttpResponseMessage> DoPostPutAsync<T>(HttpMethod method, string uri, T item, string authorizationToken = null, string requestId = null, string authorizationMethod = "Bearer")
+        private Task<HttpResponseMessage> DoPostPutAsync<T>(HttpMethod method, string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
             if (method != HttpMethod.Post && method != HttpMethod.Put)
             {
@@ -123,9 +134,12 @@ namespace Hummingbird.Extersions.Resilience.Http
                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
                }
 
-               if (requestId != null)
+               if (dictionary != null)
                {
-                   requestMessage.Headers.Add("x-requestid", requestId);
+                   foreach (var key in dictionary.Keys)
+                   {
+                       requestMessage.Headers.Add(key, dictionary[key]);
+                   }
                }
 
                var response = await _client.SendAsync(requestMessage);

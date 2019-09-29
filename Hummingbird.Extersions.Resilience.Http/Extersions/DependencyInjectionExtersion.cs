@@ -17,7 +17,6 @@ namespace Microsoft.Extensions.DependencyInjection
             hostBuilder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             hostBuilder.Services.AddSingleton<IHttpClientFactory, ResilientHttpClientFactory>(sp =>
             {
-                var Configuration = sp.GetRequiredService<IConfiguration>();
                 var logger = sp.GetRequiredService<ILogger<ResilientHttpClient>>();
                 var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
                 var option = new ResilientHttpClientConfigOption()
@@ -50,11 +49,8 @@ namespace Microsoft.Extensions.DependencyInjection
             hostBuilder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             hostBuilder.Services.AddSingleton<IHttpClientFactory, StandardHttpClientFactory>(sp =>
             {
-                var Configuration = sp.GetRequiredService<IConfiguration>();
                 var logger = sp.GetRequiredService<ILogger<StandardHttpClient>>();
                 var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-              
-
                 return new StandardHttpClientFactory(logger,httpContextAccessor);
             });
             hostBuilder.Services.AddSingleton<IHttpClient>(sp => sp.GetService<IHttpClientFactory>().CreateResilientHttpClient());
