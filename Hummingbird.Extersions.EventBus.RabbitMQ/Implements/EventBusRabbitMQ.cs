@@ -234,8 +234,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             if (!properties.Headers.ContainsKey(key))
                             {
                                 properties.Headers.Add(key, Events[eventIndex].Headers[key]);
-
-                                tracer.SetTag(key, Events[eventIndex].Headers[key]);
                             }
                         }
 
@@ -339,8 +337,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 if (!properties.Headers.ContainsKey(key))
                                 {
                                     properties.Headers.Add(key, Events[eventIndex].Headers[key]);
-
-                                    tracer.SetTag(key, Events[eventIndex].Headers[key]);
                                 }
                             }
 
