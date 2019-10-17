@@ -127,7 +127,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// </summary>
         public async Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events)
         {
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("PublishNonConfirmAsync"))
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
             {
                 tracer.SetComponent("RabbitMQ");
 
@@ -158,7 +158,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// </summary>
         public async Task<bool> PublishAsync(List<Models.EventLogEntry> Events)
         {
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("PublishAsync"))
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
             {
                 tracer.SetComponent("RabbitMQ");
 
@@ -223,7 +223,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     properties.Headers = new Dictionary<string, Object>();
                     properties.Headers["x-eventId"] = EventId;
 
-                    using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("Publish",MessageId))
+                    using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish", MessageId))
                     {
                         tracer.SetComponent("RabbitMQ");
                         tracer.SetTag("x-eventId", EventId);
@@ -325,7 +325,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         properties.Headers = new Dictionary<string, Object>();
                         properties.Headers["x-eventId"] = Events[eventIndex].EventId;
 
-                        using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("Publish", MessageId))
+                        using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish", MessageId))
                         {
                             tracer.SetComponent("RabbitMQ");
                             tracer.SetTag("x-messageId", MessageId);
@@ -449,7 +449,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         consumer.Received += async (ch, ea) =>
                         {
-                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("Received", ea.BasicProperties.MessageId))
+                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received", ea.BasicProperties.MessageId))
                             {
                                 tracer.SetComponent("RabbitMQ");
                                 tracer.SetTag("x-messageId", ea.BasicProperties.MessageId);
@@ -501,7 +501,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         eventResponse.Headers.Add("x-exchange-type", _exchangeType);
                                     }
 
-                                    using (var tracerExecuteAsync = new Hummingbird.Extensions.Tracing.Tracer("ExecuteAsync", ea.BasicProperties.MessageId))
+                                    using (var tracerExecuteAsync = new Hummingbird.Extensions.Tracing.Tracer("MQ ExecuteAsync", ea.BasicProperties.MessageId))
                                     {
                                         try
                                         {
@@ -722,7 +722,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                 BodySource = Encoding.UTF8.GetString(ea.Body)
                                             };
 
-                                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("BasicGet", ea.BasicProperties.MessageId))
+                                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP BasicGet", ea.BasicProperties.MessageId))
                                             {
                                                 tracer.SetComponent("RabbitMQ");
                                                 tracer.SetTag("queueName", _queueName);
@@ -761,7 +761,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                         if (Messages != null && Messages.Any())
                                         {
-                                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("ExecuteAsync"))
+                                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
                                             {
                                                 tracer.SetComponent("RabbitMQ");
 

@@ -25,57 +25,91 @@ namespace Hummingbird.Extersions.Resilience.Http
 
         public async Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            SetAuthorizationHeader(requestMessage);
-
-            if (authorizationToken != null)
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP GET"))
             {
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
-            }
+                tracer.SetComponent("ResilientHttpClient");
+                tracer.SetTag("http.url", uri);
+                tracer.SetTag("http.method", "GET");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            if (dictionary != null)
-            {
-                foreach (var key in dictionary.Keys)
+                SetAuthorizationHeader(requestMessage);
+
+                if (authorizationToken != null)
                 {
-                    requestMessage.Headers.Add(key, dictionary[key]);
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
                 }
-            }
 
-            var response = await _client.SendAsync(requestMessage);
-            return await response.Content.ReadAsStringAsync();
+                if (dictionary != null)
+                {
+                    foreach (var key in dictionary.Keys)
+                    {
+                        requestMessage.Headers.Add(key, dictionary[key]);
+                    }
+                }
+
+                var response = await _client.SendAsync(requestMessage);
+
+                var responseMessage = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("response", responseMessage);
+
+                return responseMessage;
+            }
         }
 
         public async Task<HttpResponseMessage> PostAsync<T>(string uri, T item, string authorizationToken = null,  string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            return await DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken, authorizationMethod, dictionary);
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP POST"))
+            {
+                tracer.SetComponent("StandardHttpClient");
+                tracer.SetTag("http.url", uri);
+                tracer.SetTag("http.method", "POST");
+                return await DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken, authorizationMethod, dictionary);
+            }
         }
 
         public async Task<HttpResponseMessage> PutAsync<T>(string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            return await DoPostPutAsync(HttpMethod.Put, uri, item, authorizationToken, authorizationMethod, dictionary);
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP PUT"))
+            {
+                tracer.SetComponent("StandardHttpClient");
+                tracer.SetTag("http.url", uri);
+                tracer.SetTag("http.method", "PUT");
+                return await DoPostPutAsync(HttpMethod.Put, uri, item, authorizationToken, authorizationMethod, dictionary);
+            }
         }
 
         public async Task<HttpResponseMessage> DeleteAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
-
-            SetAuthorizationHeader(requestMessage);
-
-            if (authorizationToken != null)
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP DELETE"))
             {
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
-            }
+                tracer.SetComponent("StandardHttpClient");
+                tracer.SetTag("http.url", uri);
+                tracer.SetTag("http.method", "DELETE");
 
-            if (dictionary != null)
-            {
-                foreach (var key in dictionary.Keys)
+                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
+
+                SetAuthorizationHeader(requestMessage);
+
+                if (authorizationToken != null)
                 {
-                    requestMessage.Headers.Add(key, dictionary[key]);
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
                 }
-            }
 
-            return await _client.SendAsync(requestMessage);
+                if (dictionary != null)
+                {
+                    foreach (var key in dictionary.Keys)
+                    {
+                        requestMessage.Headers.Add(key, dictionary[key]);
+                    }
+                }
+
+                var response = await _client.SendAsync(requestMessage);
+
+                var responseMessage = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("response", responseMessage);
+
+                return response;
+            }
         }
 
         private void SetAuthorizationHeader(HttpRequestMessage requestMessage)
@@ -113,12 +147,17 @@ namespace Hummingbird.Extersions.Resilience.Http
                 }
             }
 
+            _logger.LogInformation("request", item);
+
             var response = await _client.SendAsync(requestMessage);
 
             if (response.StatusCode == HttpStatusCode.InternalServerError)
             {
                 throw new HttpRequestException();
             }
+
+            var responseMessage = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("response", responseMessage);
 
             return response;
         }

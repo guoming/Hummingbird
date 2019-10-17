@@ -42,74 +42,113 @@ namespace Hummingbird.Extersions.Resilience.Http
 
         public Task<HttpResponseMessage> PostAsync<T>(string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            return DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken,  authorizationMethod, dictionary);
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP POST"))
+            {
+                tracer.SetComponent("ResilientHttpClient");
+                tracer.SetTag("http.url",uri);
+                tracer.SetTag("http.method", "POST");
+
+                return DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken, authorizationMethod, dictionary);
+            }
         }
 
         public Task<HttpResponseMessage> PutAsync<T>(string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            return DoPostPutAsync(HttpMethod.Put, uri, item, authorizationToken,  authorizationMethod, dictionary);
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP PUT"))
+            {
+                tracer.SetComponent("ResilientHttpClient");
+                tracer.SetTag("http.url", uri);
+                tracer.SetTag("http.method", "PUT");
+                return DoPostPutAsync(HttpMethod.Put, uri, item, authorizationToken, authorizationMethod, dictionary);
+            }
         }
 
         public Task<HttpResponseMessage> DeleteAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            var origin = GetOriginFromUri(uri);
-
-            return HttpInvoker(origin, async (context) =>
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP DELETE"))
             {
-                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
+                tracer.SetComponent("ResilientHttpClient");
+                tracer.SetTag("http.url", uri);
+                tracer.SetTag("http.method", "DELETE");
+                var origin = GetOriginFromUri(uri);
 
-                SetAuthorizationHeader(requestMessage);
-
-                if (authorizationToken != null)
+                return HttpInvoker(origin, async (context) =>
                 {
-                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
-                }
+                    var requestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
-                if (dictionary != null)
-                {
-                    foreach (var key in dictionary.Keys)
+                    SetAuthorizationHeader(requestMessage);
+
+                    if (authorizationToken != null)
                     {
-                        requestMessage.Headers.Add(key, dictionary[key]);
+                        requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
                     }
-                }
 
-                return await _client.SendAsync(requestMessage);
-            });
+                    if (dictionary != null)
+                    {
+                        foreach (var key in dictionary.Keys)
+                        {
+                            requestMessage.Headers.Add(key, dictionary[key]);
+                        }
+                    }
+
+                    var response = await _client.SendAsync(requestMessage);
+
+                    var responseMessage = await response.Content.ReadAsStringAsync();
+
+                    _logger.LogInformation("response", responseMessage);
+
+
+                    return response;
+
+                });
+            }
         }
 
 
         public Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-            var origin = GetOriginFromUri(uri);
-
-            return HttpInvoker(origin, async (context) =>
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP GET"))
             {
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+                tracer.SetComponent("ResilientHttpClient");
+                tracer.SetTag("http.url", uri);
+                tracer.SetTag("http.method", "GET");
 
-                SetAuthorizationHeader(requestMessage);
+                var origin = GetOriginFromUri(uri);
 
-                if (authorizationToken != null)
+                return HttpInvoker(origin, async (context) =>
                 {
-                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
-                }
+                    var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-                if (dictionary != null)
-                {
-                    foreach (var key in dictionary.Keys)
+                    SetAuthorizationHeader(requestMessage);
+
+                    if (authorizationToken != null)
                     {
-                        requestMessage.Headers.Add(key, dictionary[key]);
+                        requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
                     }
-                }
 
-                var response = await _client.SendAsync(requestMessage);
+                    if (dictionary != null)
+                    {
+                        foreach (var key in dictionary.Keys)
+                        {
+                            requestMessage.Headers.Add(key, dictionary[key]);
+                        }
+                    }
 
-                if (response.StatusCode == HttpStatusCode.InternalServerError)
-                {
-                    throw new HttpRequestException();
-                }
+                    var response = await _client.SendAsync(requestMessage);
 
-                return await response.Content.ReadAsStringAsync();
-            });
+                    if (response.StatusCode == HttpStatusCode.InternalServerError)
+                    {
+                        throw new HttpRequestException();
+                    }
+
+                    var responseMessage = await response.Content.ReadAsStringAsync();
+
+                    _logger.LogInformation("response", responseMessage);
+
+                    return responseMessage;
+                });
+
+            }
         }
 
         private Task<HttpResponseMessage> DoPostPutAsync<T>(HttpMethod method, string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
@@ -142,12 +181,18 @@ namespace Hummingbird.Extersions.Resilience.Http
                    }
                }
 
+               _logger.LogInformation("request", item);
+
                var response = await _client.SendAsync(requestMessage);
 
                if (response.StatusCode == HttpStatusCode.InternalServerError)
                {
                    throw new HttpRequestException();
                }
+
+               var responseMessage = await response.Content.ReadAsStringAsync();
+               _logger.LogInformation("response", responseMessage);
+
 
                return response;
            });
@@ -165,7 +210,6 @@ namespace Hummingbird.Extersions.Resilience.Http
 
             return await policyWrap.ExecuteAsync(action, new Context(normalizedOrigin));
         }
-
 
         private static string NormalizeOrigin(string origin)
         {
