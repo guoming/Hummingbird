@@ -3,7 +3,7 @@
   <PropertyGroup>
      <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>HealthCloud.ResilienceCore.Http</RootNamespace>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     <PackageProjectUrl>https://github.com/guoming/Hummingbird</PackageProjectUrl>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

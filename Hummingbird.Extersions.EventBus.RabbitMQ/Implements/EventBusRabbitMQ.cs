@@ -49,6 +49,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly ushort _preFetch = 1;
         private readonly int _IdempotencyDuration;
         private readonly int _reveiverMaxDegreeOfParallelism;
+        private readonly string _compomentName = typeof(EventBusRabbitMQ).FullName;
 
         private Action<EventResponse[]> _subscribeAckHandler = null;
         private Func<(EventResponse[] Messages, Exception exception), Task<bool>> _subscribeNackHandler = null;
@@ -129,7 +130,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         {
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
             {
-                tracer.SetComponent("RabbitMQ");
+                tracer.SetComponent(_compomentName);
 
                 var evtDicts = Events.Select(a => new EventMessage()
                 {
@@ -160,7 +161,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         {
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
             {
-                tracer.SetComponent("RabbitMQ");
+                tracer.SetComponent(_compomentName);
 
                 var evtDicts = Events.Select(a => new EventMessage()
                 {
@@ -225,7 +226,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                     using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish", MessageId))
                     {
-                        tracer.SetComponent("RabbitMQ");
+                        tracer.SetComponent(_compomentName);
                         tracer.SetTag("x-eventId", EventId);
                         tracer.SetTag("x-messageId", MessageId);
                         tracer.LogRequest(json);
@@ -327,7 +328,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish", MessageId))
                         {
-                            tracer.SetComponent("RabbitMQ");
+                            tracer.SetComponent(_compomentName);
                             tracer.SetTag("x-messageId", MessageId);
                             tracer.SetTag("x-eventId", Events[eventIndex].EventId);
                             tracer.LogRequest(json);
@@ -451,7 +452,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         {
                             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received", ea.BasicProperties.MessageId))
                             {
-                                tracer.SetComponent("RabbitMQ");
+                                tracer.SetComponent(_compomentName);
                                 tracer.SetTag("x-messageId", ea.BasicProperties.MessageId);
                                 tracer.SetTag("queueName", _queueName);
 
@@ -724,7 +725,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP BasicGet", ea.BasicProperties.MessageId))
                                             {
-                                                tracer.SetComponent("RabbitMQ");
+                                                tracer.SetComponent(_compomentName);
                                                 tracer.SetTag("queueName", _queueName);
                                                 tracer.SetTag("x-messageId", Messages[i].MessageId);
                                                 tracer.SetTag("x-eventId", Messages[i].EventId);
@@ -763,7 +764,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         {
                                             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
                                             {
-                                                tracer.SetComponent("RabbitMQ");
+                                                tracer.SetComponent(_compomentName);
 
                                                 var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
                                                 {
