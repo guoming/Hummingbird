@@ -228,7 +228,8 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
                 }
             }
 
-            return new RedisCacheManage(config.DBNum);
+            
+            return new RedisCacheManage(config.DBNum, config.NumberOfConnections);
         }
 
         #endregion
