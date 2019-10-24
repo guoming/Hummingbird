@@ -184,11 +184,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     }
                 });
 
-                bool result = true;
+                return await EnqueueConfirm(evtDicts);
 
-                await EnqueueConfirm(evtDicts);
-
-                return result;
             }
         }
 
@@ -279,19 +276,18 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     {
                         //批量提交
                         _batchPublish.Publish();
+
                     });
                 });
-
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-
+                throw ex;
             }
         }
 
-
-        async Task EnqueueConfirm(List<EventMessage> Events)
+        async Task<bool> EnqueueConfirm(List<EventMessage> Events)
         {
             var persistentConnection = await _senderLoadBlancer.Lease();
 
@@ -301,12 +297,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 {
                     persistentConnection.TryConnect();
                 }
-                var _channel = persistentConnection.GetModel();
-
-                _eventBusSenderRetryPolicy.Execute(() =>
-                {
-                    _channel.ConfirmSelect();
-                });
+             
+                var _channel = persistentConnection.GetModel();      
 
                 // 提交走批量通道
                 var _batchPublish = _channel.CreateBasicPublishBatch();
@@ -375,24 +367,17 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                     });
                 }
-
-                await _eventBusSenderRetryPolicy.Execute(async () =>
-                    {
-                        await Task.Run(() =>
-                        {
-                        //批量提交
-                        _batchPublish.Publish();
-
-                            _channel.WaitForConfirmsOrDie();
-                        });
-                    });
-
            
+                //批量提交
+                _batchPublish.Publish();
+
+                return _channel.WaitForConfirms(TimeSpan.FromMilliseconds(500));
+
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-
+                throw ex;
             }
         }
 

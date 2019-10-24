@@ -226,14 +226,18 @@ namespace Microsoft.Extensions.DependencyInjection
                 //消费端连接池
                 for (int i = 0; i < option.ReceiverMaxConnections; i++)
                 {
+                    var connection = new DefaultRabbitMQPersistentConnection(connectionFactory, loggerConnection, option.ReceiverAcquireRetryAttempts);
+                    connection.TryConnect();
                     //消费端的连接池
-                    receiveConnections.Add(new DefaultRabbitMQPersistentConnection(connectionFactory, loggerConnection, option.ReceiverAcquireRetryAttempts));
+                    receiveConnections.Add(connection);
                 }
 
                 //发送端连接池
                 for (int i = 0; i < option.SenderMaxConnections; i++)
                 {
-                    senderConnections.Add(new DefaultRabbitMQPersistentConnection(connectionFactory, loggerConnection, option.SenderAcquireRetryAttempts));
+                    var connection = new DefaultRabbitMQPersistentConnection(connectionFactory, loggerConnection, option.SenderAcquireRetryAttempts);
+                    connection.TryConnect();
+                    senderConnections.Add(connection);
                 }
 
                 var receiveLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> receiveConnections, option.ReceiverLoadBalancer);

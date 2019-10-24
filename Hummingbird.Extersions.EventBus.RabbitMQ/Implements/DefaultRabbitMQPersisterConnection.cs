@@ -63,8 +63,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
             if (_model == null)
             {
-                _model = CreateModel();
-
+                lock (sync_root)
+                {
+                    if (_model == null)
+                    {
+                        _model = CreateModel();
+                        _model.ConfirmSelect();
+                    }
+                }
             }
 
             return _model;
@@ -106,8 +112,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         policy.Execute(() =>
                         {
-                            _connection = _connectionFactory.CreateConnection();
-                            _model = _connection.CreateModel();
+                            _connection = _connectionFactory.CreateConnection();                            
                         });
 
                         if (IsConnected)
