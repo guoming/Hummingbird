@@ -5,10 +5,9 @@
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.8.0</Version>
-  </PropertyGroup>
+    <Version>1.11.2</Version>  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="2.0.513" />    
+    <PackageReference Include="StackExchange.Redis" Version="2.0.601" />    
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Extensions.HealthChecks\Hummingbird.Extensions.HealthChecks.csproj" />

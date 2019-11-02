@@ -23,20 +23,20 @@ namespace Hummingbird.Extersions.Resilience.Http
     {
         private readonly HttpClient _client;
         private readonly ILogger<ResilientHttpClient> _logger;
-        private readonly Func<string, IEnumerable<Policy>> _policyCreator;
-        private ConcurrentDictionary<string, PolicyWrap> _policyWrappers;
+        private readonly Func<string, IEnumerable<IAsyncPolicy>> _policyCreator;
+        private ConcurrentDictionary<string, AsyncPolicyWrap> _policyWrappers;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _compomentName = typeof(ResilientHttpClient).FullName;
 
         public ResilientHttpClient(
-            Func<string, IEnumerable<Policy>> policyCreator,
+            Func<string, IEnumerable<IAsyncPolicy>> policyCreator,
             ILogger<ResilientHttpClient> logger,
             IHttpContextAccessor httpContextAccessor)
         {
             _client = new HttpClient();
             _logger = logger;
             _policyCreator = policyCreator;
-            _policyWrappers = new ConcurrentDictionary<string, PolicyWrap>();
+            _policyWrappers = new ConcurrentDictionary<string, AsyncPolicyWrap>();
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -211,7 +211,7 @@ namespace Hummingbird.Extersions.Resilience.Http
         {
             var normalizedOrigin = NormalizeOrigin(origin);
 
-            if (!_policyWrappers.TryGetValue(normalizedOrigin, out PolicyWrap policyWrap))
+            if (!_policyWrappers.TryGetValue(normalizedOrigin, out AsyncPolicyWrap policyWrap))
             {
                 policyWrap = Policy.WrapAsync(_policyCreator(normalizedOrigin).ToArray());
                 _policyWrappers.TryAdd(normalizedOrigin, policyWrap);

@@ -37,8 +37,8 @@ namespace Hummingbird.Extersions.Resilience.Http
         public IHttpClient CreateResilientHttpClient()
             => new ResilientHttpClient((origin) => CreatePolicies(), _logger, _httpContextAccessor);
 
-        private Policy[] CreatePolicies()
-            => new Policy[]
+        private IAsyncPolicy[] CreatePolicies()
+            => new IAsyncPolicy[]
             {
                 Policy.Handle<HttpRequestException>()
                 .WaitAndRetryAsync(
