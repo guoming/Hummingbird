@@ -5,7 +5,7 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <ApplicationIcon />
     <StartupObject />
-    <Version>1.11.2</Version>
+    <Version>1.11.3</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
