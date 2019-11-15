@@ -66,8 +66,16 @@ namespace Hummingbird.Extersions.Resilience.Http
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 #region LOG:记录返回
-                tracer.SetTag("http.status_code", (int)response.StatusCode);                
-                tracer.LogResponse(responseContent);
+                tracer.SetTag("http.status_code", (int)response.StatusCode);
+
+                if (dictionary != null && dictionary.ContainsKey("x-masking"))
+                {
+                    //日志脱敏不记录
+                }
+                else
+                {
+                    tracer.LogResponse(responseContent);
+                }
                 #endregion
 
                 return response;
@@ -102,8 +110,16 @@ namespace Hummingbird.Extersions.Resilience.Http
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 #region LOG:记录返回
-                tracer.SetTag("http.status_code", (int)response.StatusCode);                
-                tracer.LogResponse(responseContent);
+                tracer.SetTag("http.status_code", (int)response.StatusCode);
+
+                if (dictionary != null && dictionary.ContainsKey("x-masking"))
+                {
+                    //日志脱敏不记录
+                }
+                else
+                {
+                    tracer.LogResponse(responseContent);
+                }
                 #endregion
 
                 return responseContent;
@@ -136,7 +152,14 @@ namespace Hummingbird.Extersions.Resilience.Http
                 var requestContent = JsonConvert.SerializeObject(item);
 
                 #region LOG:记录请求
-                tracer.LogRequest(requestContent);
+                if (dictionary != null && dictionary.ContainsKey("x-masking"))
+                {
+                    //日志脱敏不记录
+                }
+                else
+                {
+                    tracer.LogRequest(requestContent);
+                }
                 #endregion
 
                 SetAuthorizationHeader(requestMessage);
@@ -162,9 +185,15 @@ namespace Hummingbird.Extersions.Resilience.Http
 
                 #region LOG:记录返回结果和响应
                 var responseContent = await response.Content.ReadAsStringAsync();
-
-                tracer.SetTag("http.status_code", (int)response.StatusCode);              
-                tracer.LogResponse(responseContent);
+                tracer.SetTag("http.status_code", (int)response.StatusCode);
+                if (dictionary != null && dictionary.ContainsKey("x-masking"))
+                {
+                    //日志脱敏不记录
+                }
+                else
+                {
+                    tracer.LogResponse(responseContent);
+                }
                 #endregion
 
                 if (response.StatusCode == HttpStatusCode.InternalServerError)
