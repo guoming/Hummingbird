@@ -87,7 +87,7 @@ namespace Hummingbird.Extersions.Resilience.Http
                     var responseContent = await response.Content.ReadAsStringAsync();
                     tracer.SetTag("http.status_code", (int)response.StatusCode);
 
-                    if (dictionary != null && dictionary.ContainsKey("x-masking"))
+                    if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "response"))
                     {
                         //日志脱敏不记录
                     }
@@ -138,8 +138,8 @@ namespace Hummingbird.Extersions.Resilience.Http
 
                     #region LOG：记录返回
                     tracer.SetTag("http.status_code", (int)response.StatusCode);
-                  
-                    if (dictionary != null && dictionary.ContainsKey("x-masking"))
+
+                    if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "response"))
                     {
                         //日志脱敏不记录
                     }
@@ -184,7 +184,7 @@ namespace Hummingbird.Extersions.Resilience.Http
                        var requestContent = JsonConvert.SerializeObject(item);
 
                        #region LOG：记录请求
-                       if (dictionary != null && dictionary.ContainsKey("x-masking"))
+                       if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "request"))
                        {
                            //日志脱敏                           
                        }
@@ -216,10 +216,10 @@ namespace Hummingbird.Extersions.Resilience.Http
 
                        #region LOG:记录返回
                        tracer.SetTag("http.status_code", (int)response.StatusCode);
-                    
-                       if (dictionary != null && dictionary.ContainsKey("x-masking"))
+
+                       if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "response"))
                        {
-                          //日志脱敏不记录
+                           //日志脱敏不记录
                        }
                        else
                        {
