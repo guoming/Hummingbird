@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,40 +14,41 @@ namespace Hummingbird.Extersions.ServiceRegistry
     /// </summary>
     public class ServiceRegisterHostedService : Microsoft.Extensions.Hosting.IHostedService
     {
-        private readonly ILogger _logger;
-        private readonly ServiceConfig serviceConfig;
+        private readonly ServiceConfig _serviceConfig;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly IConfiguration _configuration;
+        private readonly IApplicationLifetime _lifetime;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IApplicationLifetime _applicationLifetime;
 
         public ServiceRegisterHostedService(
+            IApplicationLifetime lifetime,
             IServiceProvider serviceProvider,
-            IApplicationLifetime applicationLifetime,
-            IConfiguration configuration,
-            ILogger<ServiceRegisterHostedService> logger,
             Hummingbird.Extersions.ServiceRegistry.ServiceConfig serviceConfig)
         {
-            
+            _lifetime = lifetime;
             _serviceProvider = serviceProvider;
-            _applicationLifetime = applicationLifetime;
-            _configuration = configuration;
             _cancellationTokenSource = new CancellationTokenSource();            
-            _logger = logger;
-            this.serviceConfig = serviceConfig;
+            _serviceConfig = serviceConfig;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            Hummingbird.Extersions.ServiceRegistry.ServiceRegistryStartup.Configuration(_serviceProvider, a => a.WithConfig(serviceConfig));
+            Hummingbird.Extersions.ServiceRegistry.GlobalServiceRegistry.Build(_serviceProvider, a => a.WithConfig(_serviceConfig));
 
-            
+            _lifetime.ApplicationStarted.Register(delegate
+            {
+                Hummingbird.Extersions.ServiceRegistry.GlobalServiceRegistry.Register();
+
+            });
+            _lifetime.ApplicationStopping.Register(delegate
+            {
+                Hummingbird.Extersions.ServiceRegistry.GlobalServiceRegistry.Deregister();
+            });
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _cancellationTokenSource.Cancel();
-
+         
             return Task.CompletedTask;
         }
     }
