@@ -1,9 +1,8 @@
 ﻿
 using Hummingbird.Extersions.EventBus;
 using Hummingbird.Extersions.EventBus.Abstractions;
-using Hummingbird.Extersions.EventBus.Models;
 using Hummingbird.Extersions.EventBus.RabbitMQ;
-using Hummingbird.Extersions.EventBus.RabbitMQ.LoadBalancers;
+using Hummingbird.LoadBalancers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -210,15 +209,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 factory.UseBackgroundThreadsForIO = true;
                 return factory;
             });
-            hostBuilder.Services.AddSingleton<IRabbitMQPersisterConnectionLoadBalancerFactory>(sp =>
+            hostBuilder.Services.AddSingleton<ILoadBalancerFactory<IRabbitMQPersistentConnection>>(sp =>
             {
-                return new DefaultLoadBalancerFactory();
+                return new DefaultLoadBalancerFactory<IRabbitMQPersistentConnection>();
             });
             hostBuilder.Services.AddSingleton<IEventBus, EventBusRabbitMQ>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<IEventBus>>();
                 var loggerConnection = sp.GetRequiredService<ILogger<IRabbitMQPersistentConnection>>();
-                var rabbitMQPersisterConnectionLoadBalancerFactory = sp.GetRequiredService<IRabbitMQPersisterConnectionLoadBalancerFactory>();
+                var rabbitMQPersisterConnectionLoadBalancerFactory = sp.GetRequiredService<ILoadBalancerFactory<IRabbitMQPersistentConnection>>();
                 var connectionFactory = sp.GetRequiredService<IConnectionFactory>();                
                 var senderConnections = new List<IRabbitMQPersistentConnection>();
                 var receiveConnections = new List<IRabbitMQPersistentConnection>();

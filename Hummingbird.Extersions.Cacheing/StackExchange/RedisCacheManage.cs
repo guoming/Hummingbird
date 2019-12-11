@@ -32,7 +32,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         private static Dictionary<string, ConfigurationOptions> _clusterConfigOptions = new Dictionary<string, ConfigurationOptions>();
 
-        private static Dictionary<string, Dictionary<int, LoadBalancers.IConnectionLoadBalancer>> _nodeClients = new Dictionary<string, Dictionary<int, LoadBalancers.IConnectionLoadBalancer>>();
+        private static Dictionary<string, Dictionary<int, LoadBalancers.ILoadBalancer<RedisClientHelper>>> _nodeClients = new Dictionary<string, Dictionary<int, LoadBalancers.ILoadBalancer<RedisClientHelper>>>();
         #endregion
 
         #region 实例变量
@@ -280,7 +280,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
                 }
                 else
                 {
-                    var node = new Dictionary<int, LoadBalancers.IConnectionLoadBalancer>();
+                    var node = new Dictionary<int, LoadBalancers.ILoadBalancer<RedisClientHelper>>();
                     node[_DbNum] = GetConnectionLoadBalancer(nodeName);
                     _nodeClients[nodeName] = node;
                 }
@@ -289,10 +289,11 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
             }
         }
 
-        private LoadBalancers.IConnectionLoadBalancer GetConnectionLoadBalancer(string nodeName)
+        private LoadBalancers.ILoadBalancer<RedisClientHelper> GetConnectionLoadBalancer(string nodeName)
         {
-            
-            return new LoadBalancers.RoundRobinLoadBalancer(() =>
+            var factory = new LoadBalancers.DefaultLoadBalancerFactory<RedisClientHelper>();
+
+            return factory.Get(() =>
             {
                 var clients = new List<RedisClientHelper>();
                 for (int i = 0; i < this._NumberOfConnections; i++)

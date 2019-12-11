@@ -1,5 +1,6 @@
 ﻿using Hummingbird.Extersions.EventBus.Abstractions;
 using Hummingbird.Extersions.EventBus.Models;
+using Hummingbird.LoadBalancers;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Polly;
@@ -41,8 +42,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         }
 
         private readonly IServiceProvider _lifetimeScope;
-        private readonly IRabbitMQPersisterConnectionLoadBalancer _receiveLoadBlancer;
-        private readonly IRabbitMQPersisterConnectionLoadBalancer _senderLoadBlancer;
+        private readonly ILoadBalancer<IRabbitMQPersistentConnection> _receiveLoadBlancer;
+        private readonly ILoadBalancer<IRabbitMQPersistentConnection> _senderLoadBlancer;
         private readonly ILogger<IEventBus> _logger;
         private readonly string _exchange = "amq.topic";
         private readonly string _exchangeType = "topic";
@@ -62,8 +63,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly IAsyncPolicy _eventBusReceiverPolicy = null;
 
         public EventBusRabbitMQ(
-           IRabbitMQPersisterConnectionLoadBalancer receiveLoadBlancer,
-           IRabbitMQPersisterConnectionLoadBalancer senderLoadBlancer,
+           ILoadBalancer<IRabbitMQPersistentConnection> receiveLoadBlancer,
+           ILoadBalancer<IRabbitMQPersistentConnection> senderLoadBlancer,
            ILogger<IEventBus> logger,
            IServiceProvider lifetimeScope,
             int reveiverMaxDegreeOfParallelism = 10,
@@ -191,7 +192,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
         async Task EnqueueNoConfirm(List<EventMessage> Events)
         {
-            var persistentConnection = await _senderLoadBlancer.Lease();
+            var persistentConnection = _senderLoadBlancer.Lease();
 
             try
             {
@@ -289,7 +290,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
         async Task<bool> EnqueueConfirm(List<EventMessage> Events)
         {
-            var persistentConnection = await _senderLoadBlancer.Lease();
+            var persistentConnection = _senderLoadBlancer.Lease();
 
             try
             {
@@ -396,7 +397,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 where TH : IEventHandler<TD>
         {
 
-            var persistentConnection = _receiveLoadBlancer.Lease().Result;
+            var persistentConnection = _receiveLoadBlancer.Lease();
 
             if (!persistentConnection.IsConnected)
             {
@@ -614,7 +615,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 where TD : class
                 where TH : IEventBatchHandler<TD>
         {
-            var persistentConnection = _receiveLoadBlancer.Lease().Result;
+            var persistentConnection = _receiveLoadBlancer.Lease();
 
             if (!persistentConnection.IsConnected)
             {

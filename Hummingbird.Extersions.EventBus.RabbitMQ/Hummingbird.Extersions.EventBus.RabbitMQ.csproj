@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj" />
     <ProjectReference Include="..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
+    <ProjectReference Include="..\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj" />
   </ItemGroup>
 
 </Project>
