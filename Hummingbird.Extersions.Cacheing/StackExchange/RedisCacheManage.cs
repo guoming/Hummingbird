@@ -34,7 +34,7 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         private static Dictionary<string, Dictionary<int, LoadBalancers.ILoadBalancer<RedisClientHelper>>> _nodeClients = new Dictionary<string, Dictionary<int, LoadBalancers.ILoadBalancer<RedisClientHelper>>>();
         #endregion
-
+        
         #region 实例变量
         private readonly int _DbNum = 0;
         private readonly int _NumberOfConnections = 10;

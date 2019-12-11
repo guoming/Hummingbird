@@ -57,6 +57,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Heal
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.OpenTracing", "Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj", "{E9B8F632-6362-4714-862F-011CCD951FBD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.LoadBalancers", "Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj", "{72C564F8-D678-47F3-A9CE-A6AEF327D7F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -155,6 +157,10 @@ Global
 		{E9B8F632-6362-4714-862F-011CCD951FBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E9B8F632-6362-4714-862F-011CCD951FBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E9B8F632-6362-4714-862F-011CCD951FBD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72C564F8-D678-47F3-A9CE-A6AEF327D7F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72C564F8-D678-47F3-A9CE-A6AEF327D7F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72C564F8-D678-47F3-A9CE-A6AEF327D7F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72C564F8-D678-47F3-A9CE-A6AEF327D7F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -184,6 +190,7 @@ Global
 		{FE3614A4-2D3B-40BE-A883-C78A2AED1D9C} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{4F6F41F8-F276-4D43-8288-F1D3E31B067C} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{E9B8F632-6362-4714-862F-011CCD951FBD} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{72C564F8-D678-47F3-A9CE-A6AEF327D7F3} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

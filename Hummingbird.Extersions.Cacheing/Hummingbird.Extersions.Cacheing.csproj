@@ -19,13 +19,15 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
-  </ItemGroup>    
+    <ProjectReference Include="..\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj" />
+
+  </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="Polly" Version="7.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="StackExchange.Redis" Version="2.0.601" />
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
-    <ProjectReference Include="..\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj" />
+
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net4.6.1' ">
     <PackageReference Include="Polly" Version="7.1.1" />
