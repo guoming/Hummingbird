@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
-namespace Hummingbird.Extersions.ServiceRegistry
+namespace Hummingbird.Extensions.DynamicRoute.Consul
 {
-    public class ServiceConfig
+    public class ConsulConfig
     {
 
-        public ServiceConfig()
+        public ConsulConfig()
         { }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
         /// </summary>
         public int? SERVICE_CHECK_TTL { get; set; }
 
-        public void WithConfig(ServiceConfig config)
+        public void WithConfig(ConsulConfig config)
         {
             this.SERVICE_REGISTRY_ADDRESS = config.SERVICE_REGISTRY_ADDRESS;
             this.SERVICE_REGISTRY_PORT = config.SERVICE_REGISTRY_PORT;

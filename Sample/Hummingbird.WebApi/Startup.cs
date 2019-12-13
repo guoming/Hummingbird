@@ -46,7 +46,7 @@ namespace Hummingbird.WebApi
                 });
 
             });
-            services.AddServiceRegisterHostedService(Configuration);
+            
             services.AddHummingbird(hummingbird =>
             {
                 hummingbird
@@ -104,6 +104,10 @@ namespace Hummingbird.WebApi
                     // {
                     //     a.WithEndpoint(DatabaseConnectionString);
                     // });
+                }).
+                AddConsulDynamicRoute(Configuration,s =>
+                {
+                    s.AddTags("");
                 });
 
             });
@@ -124,10 +128,7 @@ namespace Hummingbird.WebApi
 
             app.UseHummingbird(humming =>
             {
-                humming.UseServiceRegistry(s =>
-                {
-                    s.WithConfig(Configuration.Get<Extersions.ServiceRegistry.ServiceConfig>());
-                });
+              
                 humming.UseEventBus(sp =>
                 {
                     sp.UseSubscriber(eventbus =>

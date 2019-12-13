@@ -36,8 +36,8 @@
     <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Idempotency\Hummingbird.Extersions.Idempotency.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Resilience.Http\Hummingbird.Extersions.Resilience.Http.csproj" />
-    <ProjectReference Include="..\..\Hummingbird.Extersions.ServiceRegistry\Hummingbird.Extersions.ServiceRegistry.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.UidGenerator\Hummingbird.Extersions.UidGenerator.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

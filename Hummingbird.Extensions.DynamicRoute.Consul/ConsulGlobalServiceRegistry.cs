@@ -4,23 +4,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
-using Polly.Retry;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Hummingbird.Extersions.ServiceRegistry
+namespace Hummingbird.Extensions.DynamicRoute.Consul
 {
-    public static class GlobalServiceRegistry
+    internal static class ConsulGlobalServiceRegistry
     {
         private static List<AgentServiceRegistration> registrations = new List<AgentServiceRegistration>();
         private static ILogger<ConsulClient> logger;
-        private static ServiceConfig serviceConfig = new ServiceConfig();
+        private static ConsulConfig serviceConfig = new ConsulConfig();
         private static ConsulClient client;
 
         /**获取ip地址*/
@@ -69,7 +67,7 @@ namespace Hummingbird.Extersions.ServiceRegistry
         }
         
 
-        public static void Build(IServiceProvider serviceProvider, Action<ServiceConfig> setup)
+        public static void Build(IServiceProvider serviceProvider, Action<ConsulConfig> setup)
         {
             var hosting = ServiceProviderServiceExtensions.GetService<IHostingEnvironment>(serviceProvider);
             var configuration = ServiceProviderServiceExtensions.GetService<IConfiguration>(serviceProvider);
