@@ -8,5 +8,7 @@ namespace Hummingbird.LoadBalancers
     {
         T Lease();
 
+        T Lease(List<T> connections);
+
     }
 }

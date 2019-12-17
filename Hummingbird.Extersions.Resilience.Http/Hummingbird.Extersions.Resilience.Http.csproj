@@ -2,8 +2,8 @@
 
   <PropertyGroup>
      <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RootNamespace>HealthCloud.ResilienceCore.Http</RootNamespace>
-    <Version>1.12.1</Version>
+    <RootNamespace>Hummingbird.Extersions.Resilience.Http</RootNamespace>
+    <Version>1.13.0</Version>
     <PackageProjectUrl>https://github.com/guoming/Hummingbird</PackageProjectUrl>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -21,7 +21,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
     <ProjectReference Include="..\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj" />
+    <ProjectReference Include="..\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj" />
   </ItemGroup>
 
 </Project>

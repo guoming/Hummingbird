@@ -18,13 +18,18 @@ namespace Hummingbird.LoadBalancers
         public T Lease()
         {
             var connections = _func();
+            return Lease(connections);
+        }
+
+        public T Lease(List<T> connections)
+        {
 
             if (connections == null || connections.Count == 0)
             {
                 throw new Exception("There were no connections in NoLoadBalancer");
             }
 
-            var connection =connections.FirstOrDefault();
+            var connection = connections.FirstOrDefault();
             return connection;
         }
     }

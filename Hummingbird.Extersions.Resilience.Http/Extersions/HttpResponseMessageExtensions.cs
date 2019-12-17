@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Hummingbird.Extersions.Resilience.Http
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class HttpResponseMessageExtensions
     {

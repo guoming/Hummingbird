@@ -17,21 +17,26 @@ namespace Hummingbird.LoadBalancers
 
         public T Lease()
         {            
-            var connection = _func();
-            int _last = new Random(Guid.NewGuid().GetHashCode()).Next(connection.Count-1);
+            var connections = _func();
+            return Lease(connections);
+        }
+
+        public T Lease(List<T> connections)
+        {
+            int _last = new Random(Guid.NewGuid().GetHashCode()).Next(connections.Count - 1);
             lock (_lock)
             {
-                if (_last < connection.Count)
+                if (_last < connections.Count)
                 {
                     _last = 0;
                 }
 
-                if (_last > connection.Count)
+                if (_last > connections.Count)
                 {
                     _last = 0;
                 }
 
-                var next = connection[_last];
+                var next = connections[_last];
 
                 return next;
             }

@@ -13,6 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
     <PackageReference Include="Consul" Version="0.7.2.4" />
     <PackageReference Include="Polly" Version="7.1.1" />        
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />

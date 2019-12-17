@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\Hummingbird.AspNetCore.HealthChecks\Hummingbird.AspNetCore.HealthChecks.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.MySql\Hummingbird.Extensions.HealthChecks.MySql.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.Rabbitmq\Hummingbird.Extensions.HealthChecks.Rabbitmq.csproj" />

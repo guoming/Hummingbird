@@ -50,12 +50,22 @@ namespace Hummingbird.WebApi
             services.AddHummingbird(hummingbird =>
             {
                 hummingbird
-                 .AddResilientHttpClient(option =>
+                 .AddResilientHttpClient((orign, option) =>
                  {
-                     option.DurationSecondsOfBreak = int.Parse(Configuration["HttpClient:DurationSecondsOfBreak"]);
-                     option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration["HttpClient:ExceptionsAllowedBeforeBreaking"]);
-                     option.RetryCount = int.Parse(Configuration["HttpClient:RetryCount"]);
-                     option.TimeoutMillseconds = int.Parse(Configuration["HttpClient:TimeoutMillseconds"]);
+                     if (string.IsNullOrEmpty(orign))
+                     {
+                         option.DurationSecondsOfBreak = int.Parse(Configuration["HttpClient:DurationSecondsOfBreak"]);
+                         option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration["HttpClient:ExceptionsAllowedBeforeBreaking"]);
+                         option.RetryCount = int.Parse(Configuration["HttpClient:RetryCount"]);
+                         option.TimeoutMillseconds = int.Parse(Configuration["HttpClient:TimeoutMillseconds"]);
+                     }
+                     else
+                     {
+                         option.DurationSecondsOfBreak = int.Parse(Configuration[$"HttpClient:DurationSecondsOfBreak"]);
+                         option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration["HttpClient:ExceptionsAllowedBeforeBreaking"]);
+                         option.RetryCount = int.Parse(Configuration["HttpClient:RetryCount"]);
+                         option.TimeoutMillseconds = int.Parse(Configuration["HttpClient:TimeoutMillseconds"]);
+                     }
                  })
                 .AddCache(option =>
                 {
@@ -104,11 +114,11 @@ namespace Hummingbird.WebApi
                     // {
                     //     a.WithEndpoint(DatabaseConnectionString);
                     // });
-                }).
-                AddConsulDynamicRoute(Configuration,s =>
-                {
-                    s.AddTags("");
                 });
+                //AddConsulDynamicRoute(Configuration,s =>
+                //{
+                //    s.AddTags("");
+                //});
 
             });
 

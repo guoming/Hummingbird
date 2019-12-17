@@ -20,108 +20,30 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
     [Route("api/[controller]")]
     public class TestController : Controller
     {
-        private readonly IServiceLocator serviceLocator;
-        private readonly IEventBus _eventBus;
 
         public TestController(
-            ICacheManager cacheManager,
-            IServiceLocator serviceLocator,    
-            IEventBus eventBus)
+            IHttpClient httpClient)
         {
-            this.serviceLocator = serviceLocator;
-            _eventBus = eventBus;
+            this.httpClient = httpClient;
         }
 
         volatile int count = 0;
-
+        private readonly IHttpClient httpClient;
 
         [HttpGet]
         [Route("Empty")]
-        public async Task<ServiceEndPoint> Empty()
+        public async Task<string> Case1()
         {
-            var a = new DefaultLoadBalancerFactory<ServiceEndPoint>();
-           var loadBalancer= a.Get(() => {
-
-               var list = (serviceLocator.GetAsync("").Result).ToList();
-               return list;
-              
-            });
-
-            var endPoint = loadBalancer.Lease();
-            return endPoint;
-            
-
-            //Parallel.For(0, 10000000,new ParallelOptions() {  MaxDegreeOfParallelism=50}, (i) =>
-            //  {
-
-
-            //      var ret2 = (int)cacheManager.Execute("BF.ADD", "TrackingNumbers", i);
-            //      System.Threading.Interlocked.Add(ref count, 1);
-
-            //      Console.WriteLine($"ADD:{i}:{count}");
-
-            //  });
-
-            //Parallel.For(0, 10000000, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (i) =>
-            //{
-            //    var ret2 = (int)cacheManager.Execute("BF.EXISTS", "TrackingNumbers", i) == 1;
-            //    System.Threading.Interlocked.Add(ref count, 1);
-
-            //    Console.WriteLine($"EXISTS:{i}:{count}");
-            // });
-
-
+            return await httpClient.GetStringAsync("http://localhost:40740/api/Test/Sleep10");
         }
 
-
         [HttpGet]
-        [Route("PublishNonConfirm")]
-        public async Task PublishNonConfirmAsync()
+        [Route("Sleep10")]
+        public async Task<string> Sleep10()
         {
-            for (int i = 0; i < 100000; i++)
-            {
-                await _eventBus.PublishNonConfirmAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
-
-                        new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new  {
-
-                                Value=i
-                            })
-                });
-            }
-        }
-
-
-        [HttpGet]
-        [Route("Publish")]
-        public async Task<bool> PublishAsync()
-        {
-            var result = new List<string>();
-
-            for (int i = 0; i < 100000; i++)
-            {
-
-                var r= await _eventBus.PublishAsync(new System.Collections.Generic.List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>(){
-
-                        new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new {
-
-                                Value=0
-                            })
-                });
-
-                if(!r)
-                {
-                    Console.WriteLine("F");
-                }
-                else
-                {
-                    Console.WriteLine("O");
-                }
-            }
-
-
-
-
-            return true;
+            System.Threading.Thread.Sleep(10000 * 20);
+            return "ok";
         }
     }
+
 }

@@ -12,24 +12,26 @@ namespace Hummingbird.Extersions.Resilience.Http
 {
     public class StandardHttpClient : IHttpClient
     {
-        private HttpClient _client;
-        private ILogger<StandardHttpClient> _logger;
+        private readonly HttpClient _client;
+        private readonly IHttpUrlResolver _httpUrlResolver;
+        private readonly ILogger<StandardHttpClient> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string _compomentName = typeof(StandardHttpClient).FullName;
 
-        public StandardHttpClient(ILogger<StandardHttpClient> logger, IHttpContextAccessor httpContextAccessor)
+        public StandardHttpClient(                        
+            ILogger<StandardHttpClient> logger,
+            IHttpContextAccessor httpContextAccessor,
+            IHttpUrlResolver httpUrlResolver)
         {
             _client = new HttpClient();
+            _httpUrlResolver = httpUrlResolver;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
         }
 
-
         public async Task<HttpResponseMessage> PostAsync<T>(string uri, T item, string authorizationToken = null,  string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
-          
                 return await DoPostPutAsync(HttpMethod.Post, uri, item, authorizationToken, authorizationMethod, dictionary);
-            
         }
 
         public async Task<HttpResponseMessage> PutAsync<T>(string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
@@ -41,6 +43,8 @@ namespace Hummingbird.Extersions.Resilience.Http
         {
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP DELETE"))
             {
+                uri = await _httpUrlResolver.Resolve(uri);
+
                 tracer.SetComponent(_compomentName);
                 tracer.SetTag("http.url", uri);
                 tracer.SetTag("http.method", "DELETE");
@@ -86,6 +90,8 @@ namespace Hummingbird.Extersions.Resilience.Http
         {
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP GET"))
             {
+                uri = await _httpUrlResolver.Resolve(uri);
+
                 tracer.SetComponent(_compomentName);
                 tracer.SetTag("http.url", uri);
                 tracer.SetTag("http.method", "GET");
@@ -140,9 +146,12 @@ namespace Hummingbird.Extersions.Resilience.Http
         {
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer($"HTTP {method.Method.ToUpper()}"))
             {
+                uri = await _httpUrlResolver.Resolve(uri);
+
                 tracer.SetComponent(_compomentName);
                 tracer.SetTag("http.url", uri);
                 tracer.SetTag("http.method", method.Method.ToUpper());
+
                 if (method != HttpMethod.Post && method != HttpMethod.Put)
                 {
                     throw new ArgumentException("Value must be either post or put.", nameof(method));
