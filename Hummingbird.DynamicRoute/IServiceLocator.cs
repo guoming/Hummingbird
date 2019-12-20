@@ -18,10 +18,8 @@ namespace Hummingbird.DynamicRoute
 
     public interface IServiceLocator
     {
-        /// <summary>
-        /// 获取一个服务代理
-        /// </summary>
-        Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name, CancellationToken cancellationToken = default(CancellationToken));
+
+        Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name, string TagFilter, CancellationToken cancellationToken = default(CancellationToken));
 
     }
 }

@@ -57,11 +57,11 @@ namespace Hummingbird.Extersions.Resilience.Http
 
         public async Task<HttpResponseMessage> DeleteAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
+            uri = await ResolveUri(uri);
             var origin = GetOriginFromUri(uri);
 
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP DELETE"))
             {
-                uri = await ResolveUri(uri);
                 tracer.SetComponent(_compomentName);
                 tracer.SetTag("http.url", uri);
                 tracer.SetTag("http.method", "DELETE");
@@ -109,11 +109,11 @@ namespace Hummingbird.Extersions.Resilience.Http
 
         public async Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
         {
+            uri = await ResolveUri(uri);
             var origin = GetOriginFromUri(uri);
 
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP GET"))
             {
-                uri = await ResolveUri(uri);
                 tracer.SetComponent(_compomentName);
                 tracer.SetTag("http.url", uri);
                 tracer.SetTag("http.method", "GET");
@@ -171,15 +171,13 @@ namespace Hummingbird.Extersions.Resilience.Http
             {
                 throw new ArgumentException("Value must be either post or put.", nameof(method));
             }
-
+            uri = await ResolveUri(uri);
             var origin = GetOriginFromUri(uri);
 
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer($"HTTP {method.Method.ToUpper()}"))
             {
                return await HttpInvoker(origin, async (context) =>
                {
-                   uri = await ResolveUri(uri);
-
                    tracer.SetComponent(_compomentName);
                    tracer.SetTag("http.url", uri);
                    tracer.SetTag("http.method", method.Method.ToUpper());

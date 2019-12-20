@@ -13,6 +13,8 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
     {
         private readonly ConsulClient _client;
 
+        
+
         public ConsulServiceLocator(string SERVICE_REGISTRY_ADDRESS, string SERVICE_REGISTRY_PORT, string SERVICE_REGION, string SERVICE_REGISTRY_TOKEN)
         {
             _client = new ConsulClient(delegate (ConsulClientConfiguration obj)
@@ -23,20 +25,36 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             });
         }
 
-        public async Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name,string TagFilter, CancellationToken cancellationToken = default(CancellationToken))
         {
             var list = new List<ServiceEndPoint>();
             var response = await _client.Agent.Services();
             var services = response.Response;
+            var TagFilterList = TagFilter.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
-            foreach(var p in services)
+            foreach (var p in services)
             {
-                list.Add(new ServiceEndPoint()
+                if(TagFilterList.Any())
                 {
-                    Address = p.Value.Address,
-                    Port = p.Value.Port,
-                    Tags = p.Value.Tags,
-                });
+                    if (p.Value.Tags.Intersect(TagFilterList).Any())
+                    {
+                        list.Add(new ServiceEndPoint()
+                        {
+                            Address = p.Value.Address,
+                            Port = p.Value.Port,
+                            Tags = p.Value.Tags,
+                        });
+                    }
+                }
+                else
+                {
+                    list.Add(new ServiceEndPoint()
+                    {
+                        Address = p.Value.Address,
+                        Port = p.Value.Port,
+                        Tags = p.Value.Tags,
+                    });
+                }
             }
 
             return list;
