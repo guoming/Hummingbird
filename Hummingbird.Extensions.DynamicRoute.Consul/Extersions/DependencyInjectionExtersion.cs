@@ -2,7 +2,6 @@
 using Hummingbird.DynamicRoute;
 using Hummingbird.Extensions.DynamicRoute.Consul;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -53,10 +52,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 return config;
             });
             services.AddHostedService<ConsulServiceRegisterHostedService>();
+            
             services.AddSingleton<IServiceLocator>(a =>
             {
                 return new ConsulServiceLocator(config.SERVICE_REGISTRY_ADDRESS, config.SERVICE_REGISTRY_PORT, config.SERVICE_REGION, config.SERVICE_REGISTRY_TOKEN);
             });
+            
             return services;
         }
 

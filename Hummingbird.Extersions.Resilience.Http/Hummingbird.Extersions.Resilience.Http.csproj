@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Hummingbird.Extersions.Resilience.Http</RootNamespace>
-    <Version>1.14.0</Version>
+    <Version>1.14.2</Version>
     <PackageProjectUrl>https://github.com/guoming/Hummingbird</PackageProjectUrl>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

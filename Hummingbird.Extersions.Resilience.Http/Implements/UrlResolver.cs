@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace Hummingbird.Extersions.Resilience.Http
 {
@@ -26,36 +24,40 @@ namespace Hummingbird.Extersions.Resilience.Http
         {
             if (_serviceLocator != null)
             {
+               
+                    var paramList = GetParameters(value);
 
-                var result = value;
-                var paramList = GetParameters(result);
-                foreach (var param in paramList)
-                {
-                    if (!string.IsNullOrEmpty(param))
+                    foreach (var param in paramList)
                     {
-                        var args = param.Split(new string[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
-                        var serviceName = args[0];
-                        var tagFilter = "";
-                        if (args.Length == 2)
+                        if (!string.IsNullOrEmpty(param))
                         {
-                            tagFilter = args[1];
+                            var args = param.Split(new string[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+                            var serviceName = args[0];
+                            var tagFilter = "";
+                            if (args.Length == 2)
+                            {
+                                tagFilter = args[1];
+                            }
+
+                            var endPoints = await _serviceLocator.GetAsync(serviceName, tagFilter);
+
+                            if (endPoints.Any())
+                            {
+                                //获取一个地址
+                                var targetEndPoint = _loadBalancer.Lease(endPoints.ToList());
+
+                                return value.Replace("{" + param + "}", $"{targetEndPoint.Address}:{targetEndPoint.Port}");
+                            }
+                            else
+                            {
+                                throw new System.Exception($"Service “{serviceName}” endpoint not found");
+                            }
                         }
-
-                        //获取服务地址
-                        var endPoints = await _serviceLocator.GetAsync(serviceName, tagFilter);
-                        //获取一个地址
-                        var targetEndPoint = _loadBalancer.Lease(endPoints.ToList());
-
-                        result = result.Replace("{" + param + "}", $"{targetEndPoint.Address}:{targetEndPoint.Port}");
-                        break;
                     }
-                }
-                return result;
+                
             }
-            else
-            {
-                return value;
-            }
+            
+            return value;
         }
 
         private List<string> GetParameters(string text)

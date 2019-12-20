@@ -2,10 +2,10 @@
 using Hummingbird.DynamicRoute;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
+
 namespace Hummingbird.Extensions.DynamicRoute.Consul
 {
 
@@ -13,9 +13,8 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
     {
         private readonly ConsulClient _client;
 
-        
-
-        public ConsulServiceLocator(string SERVICE_REGISTRY_ADDRESS, string SERVICE_REGISTRY_PORT, string SERVICE_REGION, string SERVICE_REGISTRY_TOKEN)
+        public ConsulServiceLocator(
+            string SERVICE_REGISTRY_ADDRESS, string SERVICE_REGISTRY_PORT, string SERVICE_REGION, string SERVICE_REGISTRY_TOKEN)
         {
             _client = new ConsulClient(delegate (ConsulClientConfiguration obj)
             {
@@ -34,9 +33,21 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
 
             foreach (var p in services)
             {
-                if(TagFilterList.Any())
+                if (p.Value.Service.ToUpper() == Name.ToUpper())
                 {
-                    if (p.Value.Tags.Intersect(TagFilterList).Any())
+                    if (TagFilterList.Any())
+                    {
+                        if (p.Value.Tags.Intersect(TagFilterList).Any())
+                        {
+                            list.Add(new ServiceEndPoint()
+                            {
+                                Address = p.Value.Address,
+                                Port = p.Value.Port,
+                                Tags = p.Value.Tags,
+                            });
+                        }
+                    }
+                    else
                     {
                         list.Add(new ServiceEndPoint()
                         {
@@ -46,18 +57,10 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                         });
                     }
                 }
-                else
-                {
-                    list.Add(new ServiceEndPoint()
-                    {
-                        Address = p.Value.Address,
-                        Port = p.Value.Port,
-                        Tags = p.Value.Tags,
-                    });
-                }
             }
 
             return list;
+
 
         }
     }
