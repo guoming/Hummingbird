@@ -34,8 +34,7 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
         [Route("Empty")]
         public async Task<string> Case1()
         {
-            return await httpClient.GetStringAsync("http://{lms-labelservice4net-api}/api/Test/Sleep10");
-            return await httpClient.GetStringAsync("http://localhost:40740/api/Test/Sleep10");
+            return await httpClient.GetStringAsync("http://{lms-labelservice4net-api-cn}/api/Test/Sleep10");
         }
 
         [HttpGet]

@@ -114,11 +114,11 @@ namespace Hummingbird.WebApi
                     // {
                     //     a.WithEndpoint(DatabaseConnectionString);
                     // });
-                });
-                //AddConsulDynamicRoute(Configuration,s =>
-                //{
-                //    s.AddTags("");
-                //});
+                })
+                .AddConsulDynamicRoute(Configuration, s =>
+                 {
+                     s.AddTags("");
+                 });
 
             });
 
