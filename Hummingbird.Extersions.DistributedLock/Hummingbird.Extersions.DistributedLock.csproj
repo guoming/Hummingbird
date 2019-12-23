@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-   <TargetFrameworks>netcoreapp2.1;net4.6.1</TargetFrameworks>
+   <TargetFrameworks>netstandard2.0;net4.6.1</TargetFrameworks>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-  <Version>1.5.1</Version>
+  <Version>1.12.1</Version>
   <Description>分布式锁实现</Description>
   <Authors>GUOMING</Authors>
   <Company>GUOMING</Company>
@@ -15,7 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Extersions.Cacheing\Hummingbird.Extersions.Cacheing.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
-    <DefineConstants>NETCORE</DefineConstants>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <DefineConstants>NETSTANDARD</DefineConstants>
   </PropertyGroup>
 </Project>

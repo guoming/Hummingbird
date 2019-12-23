@@ -7,8 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtersion
     {
-#if NET461 || NETSTANDARD
-
+#if NETSTANDARD || NET461
         public static Hummingbird.Core.IHummingbirdHostBuilder AddCacheing(this Hummingbird.Core.IHummingbirdHostBuilder hostBuilder, Action<RedisCacheConfig> action)
         {
             action = action ?? throw new ArgumentNullException(nameof(action));
@@ -19,10 +18,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
         }
 #endif
-
     }
 
-  
+
 }
 
 namespace Hummingbird.Extersions.Cacheing
