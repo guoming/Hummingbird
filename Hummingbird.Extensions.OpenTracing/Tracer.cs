@@ -79,7 +79,7 @@ namespace Hummingbird.Extensions.Tracing
             Scope.Dispose();
         }
 
-        private void Log(string key, dynamic value)
+        public void Log(string key, dynamic value)
         {
             if (value is string)
             {
