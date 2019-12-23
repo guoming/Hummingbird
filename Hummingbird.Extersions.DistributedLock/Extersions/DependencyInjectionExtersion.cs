@@ -1,4 +1,4 @@
-﻿#if NETCORE
+﻿#if NETSTANDARD
 using Hummingbird.Core;
 using Hummingbird.Extersions.Cacheing.StackExchange;
 #endif
@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class DependencyInjectionExtersion
     {
 
-#if NETCORE
+#if NETSTANDARD
         public static IHummingbirdHostBuilder AddDistributedLock(this IHummingbirdHostBuilder hostBuilder, Action<Config> action)
         {
             action = action ?? throw new ArgumentNullException(nameof(action));

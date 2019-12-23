@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-   <TargetFrameworks>netstandard2.0;net4.6.1</TargetFrameworks>
+   <TargetFrameworks>netstandard2.0;</TargetFrameworks>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-  <Version>1.12.1</Version>
+  <Version>1.12.2</Version>
   <Description>分布式锁实现</Description>
   <Authors>GUOMING</Authors>
   <Company>GUOMING</Company>
