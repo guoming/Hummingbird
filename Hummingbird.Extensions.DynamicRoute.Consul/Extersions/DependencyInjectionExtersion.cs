@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public void AddTags(string Tag)
         {
-            if (string.IsNullOrEmpty(Tag))
+            if (!string.IsNullOrEmpty(Tag))
             {
                 _config.SERVICE_TAGS += $",{Tag}";
             }
