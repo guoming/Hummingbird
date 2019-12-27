@@ -117,7 +117,7 @@ namespace Hummingbird.WebApi
                 })
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
-                     s.AddTags("");
+                     s.AddTags("22");
                  });
 
             });

@@ -93,15 +93,17 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                     tags.Add(hosting.ApplicationName);
                 }
 
-                if (!string.IsNullOrEmpty(serviceConfig.SERVICE_TAGS))
-                {
-                    tags.AddRange(serviceConfig.SERVICE_TAGS.Split(','));
-                }
+             
             }
 
             try
             {
                 setup?.Invoke(serviceConfig);
+
+                if (!string.IsNullOrEmpty(serviceConfig.SERVICE_TAGS))
+                {
+                    tags.AddRange(serviceConfig.SERVICE_TAGS.Split(','));
+                }
 
                 client = new ConsulClient(delegate (ConsulClientConfiguration obj)
                 {
