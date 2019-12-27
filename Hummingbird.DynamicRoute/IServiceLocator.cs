@@ -21,5 +21,7 @@ namespace Hummingbird.DynamicRoute
 
         Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name, string TagFilter, CancellationToken cancellationToken = default(CancellationToken));
 
+        Task<IEnumerable<ServiceEndPoint>> GetFromCacheAsync(string Name, string TagFilter, TimeSpan timeSpan,CancellationToken cancellationToken = default(CancellationToken));
+
     }
 }
