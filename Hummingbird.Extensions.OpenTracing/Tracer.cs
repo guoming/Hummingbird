@@ -45,6 +45,11 @@ namespace Hummingbird.Extensions.Tracing
 
         }
 
+        public void SetError()
+        {
+            SetTag("error", true);
+        }
+
         public void LogRequest(dynamic value)
         {
             Log("request", value);
@@ -64,7 +69,7 @@ namespace Hummingbird.Extensions.Tracing
                 ["error.object"] = ex
             };
             Scope.Span.Log(filed);
-            status = false;
+            SetError();
         }
 
         public void SetTag(string key, dynamic value)
@@ -72,9 +77,10 @@ namespace Hummingbird.Extensions.Tracing
             Scope.Span.SetTag(key, value);
         }
 
+       
+
         public void Dispose()
         {
-            SetTag("error", !this.status);
             Scope.Span.Finish();
             Scope.Dispose();
         }

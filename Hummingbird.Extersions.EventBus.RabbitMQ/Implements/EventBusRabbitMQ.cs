@@ -442,12 +442,15 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 tracer.SetTag("x-messageId", ea.BasicProperties.MessageId);
                                 tracer.SetTag("queueName", _queueName);
 
+                                #region AMQP Received
                                 try
                                 {
+                                    #region Ensure IsConnected
                                     if (!persistentConnection.IsConnected)
                                     {
                                         persistentConnection.TryConnect();
                                     }
+                                    #endregion
 
                                     long EventId = -1;
                                     if (ea.BasicProperties.Headers != null && ea.BasicProperties.Headers.ContainsKey("x-eventId"))
@@ -477,7 +480,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     {
                                         _logger.LogError(ex, ex.Message);
                                     }
-
+                                    
                                     if (!eventResponse.Headers.ContainsKey("x-exchange"))
                                     {
                                         eventResponse.Headers.Add("x-exchange", _exchange);
@@ -488,6 +491,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         eventResponse.Headers.Add("x-exchange-type", _exchangeType);
                                     }
 
+                                    #region AMQP ExecuteAsync
                                     using (var tracerExecuteAsync = new Hummingbird.Extensions.Tracing.Tracer("AMQP ExecuteAsync"))
                                     {
                                         try
@@ -511,6 +515,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                             }
                                             else
                                             {
+                                                tracerExecuteAsync.SetError();
+
                                                 //重新入队，默认：是
                                                 var requeue = true;
 
@@ -535,6 +541,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         }
                                         catch (Exception ex)
                                         {
+                                            tracerExecuteAsync.SetError();
+
                                             //重新入队，默认：是
                                             var requeue = true;
 
@@ -555,13 +563,14 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                             _channel.BasicReject(ea.DeliveryTag, requeue);
                                         }
                                     }
-
+                                    #endregion
                                 }
                                 catch (Exception ex)
                                 {
+                                    tracer.SetError();
                                     _logger.LogError(ex.Message, ex);
                                 }
-
+                                #endregion
                             }
                         };
 
@@ -663,19 +672,19 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                     if (ea != null)
                                     {
-                                            var MessageId = ea.BasicProperties.MessageId;
+                                        var MessageId = ea.BasicProperties.MessageId;
 
-                                            if (string.IsNullOrEmpty(MessageId))
-                                            {
-                                                batchPool.Add((Guid.NewGuid().ToString("N"), ea));
-                                            }
-                                            else
-                                            {
-                                                batchPool.Add((ea.BasicProperties.MessageId, ea));
-                                            }
+                                        if (string.IsNullOrEmpty(MessageId))
+                                        {
+                                            batchPool.Add((Guid.NewGuid().ToString("N"), ea));
+                                        }
+                                        else
+                                        {
+                                            batchPool.Add((ea.BasicProperties.MessageId, ea));
+                                        }
 
-                                            batchLastDeliveryTag = ea.DeliveryTag;                                       
-                                                                            }
+                                        batchLastDeliveryTag = ea.DeliveryTag;
+                                    }
                                     else
                                     {
                                         break;
@@ -683,10 +692,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                 }
 
-                            #endregion
+                                #endregion
 
-                            //队列不为空
-                            if (batchPool.Count > 0)
+                                //队列不为空
+                                if (batchPool.Count > 0)
                                 {
                                     var basicGetResults = batchPool.Select(a => a.ea).ToArray();
 
@@ -696,7 +705,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     {
                                         for (int i = 0; i < basicGetResults.Length; i++)
                                         {
-                                            var ea = basicGetResults[i];                                           
+                                            var ea = basicGetResults[i];
 
                                             Messages[i] = new EventResponse()
                                             {
@@ -719,10 +728,11 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                 {
 
                                                     Messages[i].Body = JsonConvert.DeserializeObject<TD>(Messages[i].BodySource);
-                                                    tracer.LogRequest(Messages[i].BodySource);                                              
+                                                    tracer.LogRequest(Messages[i].BodySource);
                                                 }
                                                 catch (Exception ex)
                                                 {
+                                                    tracer.SetError();
                                                     _logger.LogError(ex, ex.Message);
                                                 }
                                             }
@@ -773,6 +783,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                 }
                                                 else
                                                 {
+                                                    tracer.SetError();
+
                                                     #region 消息处理失败
                                                     var requeue = true;
                                                     try
@@ -783,7 +795,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                         }
                                                     }
                                                     catch (Exception innterEx)
-                                                    {
+                                                    { 
                                                         _logger.LogError(innterEx.Message, innterEx);
                                                     }
 
@@ -796,8 +808,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     }
                                     catch (Exception ex)
                                     {
-                                    #region 业务处理消息出现异常，消息重新写入队列，超过最大重试次数后不再写入队列
-                                    var requeue = true;
+                                        #region 业务处理消息出现异常，消息重新写入队列，超过最大重试次数后不再写入队列
+                                        var requeue = true;
 
                                         try
                                         {
@@ -812,8 +824,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         }
                                         _channel.BasicNack(batchLastDeliveryTag, true, requeue);
 
-                                    #endregion
-                                }
+                                        #endregion
+                                    }
                                 }
                             }
                             catch (Exception ex)
