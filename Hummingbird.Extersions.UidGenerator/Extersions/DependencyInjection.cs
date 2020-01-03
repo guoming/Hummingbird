@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
     public static class DependencyInjectionExtersion
     {
-        public static IHummingbirdHostBuilder AddUniqueIdGenerator(this IHummingbirdHostBuilder hostBuilder, Action<IdGeneratorOption> setup)
+        public static IHummingbirdHostBuilder AddSnowflakeUniqueIdGenerator(this IHummingbirdHostBuilder hostBuilder, Action<IdGeneratorOption> setup)
         {
             var option = new IdGeneratorOption();
             setup(option);
@@ -40,6 +40,11 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void UseStaticWorkIdCreateStrategy(this IdGeneratorOption option, int WorkId)
         {
             option.WorkIdCreateStrategy = new StaticWorkIdCreateStrategy(WorkId);
+        }
+    
+        public static void UseHostNameWorkIdCreateStrategy(this IdGeneratorOption option)
+        {
+            option.WorkIdCreateStrategy = new HostNameWorkIdCreateStrategy();
         }
     }
 

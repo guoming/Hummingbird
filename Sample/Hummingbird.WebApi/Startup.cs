@@ -88,7 +88,7 @@ namespace Hummingbird.WebApi
                     option.CacheRegion = "Idempotency";
                 })
 
-                .AddUniqueIdGenerator(IdGenerator =>
+                .AddSnowflakeUniqueIdGenerator(IdGenerator =>
                 {
                     IdGenerator.CenterId = 0;
                     IdGenerator.UseStaticWorkIdCreateStrategy(0);
@@ -144,7 +144,7 @@ namespace Hummingbird.WebApi
                     sp.UseSubscriber(eventbus =>
                     {
                         //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
-                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("ZT.FLMS.NumberSegmentUsageChangedEventHandler", "ZT.FLMS.NumberSegmentUsageChangedEventHandler");
+                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
                         //eventbus.RegisterBatch<ChangeDataCaptureEvent, ChangeDataCaptureEventToESIndexHandler>("", "#");
 
 
@@ -193,7 +193,7 @@ namespace Hummingbird.WebApi
     {
         public Task<bool> Handle(NewMsgEvent @event, Dictionary<string, object> headers, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return false;
         }
     }
 }
