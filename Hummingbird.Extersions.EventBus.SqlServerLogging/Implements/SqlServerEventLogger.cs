@@ -55,7 +55,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                     }
                     using (var tran = db.BeginTransaction())
                     {
-                        await db.ExecuteAsync($"update {_sqlServerConfiguration.TablePrefix}EventLogs set TimesSent=TimesSent+1,State=1 where EventId=@EventId", sqlParamtersList, transaction: tran);
+                        await db.ExecuteAsync($"delete {_sqlServerConfiguration.TablePrefix}EventLogs where EventId=@EventId", sqlParamtersList, transaction: tran);
                         tran.Commit();
                     }
                 }
