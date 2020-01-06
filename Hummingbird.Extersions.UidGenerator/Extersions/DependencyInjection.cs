@@ -15,6 +15,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         public int CenterId { get; set; } = 0;
 
+        public int WorkId
+        {
+            get
+            {
+                return WorkIdCreateStrategy.NextId();
+            }
+        }
+
         /// <summary>
         /// 工作进程ID初始化策略
         /// </summary>
