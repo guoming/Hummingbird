@@ -15,7 +15,9 @@ namespace Hummingbird.Extensions.HealthChecks
 
         private volatile int _writerCount;
 
-        public CachedHealthCheck(string name, TimeSpan cacheDuration)
+        public CachedHealthCheck(
+            ILogger<CachedHealthCheck> logger,
+            string name, TimeSpan cacheDuration)
         {
             Guard.ArgumentNotNullOrEmpty(nameof(name), name);
             Guard.ArgumentValid(cacheDuration.TotalMilliseconds >= 0, nameof(cacheDuration), "Cache duration must be zero (disabled) or greater than zero.");
