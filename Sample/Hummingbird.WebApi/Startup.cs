@@ -193,7 +193,7 @@ namespace Hummingbird.WebApi
     {
         public Task<bool> Handle(NewMsgEvent @event, Dictionary<string, object> headers, CancellationToken cancellationToken)
         {
-            return false;
+            return Task.FromResult(true);
         }
     }
 }

@@ -60,14 +60,16 @@ namespace Hummingbird.Extersions.Resilience.Http
             uri = await ResolveUri(uri);
             var origin = GetOriginFromUri(uri);
 
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP DELETE"))
-            {
-                tracer.SetComponent(_compomentName);
-                tracer.SetTag("http.url", uri);
-                tracer.SetTag("http.method", "DELETE");
 
-                return await HttpInvoker(origin, async (context) =>
+
+            return await HttpInvoker(origin, async (context) =>
+           {
+               using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP DELETE"))
                {
+                   tracer.SetComponent(_compomentName);
+                   tracer.SetTag("http.url", uri);
+                   tracer.SetTag("http.method", "DELETE");
+
                    var requestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
                    SetAuthorizationHeader(requestMessage);
@@ -87,24 +89,25 @@ namespace Hummingbird.Extersions.Resilience.Http
 
                    var response = await _client.SendAsync(requestMessage);
 
-                    #region LOG:记录返回
-                    var responseContent = await response.Content.ReadAsStringAsync();
+                       #region LOG:记录返回
+                       var responseContent = await response.Content.ReadAsStringAsync();
                    tracer.SetTag("http.status_code", (int)response.StatusCode);
 
                    if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "response"))
                    {
-                        //日志脱敏不记录
-                    }
+                           //日志脱敏不记录
+                       }
                    else
                    {
                        tracer.LogResponse(responseContent);
                    }
-                    #endregion
+                       #endregion
 
-                    return response;
+                       return response;
+               }
 
-               });
-            }
+           });
+            
         }
 
         public async Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
@@ -112,14 +115,13 @@ namespace Hummingbird.Extersions.Resilience.Http
             uri = await ResolveUri(uri);
             var origin = GetOriginFromUri(uri);
 
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP GET"))
+            return await HttpInvoker(origin, async (context) =>
             {
-                tracer.SetComponent(_compomentName);
-                tracer.SetTag("http.url", uri);
-                tracer.SetTag("http.method", "GET");
-
-                return await HttpInvoker(origin, async (context) =>
+                using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("HTTP GET"))
                 {
+                    tracer.SetComponent(_compomentName);
+                    tracer.SetTag("http.url", uri);
+                    tracer.SetTag("http.method", "GET");
                     var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
                     SetAuthorizationHeader(requestMessage);
@@ -140,29 +142,28 @@ namespace Hummingbird.Extersions.Resilience.Http
                     var response = await _client.SendAsync(requestMessage);
                     var responseContent = await response.Content.ReadAsStringAsync();
 
-                    #region LOG：记录返回
-                    tracer.SetTag("http.status_code", (int)response.StatusCode);
+                        #region LOG：记录返回
+                        tracer.SetTag("http.status_code", (int)response.StatusCode);
 
                     if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "response"))
                     {
-                        //日志脱敏不记录
-                    }
+                            //日志脱敏不记录
+                        }
                     else
                     {
                         tracer.LogResponse(responseContent);
                     }
 
-                    #endregion
+                        #endregion
 
-                    if (response.StatusCode == HttpStatusCode.InternalServerError)
+                        if (response.StatusCode == HttpStatusCode.InternalServerError)
                     {
                         throw new HttpRequestException();
                     }
 
                     return responseContent;
-                });
-
-            }
+                }
+            });
         }
 
         private async Task<HttpResponseMessage> DoPostPutAsync<T>(HttpMethod method, string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null)
@@ -174,72 +175,71 @@ namespace Hummingbird.Extersions.Resilience.Http
             uri = await ResolveUri(uri);
             var origin = GetOriginFromUri(uri);
 
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer($"HTTP {method.Method.ToUpper()}"))
+
+            return await HttpInvoker(origin, async (context) =>
             {
-               return await HttpInvoker(origin, async (context) =>
-               {
-                   tracer.SetComponent(_compomentName);
-                   tracer.SetTag("http.url", uri);
-                   tracer.SetTag("http.method", method.Method.ToUpper());
+                using (var tracer = new Hummingbird.Extensions.Tracing.Tracer($"HTTP {method.Method.ToUpper()}"))
+                {
+                    tracer.SetComponent(_compomentName);
+                    tracer.SetTag("http.url", uri);
+                    tracer.SetTag("http.method", method.Method.ToUpper());
 
-                   var requestMessage = new HttpRequestMessage(method, uri);
-                   var requestContent = JsonConvert.SerializeObject(item);
+                    var requestMessage = new HttpRequestMessage(method, uri);
+                    var requestContent = JsonConvert.SerializeObject(item);
 
-                   #region LOG：记录请求
-                   if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "request"))
-                   {
-                       //日志脱敏                           
-                   }
-                   else
-                   {
-                       tracer.LogRequest(requestContent);
-                   }
-                   #endregion
-
-                   SetAuthorizationHeader(requestMessage);
-
-                   requestMessage.Content = new StringContent(requestContent, System.Text.Encoding.UTF8, "application/json");
-
-                   if (authorizationToken != null)
-                   {
-                       requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
-                   }
-
-                   if (dictionary != null)
-                   {
-                       foreach (var key in dictionary.Keys)
-                       {
-                           requestMessage.Headers.Add(key, dictionary[key]);
+                       #region LOG：记录请求
+                       if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "request"))
+                    {
+                           //日志脱敏                           
                        }
-                   }
+                    else
+                    {
+                        tracer.LogRequest(requestContent);
+                    }
+                       #endregion
 
-                   var response = await _client.SendAsync(requestMessage);
-                   var responseContent = await response.Content.ReadAsStringAsync();
+                       SetAuthorizationHeader(requestMessage);
 
-                   #region LOG:记录返回
-                   tracer.SetTag("http.status_code", (int)response.StatusCode);
+                    requestMessage.Content = new StringContent(requestContent, System.Text.Encoding.UTF8, "application/json");
 
-                   if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "response"))
-                   {
-                       //日志脱敏不记录
-                   }
-                   else
-                   {
-                       tracer.LogResponse(responseContent);
-                   }
-                   #endregion
+                    if (authorizationToken != null)
+                    {
+                        requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
+                    }
 
-                   if (response.StatusCode == HttpStatusCode.InternalServerError)
-                   {
-                       throw new HttpRequestException();
-                   }
+                    if (dictionary != null)
+                    {
+                        foreach (var key in dictionary.Keys)
+                        {
+                            requestMessage.Headers.Add(key, dictionary[key]);
+                        }
+                    }
 
-                   return response;
+                    var response = await _client.SendAsync(requestMessage);
+                    var responseContent = await response.Content.ReadAsStringAsync();
 
+                       #region LOG:记录返回
+                       tracer.SetTag("http.status_code", (int)response.StatusCode);
 
-               });
-            }
+                    if (dictionary != null && dictionary.ContainsKey("x-masking") && (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "response"))
+                    {
+                           //日志脱敏不记录
+                       }
+                    else
+                    {
+                        tracer.LogResponse(responseContent);
+                    }
+                       #endregion
 
+                       if (response.StatusCode == HttpStatusCode.InternalServerError)
+                    {
+                        throw new HttpRequestException();
+                    }
+
+                    return response;
+
+                }
+            });
         }
 
         private async Task<string> ResolveUri(string uri)

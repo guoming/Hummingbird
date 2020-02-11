@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Hummingbird.Extensions.HealthChecks
 {
@@ -16,7 +17,6 @@ namespace Hummingbird.Extensions.HealthChecks
         private volatile int _writerCount;
 
         public CachedHealthCheck(
-            ILogger<CachedHealthCheck> logger,
             string name, TimeSpan cacheDuration)
         {
             Guard.ArgumentNotNullOrEmpty(nameof(name), name);
