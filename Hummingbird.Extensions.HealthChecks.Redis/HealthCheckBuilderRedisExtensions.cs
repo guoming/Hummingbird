@@ -22,14 +22,16 @@ namespace Hummingbird.Extensions.HealthChecks
             {
                 try
                 {
-                    ConnectionMultiplexer connect = ConnectionMultiplexer.Connect(ConfigurationOptions.Parse(connectionString));
-                    var response = connect.GetStatus();
-
-                    if (response != null && response.Any())
+                    using (ConnectionMultiplexer connect = ConnectionMultiplexer.Connect(ConfigurationOptions.Parse(connectionString)))
                     {
-                        return HealthCheckResult.Healthy($"Healthy");
+                        var response = connect.GetStatus();
+
+                        if (response != null && response.Any())
+                        {
+                            return HealthCheckResult.Healthy($"Healthy");
+                        }
+                        return HealthCheckResult.Unhealthy($"Unhealthy");
                     }
-                    return HealthCheckResult.Unhealthy($"Unhealthy");
                 }
                 catch (Exception ex)
                 {
