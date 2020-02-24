@@ -13,7 +13,6 @@ namespace Hummingbird.Extersions.EventBus.Models
             this.CreationTime = DateTime.Now;
             this.State = EventStateEnum.NotPublished;
             this.TimesSent = 0;
-
         }
 
 
@@ -30,6 +29,7 @@ namespace Hummingbird.Extersions.EventBus.Models
             this.Content = JsonConvert.SerializeObject(@event);
             this.EventId = -1;
             this.MessageId = Guid.NewGuid().ToString("N");
+            this.TraceId = this.MessageId;
         }
 
 
@@ -42,6 +42,7 @@ namespace Hummingbird.Extersions.EventBus.Models
                 Headers = response.Headers,
                 Content = response.BodySource,
                 EventTypeName = response.QueueName,
+                TraceId=response.TraceId,
                 State = EventStateEnum.NotPublished,
                 TimesSent = 0
             };
@@ -54,10 +55,9 @@ namespace Hummingbird.Extersions.EventBus.Models
         /// </summary>
         public long EventId { get; set; }
 
-
         public string MessageId { get; set; }
 
-
+        public string TraceId { get; set; }
         /// <summary>
         /// 事件类型
         /// </summary>
@@ -86,6 +86,8 @@ namespace Hummingbird.Extersions.EventBus.Models
         public string MessageId { get; set; }
 
         public long EventId { get; set; }
+
+        public string TraceId { get; set; }
 
         public IDictionary<string, object> Headers { get; set; }
 
