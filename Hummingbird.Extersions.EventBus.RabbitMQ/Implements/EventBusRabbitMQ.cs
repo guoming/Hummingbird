@@ -155,7 +155,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                     }
 
-                    message.Headers.Add("x-traceId", message.TraceId);
+                    if (!message.Headers.ContainsKey("x-traceId"))
+                    {
+                        message.Headers.Add("x-traceId", message.TraceId);
+                    }
                 });
 
                 await EnqueueNoConfirm(evtDicts);
@@ -190,8 +193,11 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         //附加时间戳
                         message.Headers.Add("x-ts", DateTime.UtcNow.ToTimestamp());
                     }
-                    
-                    message.Headers.Add("x-traceId", message.TraceId);
+
+                    if (!message.Headers.ContainsKey("x-traceId"))
+                    {
+                        message.Headers.Add("x-traceId", message.TraceId);
+                    }
                 });
 
                 return await EnqueueConfirm(evtDicts);
