@@ -451,15 +451,28 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         consumer.Received += async (ch, ea) =>
                         {
-                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received"))
+                            var EventId = -1L;
+                            var MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId;
+                            var TraceId = MessageId;
+
+                            if (ea.BasicProperties.Headers != null)
+                            {
+                                if (ea.BasicProperties.Headers.ContainsKey("x-eventId"))
+                                {
+                                    long.TryParse(System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-eventId"] as byte[]), out EventId);
+                                }
+
+                                if (ea.BasicProperties.Headers.ContainsKey("x-traceId"))
+                                {
+                                    TraceId = System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-traceId"] as byte[]);
+                                }
+                            }
+
+                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received",TraceId))
                             {
                                 #region AMQP Received
                                 try
                                 {
-                                    var EventId = -1L;
-                                    var TraceId = string.Empty;
-                                    var MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId;
-
 
                                     #region Ensure IsConnected
                                     if (!persistentConnection.IsConnected)
@@ -467,20 +480,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         persistentConnection.TryConnect();
                                     }
                                     #endregion
-
-                                    
-                                    if (ea.BasicProperties.Headers != null)
-                                    {
-                                        if (ea.BasicProperties.Headers.ContainsKey("x-eventId"))
-                                        {
-                                            long.TryParse(ea.BasicProperties.Headers["x-eventId"].ToString(), out EventId);                                          
-                                        }
-
-                                        if (ea.BasicProperties.Headers.ContainsKey("x-traceId"))
-                                        {
-                                            TraceId = ea.BasicProperties.Headers["x-traceId"].ToString();
-                                        }
-                                    }
 
                                     tracer.SetComponent(_compomentName);
                                     tracer.SetTag("queueName", _queueName);
@@ -740,6 +739,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                             {
                                                 EventId = -1,
                                                 MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
+                                                TraceId = string.Empty,
                                                 Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
                                                 Body = default(TD),
                                                 RouteKey = _routeKey,
@@ -749,14 +749,21 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                             if(ea.BasicProperties.Headers!=null)
                                             {
-                                                if (Messages[i].Headers.ContainsKey("x-eventId") && long.TryParse(Messages[i].Headers["x-eventId"].ToString(), out long EventId))
+                                                if (Messages[i].Headers.ContainsKey("x-eventId"))
                                                 {
-                                                    Messages[i].EventId = EventId;
+                                                    if (long.TryParse(System.Text.Encoding.UTF8.GetString(Messages[i].Headers["x-eventId"] as byte[]), out long EventId))
+                                                    {
+                                                        Messages[i].EventId = EventId;
+                                                    }
                                                 }
 
                                                 if (!Messages[i].Headers.ContainsKey("x-traceId"))
                                                 {
-                                                    Messages[i].TraceId = Messages[i].Headers["traceId"] as string;
+                                                    Messages[i].TraceId = System.Text.Encoding.UTF8.GetString(Messages[i].Headers["traceId"] as byte[]);
+                                                }
+                                                else
+                                                {
+                                                    Messages[i].TraceId = Messages[i].MessageId;
                                                 }
 
                                                 if (!Messages[i].Headers.ContainsKey("x-exchange"))
@@ -768,9 +775,11 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                 {
                                                     Messages[i].Headers.Add("x-exchange-type", _exchangeType);
                                                 }
+
+                                             
                                             }
 
-                                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP BasicGet"))
+                                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP BasicGet", Messages[i].TraceId))
                                             {
                                                 tracer.SetComponent(_compomentName);
                                                 tracer.SetTag("queueName", _queueName);
