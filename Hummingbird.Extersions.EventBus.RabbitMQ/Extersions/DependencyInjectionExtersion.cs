@@ -77,14 +77,14 @@ namespace Microsoft.Extensions.DependencyInjection
             int ReceiverMaxConnections = 2, 
             int ReveiverMaxDegreeOfParallelism = 10,
             int ReceiverAcquireRetryAttempts = 0, 
-            int ReceiverHandlerTimeoutMillseconds=0,
-            string LoadBalancer= "RoundRobinLoadBalancer", int IdempotencyDurationSeconds=15, ushort PreFetch=1)
+            int ReceiverHandlerTimeoutMillseconds=10000,
+            string LoadBalancer= "RoundRobinLoadBalancer",
+            ushort PreFetch=1)
         {
             this.ReceiverMaxConnections = ReceiverMaxConnections;
             this.ReveiverMaxDegreeOfParallelism = ReveiverMaxDegreeOfParallelism;
             this.ReceiverAcquireRetryAttempts = ReceiverAcquireRetryAttempts;
             this.ReceiverHandlerTimeoutMillseconds = ReceiverHandlerTimeoutMillseconds;
-            this.IdempotencyDuration = IdempotencyDurationSeconds;
             this.PreFetch = PreFetch;
             this.ReceiverLoadBalancer = LoadBalancer;
             
@@ -177,10 +177,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         internal ushort PreFetch { get; set; } = 1;
 
-        /// <summary>
-        /// 幂等持续时间（默认:15秒）
-        /// </summary>
-        internal int IdempotencyDuration { get; set; } = 15;
         #endregion
 
     }

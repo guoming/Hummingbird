@@ -51,7 +51,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly string _exchange = "amq.topic";
         private readonly string _exchangeType = "topic";
         private readonly ushort _preFetch = 1;
-        private readonly int _IdempotencyDuration;
         private readonly int _reveiverMaxDegreeOfParallelism;
         private readonly string _compomentName = typeof(EventBusRabbitMQ).FullName;
 
@@ -78,7 +77,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             string exchange = "amp.topic",
             string exchangeType = "topic")
         {
-
+            
             this._reveiverMaxDegreeOfParallelism = reveiverMaxDegreeOfParallelism;
             this._receiveLoadBlancer = receiveLoadBlancer;
             this._senderLoadBlancer = senderLoadBlancer;
@@ -117,7 +116,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             {
                 // 设置超时
                 _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.TimeoutAsync(
-                    TimeSpan.FromSeconds(receiverHandlerTimeoutMillseconds),
+                    TimeSpan.FromMilliseconds(receiverHandlerTimeoutMillseconds),
                     TimeoutStrategy.Pessimistic,
                     (context, timespan, task) =>
                     {
