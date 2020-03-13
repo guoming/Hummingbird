@@ -458,12 +458,22 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             {
                                 if (ea.BasicProperties.Headers.ContainsKey("x-eventId"))
                                 {
-                                    long.TryParse(System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-eventId"] as byte[]), out EventId);
+                                    try
+                                    {
+                                        long.TryParse(System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-eventId"] as byte[]), out EventId);
+                                    }
+                                    catch
+                                    { }
                                 }
 
                                 if (ea.BasicProperties.Headers.ContainsKey("x-traceId"))
                                 {
-                                    TraceId = System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-traceId"] as byte[]);
+                                    try
+                                    {
+                                        TraceId = System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-traceId"] as byte[]);
+                                    }
+                                    catch {
+                                    }
                                 }
                             }
 
@@ -750,15 +760,25 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                             {
                                                 if (Messages[i].Headers.ContainsKey("x-eventId"))
                                                 {
-                                                    if (long.TryParse(System.Text.Encoding.UTF8.GetString(Messages[i].Headers["x-eventId"] as byte[]), out long EventId))
+                                                    try
                                                     {
-                                                        Messages[i].EventId = EventId;
+                                                        if (long.TryParse(System.Text.Encoding.UTF8.GetString(Messages[i].Headers["x-eventId"] as byte[]), out long EventId))
+                                                        {
+                                                            Messages[i].EventId = EventId;
+                                                        }
                                                     }
+                                                    catch
+                                                    { }
                                                 }
 
                                                 if (!Messages[i].Headers.ContainsKey("x-traceId"))
                                                 {
-                                                    Messages[i].TraceId = System.Text.Encoding.UTF8.GetString(Messages[i].Headers["traceId"] as byte[]);
+                                                    try
+                                                    {
+                                                        Messages[i].TraceId = System.Text.Encoding.UTF8.GetString(Messages[i].Headers["traceId"] as byte[]);
+                                                    }
+                                                    catch
+                                                    { }
                                                 }
                                                 else
                                                 {
