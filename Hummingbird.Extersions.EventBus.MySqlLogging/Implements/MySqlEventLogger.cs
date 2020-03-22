@@ -14,9 +14,9 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
 {
     public class MySqlEventLogger : IEventLogger
     {
-        IDbConnectionFactory _dbConnection;
-        IUniqueIdGenerator _uniqueIdGenerator;
-        MySqlConfiguration _mySqlConfiguration;
+        readonly IDbConnectionFactory _dbConnection;
+        readonly IUniqueIdGenerator _uniqueIdGenerator;
+        readonly MySqlConfiguration _mySqlConfiguration;
 
         public MySqlEventLogger(
             IUniqueIdGenerator uniqueIdGenerator,
@@ -51,6 +51,7 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
                 var sqlParamters = new DynamicParameters();
                 sqlParamters.Add("EventId", eventLogEntry.EventId>0? eventLogEntry.EventId: _uniqueIdGenerator.NewId(), System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
                 sqlParamters.Add("MessageId", eventLogEntry.MessageId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
+                sqlParamters.Add("TraceId", eventLogEntry.TraceId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
                 sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
                 sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("TimesSent", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
@@ -59,7 +60,7 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
                 sqlParamtersList.Add(sqlParamters);
             }
 
-            await transaction.Connection.ExecuteAsync($"insert into {_mySqlConfiguration.TablePrefix}EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
+            await transaction.Connection.ExecuteAsync($"insert into {_mySqlConfiguration.TablePrefix}EventLogs(EventId,MessageId,TraceId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@TraceId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
             sqlParamtersList,
             transaction: transaction
             );
@@ -147,7 +148,7 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
         {
             using (var db = _dbConnection.GetDbConnection())
             {
-                return db.Query<EventLogEntry>($"select  EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from {_mySqlConfiguration.TablePrefix}EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc limit {Take}").AsList();
+                return db.Query<EventLogEntry>($"select EventId,MessageId,TraceId,EventTypeName,State,TimesSent,CreationTime,Content from {_mySqlConfiguration.TablePrefix}EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc limit {Take}").AsList();
             }
         }
     }

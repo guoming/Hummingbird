@@ -110,7 +110,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
         {
             using (var db = _dbConnection.GetDbConnection())
             {
-                return db.Query<EventLogEntry>($"select top {Take} EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content from {_sqlServerConfiguration.TablePrefix}EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc").AsList();
+                return db.Query<EventLogEntry>($"select top {Take} EventId,MessageId,TraceId,EventTypeName,State,TimesSent,CreationTime,Content from {_sqlServerConfiguration.TablePrefix}EventLogs where (State=0 or State=2) and TimesSent<=3 order by EventId asc").AsList();
             }
         }
 
@@ -126,6 +126,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                 var sqlParamters = new DynamicParameters();
                 sqlParamters.Add("EventId", eventLogEntry.EventId > 0 ? eventLogEntry.EventId : _uniqueIdGenerator.NewId(), System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
                 sqlParamters.Add("MessageId", eventLogEntry.MessageId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
+                sqlParamters.Add("TraceId", eventLogEntry.TraceId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
                 sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
                 sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("TimesSent", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
@@ -134,7 +135,7 @@ namespace Hummingbird.Extersions.EventBus.SqlServerLogging
                 sqlParamtersList.Add(sqlParamters);
             }
 
-            await transaction.Connection.ExecuteAsync($"insert into {_sqlServerConfiguration.TablePrefix}EventLogs(EventId,MessageId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
+            await transaction.Connection.ExecuteAsync($"insert into {_sqlServerConfiguration.TablePrefix}EventLogs(EventId,MessageId,TraceId,EventTypeName,State,TimesSent,CreationTime,Content) values(@EventId,@MessageId,@TraceId,@EventTypeName,@State,@TimesSent,@CreationTime,@Content)",
             sqlParamtersList,
             transaction: transaction
             );

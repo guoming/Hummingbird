@@ -23,8 +23,6 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
         /// <returns></returns>
         public static ConnectionMultiplexer CreateConnect(string connectionString)
         {
-            
-
             if (!ConnectionCache.ContainsKey(connectionString))
             {
                 ConnectionCache[connectionString] = GetManager(connectionString);
@@ -35,7 +33,6 @@ namespace Hummingbird.Extersions.Cacheing.StackExchangeImplement
 
         public static ConnectionMultiplexer CreateConnect(ConfigurationOptions option)
         {
-           
             if (!ConnectionCache.ContainsKey(option.ServiceName))
             {
                 ConnectionCache[option.ServiceName] = GetManager(option);
