@@ -22,28 +22,25 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
     {
 
         public TestController(
-            IHttpClient httpClient)
+            Hummingbird.Extersions.EventBus.Abstractions.IEventBus eventBus)
         {
-            this.httpClient = httpClient;
+            this.eventBus = eventBus;
         }
 
-        volatile int count = 0;
-        private readonly IHttpClient httpClient;
-
-        [HttpGet]
-        [Route("Empty")]
-        public async Task<string> Case1()
-        {
-            return await httpClient.GetStringAsync("http://{lms-labelservice4net-api-cn}/api/Test/Sleep10");
-        }
+        private readonly IEventBus eventBus;
 
         [HttpGet]
-        [Route("Sleep10")]
-        public async Task<string> Sleep10()
+        [Route("Publish")]
+        public async Task<string> Publish()
         {
-            System.Threading.Thread.Sleep(10000 * 20);
-            return "ok";
+          var ret=  await  eventBus.PublishAsync(new List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>() {
+                new Hummingbird.Extersions.EventBus.Models.EventLogEntry("MyEvent",new { Name="郭明",Age=1 }),
+                   new Hummingbird.Extersions.EventBus.Models.EventLogEntry("MyEvent",new { Name="郭明2",Age=2 }),
+            });
+
+            return ret.ToString();
         }
+
     }
 
 }

@@ -33,7 +33,9 @@
     <ProjectReference Include="..\..\Hummingbird.Extersions.Cacheing\Hummingbird.Extersions.Cacheing.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.DistributedLock\Hummingbird.Extersions.DistributedLock.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.Kafka\Hummingbird.Extersions.EventBus.Kafka.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.RabbitMQ\Hummingbird.Extersions.EventBus.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus.SqlServerLogging\Hummingbird.Extersions.EventBus.SqlServerLogging.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.EventBus\Hummingbird.Extersions.EventBus.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Idempotency\Hummingbird.Extersions.Idempotency.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extersions.Resilience.Http\Hummingbird.Extersions.Resilience.Http.csproj" />

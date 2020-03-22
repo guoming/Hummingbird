@@ -5,6 +5,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 
@@ -16,22 +17,18 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly IConnectionFactory _connectionFactory;
         private readonly ILogger<IRabbitMQPersistentConnection> _logger;
         private readonly int _retryCount;
-        private IConnection _connection;
-        private IModel _model;
-        private bool _disposed;
+        private bool _disposed = false;
         private object sync_root = new object();
-        private readonly ConnectionFactory factory;
+        private IConnection _connection;
+        private IModel _producer;
+        private List<IModel> _consumers;
 
         public DefaultRabbitMQPersistentConnection(IConnectionFactory connectionFactory, ILogger<IRabbitMQPersistentConnection> logger, int retryCount = 5)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _retryCount = retryCount;
-        }
-
-        public DefaultRabbitMQPersistentConnection(ConnectionFactory factory)
-        {
-            this.factory = factory;
+            _consumers = new List<IModel>();
         }
 
         public bool IsConnected
@@ -42,7 +39,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             }
         }
 
-        public IModel CreateModel()
+        public IModel GetConsumer()
         {
             if (!IsConnected)
             {
@@ -50,45 +47,72 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             }
 
 
-            return _connection.CreateModel();
+            var consumer= _connection.CreateModel();
+            _consumers.Add(consumer);
+            return consumer;
          
         }
 
-        public IModel GetModel()
+        public IModel GetProducer()
         {
             if (!IsConnected)
             {
                 throw new InvalidOperationException("No RabbitMQ connections are available to perform this action");
             }
 
-            if (_model == null)
+            if (_producer == null)
             {
                 lock (sync_root)
                 {
-                    if (_model == null)
+                    if (_producer == null)
                     {
-                        _model = CreateModel();
-                        _model.ConfirmSelect();
+                        _producer = GetConsumer();
+                        _producer.ConfirmSelect();
                     }
                 }
             }
 
-            return _model;
+            return _producer;
         }
 
         public void Dispose()
         {
-            if (_disposed) return;
-
-            _disposed = true;
+            if (_disposed)
+            {
+                return;
+            }
 
             try
             {
-                _connection.Dispose();
+                if(_consumers!=null)
+                {
+                    _consumers.ForEach(consumer =>
+                    {
+                        consumer.Close();
+                        consumer.Dispose();
+
+                    });
+                }
+
+                if(_producer!=null)
+                {
+                    _producer.Close();
+                    _producer.Dispose();
+                }
+
+                if (_connection != null)
+                {
+                    _connection.Close();
+                    _connection.Dispose();
+                }
             }
             catch (IOException ex)
             {
                 _logger.LogCritical(ex.ToString());
+            }
+            finally
+            {
+                _disposed = true;
             }
         }
 

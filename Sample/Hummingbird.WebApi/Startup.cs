@@ -101,14 +101,38 @@ namespace Hummingbird.WebApi
                     var Database_Password = Configuration["Database:SQLServer:Password"];
                     var DatabaseConnectionString = $"Server={Database_Server};Database={Database_Database};User Id={Database_UserId};Password={Database_Password};MultipleActiveResultSets=true";
 
-                    builder
-                    .AddRabbitmq(factory =>
+                    //builder
+                    //.AddRabbitmq(factory =>
+                    //{
+                    //    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                    //    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                    //    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                    //    factory.WithReceiver();
+                    //    factory.WithSender(10);
+                    //});
+                    builder.AddKafka(option =>
                     {
-                        factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                        factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                        factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                        factory.WithReceiver();
-                        factory.WithSender(10);
+                        option.WithSenderConfig(new Confluent.Kafka.ProducerConfig() {
+                           
+                            EnableDeliveryReports=true,
+                            BootstrapServers = "121.40.88.68:9093,120.26.81.248:9093,120.26.82.93:9093",
+                            SecurityProtocol = Confluent.Kafka.SecurityProtocol.SaslPlaintext,
+                           
+                            SaslUsername = "alikafka_post-cn-mp91krfdu00k",
+                            SaslPassword= "nJjqxklWzs3RPXaz4VUxEsNznWA0fQL0",
+                            Debug = "msg" //  Debug = "broker,topic,msg"
+                        });
+
+                        option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig() {
+                           // Debug= "consumer,cgrp,topic,fetch",
+                            GroupId = "test-consumer-group",
+                            BootstrapServers = "121.40.88.68:9093,120.26.81.248:9093,120.26.82.93:9093",
+                            SecurityProtocol = Confluent.Kafka.SecurityProtocol.SaslPlaintext,
+                            SaslUsername = "alikafka_post-cn-mp91krfdu00k",
+                            SaslPassword = "nJjqxklWzs3RPXaz4VUxEsNznWA0fQL0",
+                        });
+                        option.WithReceiver(1,1);
+                        option.WithSender(1,3,1000*5,50);
                     });
                     //.AddSqlServerEventLogging(a =>
                     // {

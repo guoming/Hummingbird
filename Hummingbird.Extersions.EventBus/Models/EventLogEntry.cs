@@ -30,6 +30,7 @@ namespace Hummingbird.Extersions.EventBus.Models
             this.EventId = -1;
             this.MessageId = Guid.NewGuid().ToString("N");
             this.TraceId = this.MessageId;
+            this.CreationTime = DateTime.UtcNow;
         }
 
 

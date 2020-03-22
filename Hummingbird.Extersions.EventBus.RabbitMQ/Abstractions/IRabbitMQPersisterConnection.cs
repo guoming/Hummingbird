@@ -10,9 +10,9 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
         bool TryConnect();
 
-        IModel CreateModel();
+        IModel GetConsumer();
 
-        IModel GetModel();
+        IModel GetProducer();
 
     }
 }

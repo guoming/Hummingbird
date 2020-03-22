@@ -57,12 +57,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="SenderMaxConnections">发送端最大连接数量</param>
         /// <param name="ReceiverMaxConnections">消费端最大连接数量</param>
+        /// <param name="SenderConfirmTimeoutMillseconds">消息确认超时时间（毫秒）</param>
         /// <param name="AcquireRetryAttempts">最大重试次数</param>
-        public void WithSender(int SenderMaxConnections=10,int AcquireRetryAttempts=3,string LoadBalancer= "RoundRobinLoadBalancer")
+        public void WithSender(int SenderMaxConnections=10,int AcquireRetryAttempts=3, int SenderConfirmTimeoutMillseconds=500,string LoadBalancer= "RoundRobinLoadBalancer")
         {
             this.SenderMaxConnections = SenderMaxConnections;
             this.SenderAcquireRetryAttempts = AcquireRetryAttempts;
             this.SenderLoadBalancer = LoadBalancer;
+            this.SenderConfirmTimeoutMillseconds = SenderConfirmTimeoutMillseconds;
         }
 
 
@@ -142,6 +144,8 @@ namespace Microsoft.Extensions.DependencyInjection
         internal int SenderMaxConnections { get; set; } = 10;
 
         internal string SenderLoadBalancer { get; set; }
+
+        internal int SenderConfirmTimeoutMillseconds { get; set; } = 500;
 
         #endregion
 
@@ -244,6 +248,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     logger,
                     sp,
                     senderRetryCount: option.SenderAcquireRetryAttempts,
+                    senderConfirmTimeoutMillseconds: option.SenderConfirmTimeoutMillseconds,
                     reveiverMaxDegreeOfParallelism:option.ReveiverMaxDegreeOfParallelism,
                     receiverAcquireRetryAttempts: option.ReceiverAcquireRetryAttempts,
                     receiverHandlerTimeoutMillseconds: option.ReceiverHandlerTimeoutMillseconds,

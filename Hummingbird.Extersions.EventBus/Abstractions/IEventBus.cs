@@ -3,6 +3,7 @@ using Hummingbird.Extersions.EventBus.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Hummingbird.Extersions.EventBus.Abstractions
@@ -14,10 +15,10 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
     /// </summary>
     public interface IEventBus
     {
-            Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events);
+            Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events, CancellationToken cancellationToken = default(CancellationToken));
 
    
-            Task<bool> PublishAsync(List<Models.EventLogEntry> Events);
+            Task<bool> PublishAsync(List<Models.EventLogEntry> Events, CancellationToken cancellationToken=default(CancellationToken));
 
             /// <summary>
             /// 订阅消息（同一类消息可以重复订阅）
@@ -26,7 +27,7 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
             /// </summary>
             /// <param name="QueueName">队列名称</param>     
             /// <param name="EventTypeName">事件类型名称</param>        
-            IEventBus Register<TD, TH>(string QueueName = "", string EventTypeName = "")
+            IEventBus Register<TD, TH>(string QueueName = "", string EventTypeName = "", CancellationToken cancellationToken = default(CancellationToken))
               where TD : class
               where TH : IEventHandler<TD>;
 
@@ -39,7 +40,7 @@ namespace Hummingbird.Extersions.EventBus.Abstractions
         /// <param name="EventTypeName">事件类型名称</param>
         /// <param name="BatchSize">批量获取消息大小</param>
         /// <returns></returns>
-        IEventBus RegisterBatch<TD, TH>(string QueueName = "", string EventTypeName = "", int BatchSize = 50)
+        IEventBus RegisterBatch<TD, TH>(string QueueName = "", string EventTypeName = "", int BatchSize = 50, CancellationToken cancellationToken = default(CancellationToken))
                where TD : class
                  where TH : IEventBatchHandler<TD>;
 

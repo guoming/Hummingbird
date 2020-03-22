@@ -33,34 +33,36 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             public long EventId { get; set; }
 
             public string MessageId { get; set; }
+
             public string Body { get; set; }
 
             public string RouteKey { get; set; }
+
+            public long Timestamp { get; set; }
 
             public IDictionary<string,object> Headers { get; set; }
         
         }
 
-        private readonly IServiceProvider _lifetimeScope;
-        private readonly ILoadBalancer<IRabbitMQPersistentConnection> _receiveLoadBlancer;
-        private readonly ILoadBalancer<IRabbitMQPersistentConnection> _senderLoadBlancer;
-        private readonly ILogger<IEventBus> _logger;
+
         private readonly string _exchange = "amq.topic";
         private readonly string _exchangeType = "topic";
         private readonly ushort _preFetch = 1;
-        private readonly int _IdempotencyDuration;
-        private readonly int _reveiverMaxDegreeOfParallelism;
         private readonly string _compomentName = typeof(EventBusRabbitMQ).FullName;
+        private readonly ILogger<IEventBus> _logger;
+        private readonly IServiceProvider _lifetimeScope;
+
+        private readonly ILoadBalancer<IRabbitMQPersistentConnection> _receiverLoadBlancer;
+        private readonly int _reveiverMaxDegreeOfParallelism;
+        private readonly IAsyncPolicy _receiverPolicy = null;
+
+
+        private readonly ILoadBalancer<IRabbitMQPersistentConnection> _senderLoadBlancer;
+        private readonly int _senderConfirmTimeoutMillseconds;
+        private readonly IAsyncPolicy _senderRetryPolicy = null;
 
         private Action<EventResponse[]> _subscribeAckHandler = null;
         private Func<(EventResponse[] Messages, Exception exception), Task<bool>> _subscribeNackHandler = null;
-        private static List<IModel> _subscribeChannels = new List<IModel>();
-        private readonly SemaphoreSlim readLock = new SemaphoreSlim(1, 1);
-        private static ConcurrentDictionary<string, SortedList<string, bool>> _channelAllReturnMessageIds = new ConcurrentDictionary<string, SortedList<string, bool>>();
-        private static ConcurrentDictionary<string, SortedList<ulong, string>> _channelAllUnconfirmMessageIds = new ConcurrentDictionary<string, SortedList<ulong, string>>();
-
-        private readonly RetryPolicy _eventBusSenderRetryPolicy = null;
-        private readonly IAsyncPolicy _eventBusReceiverPolicy = null;
 
         public EventBusRabbitMQ(
            ILoadBalancer<IRabbitMQPersistentConnection> receiveLoadBlancer,
@@ -71,39 +73,46 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             int receiverAcquireRetryAttempts = 0,
             int receiverHandlerTimeoutMillseconds = 0,
             int senderRetryCount = 3,
+            int senderConfirmTimeoutMillseconds=500,
             ushort preFetch = 1,
             string exchange = "amp.topic",
             string exchangeType = "topic")
         {
-
-            this._reveiverMaxDegreeOfParallelism = reveiverMaxDegreeOfParallelism;
-            this._receiveLoadBlancer = receiveLoadBlancer;
-            this._senderLoadBlancer = senderLoadBlancer;
-            this._lifetimeScope = lifetimeScope ?? throw new ArgumentNullException(nameof(lifetimeScope));
-            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._preFetch = preFetch;
             this._exchange = exchange;
             this._exchangeType = exchangeType;
 
+
+            this._reveiverMaxDegreeOfParallelism = reveiverMaxDegreeOfParallelism;
+            this._receiverLoadBlancer = receiveLoadBlancer;
+
+            this._senderLoadBlancer = senderLoadBlancer;
+            this._senderConfirmTimeoutMillseconds = senderConfirmTimeoutMillseconds;
+
+            this._lifetimeScope = lifetimeScope ?? throw new ArgumentNullException(nameof(lifetimeScope));
+            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
             #region 生产端策略
-            this._eventBusSenderRetryPolicy = RetryPolicy.Handle<BrokerUnreachableException>()
+            this._senderRetryPolicy = Policy.NoOpAsync();//创建一个空的Policy
+
+            this._senderRetryPolicy = _senderRetryPolicy.WrapAsync(Policy.Handle<BrokerUnreachableException>()
                .Or<SocketException>()
                .Or<System.IO.IOException>()
                .Or<AlreadyClosedException>()
-               .WaitAndRetry(senderRetryCount, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+               .WaitAndRetryAsync(senderRetryCount, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)), (ex, time) =>
                {
                    _logger.LogError(ex.ToString());
-               });
+               }));
             #endregion
 
 
             #region 消费者策略
-            _eventBusReceiverPolicy = Policy.NoOpAsync();//创建一个空的Policy
+            _receiverPolicy = Policy.NoOpAsync();//创建一个空的Policy
 
             if (receiverAcquireRetryAttempts > 0)
             {
                 //设置重试策略
-                _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.Handle<Exception>()
+                _receiverPolicy = _receiverPolicy.WrapAsync(Policy.Handle<Exception>()
                        .RetryAsync(receiverAcquireRetryAttempts, (ex, time) =>
                        {
                            _logger.LogError(ex, ex.ToString());
@@ -113,7 +122,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             if (receiverHandlerTimeoutMillseconds > 0)
             {
                 // 设置超时
-                _eventBusReceiverPolicy = _eventBusReceiverPolicy.WrapAsync(Policy.TimeoutAsync(
+                _receiverPolicy = _receiverPolicy.WrapAsync(Policy.TimeoutAsync(
                     TimeSpan.FromSeconds(receiverHandlerTimeoutMillseconds),
                     TimeoutStrategy.Pessimistic,
                     (context, timespan, task) =>
@@ -127,259 +136,159 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// <summary>
         /// 发送消息
         /// </summary>
-        public async Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events)
+        public async Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events,CancellationToken cancellationToken=default(CancellationToken))
         {
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
             {
                 tracer.SetComponent(_compomentName);
 
-                var evtDicts = Events.Select(a => new EventMessage()
-                {
-                    Body = a.Content,
-                    MessageId = a.MessageId.ToString(),
-                    EventId = a.EventId,
-                    RouteKey = a.EventTypeName,
-                    Headers = a.Headers ?? new Dictionary<string, object>()
-                }).ToList();
+                await Enqueue(Mapping(Events),false,cancellationToken);
 
-                evtDicts.ForEach(message =>
-                {
-                    if (!message.Headers.ContainsKey("x-ts"))
-                    {
-                        //附加时间戳
-                        message.Headers.Add("x-ts", DateTime.UtcNow.ToTimestamp());
-                    }
-                });
-
-                await EnqueueNoConfirm(evtDicts);
             }
         }
 
         /// <summary>
         /// 发送消息
         /// </summary>
-        public async Task<bool> PublishAsync(List<Models.EventLogEntry> Events)
+        public async Task<bool> PublishAsync(List<Models.EventLogEntry> Events, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
             {
                 tracer.SetComponent(_compomentName);
+                return await Enqueue(Mapping(Events),true,cancellationToken);
 
-                var evtDicts = Events.Select(a => new EventMessage()
+            }
+        }
+
+        private List<EventMessage> Mapping(List<Models.EventLogEntry> Events)
+        {
+            var evtDicts = Events.Select(a => new EventMessage()
+            {
+                Body = a.Content,
+                MessageId = a.MessageId.ToString(),
+                EventId = a.EventId,
+                RouteKey = a.EventTypeName,
+                Timestamp=a.CreationTime.ToTimestamp(),
+                Headers = a.Headers ?? new Dictionary<string, object>()
+            }).ToList();
+
+            evtDicts.ForEach(message =>
+            {
+                if (!message.Headers.ContainsKey("x-ts"))
                 {
-                    Body = a.Content,
-                    MessageId = a.MessageId.ToString(),
-                    EventId = a.EventId,
-                    RouteKey = a.EventTypeName,
-                    Headers = a.Headers ?? new Dictionary<string, object>()
-
-                }).ToList();
-
-
-                evtDicts.ForEach(message =>
-                {
-                    if (!message.Headers.ContainsKey("x-ts"))
-                    {
-
                     //附加时间戳
-                    message.Headers.Add("x-ts", DateTime.UtcNow.ToTimestamp());
-                    }
-                });
+                    message.Headers.Add("x-ts", message.Timestamp);
+                }
+            });
 
-                return await EnqueueConfirm(evtDicts);
-
-            }
+            return evtDicts;
         }
 
-        async Task EnqueueNoConfirm(List<EventMessage> Events)
+
+        private  async Task<bool> Enqueue(List<EventMessage> Events,bool confirm, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var persistentConnection = _senderLoadBlancer.Lease();
+           
+                var persistentConnection = _senderLoadBlancer.Lease();
 
-            try
-            {
-
-                if (!persistentConnection.IsConnected)
+                try
                 {
-                    persistentConnection.TryConnect();
-                }
-
-                var _channel = persistentConnection.GetModel();
-
-                // 提交走批量通道
-                var _batchPublish = _channel.CreateBasicPublishBatch();
-
-                for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
-                {
-                    var MessageId = Events[eventIndex].MessageId;
-                    var EventId = Events[eventIndex].EventId;
-
-                    var json = Events[eventIndex].Body;
-                    var routeKey = Events[eventIndex].RouteKey;
-                    byte[] bytes = Encoding.UTF8.GetBytes(json);
-                    //设置消息持久化
-                    IBasicProperties properties = _channel.CreateBasicProperties();
-                    properties.DeliveryMode = 2;
-                    properties.MessageId = MessageId;
-                    properties.Headers = new Dictionary<string, Object>();
-                    properties.Headers["x-eventId"] = EventId;
-
-                    using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish"))
+                    if (!persistentConnection.IsConnected)
                     {
-                        tracer.SetComponent(_compomentName);
-                        tracer.SetTag("x-eventId", EventId);
-                        tracer.SetTag("x-messageId", MessageId);
-                        tracer.LogRequest(json);
-                        foreach (var key in Events[eventIndex].Headers.Keys)
-                        {
-                            if (!properties.Headers.ContainsKey(key))
-                            {
-                                properties.Headers.Add(key, Events[eventIndex].Headers[key]);
-                            }
-                        }
-
-                        if (Events[eventIndex].Headers.ContainsKey("x-first-death-queue"))
-                        {
-                            //延时队列或者直接写死信的情况
-                            var newQueue = Events[eventIndex].Headers["x-first-death-queue"].ToString();
-
-                            //创建一个队列                         
-                            _channel.QueueDeclare(
-                                        queue: newQueue,
-                                        durable: true,
-                                        exclusive: false,
-                                        autoDelete: false,
-                                        arguments: Events[eventIndex].Headers);
-
-
-                            //发送至延时队列，延时结束后会写入正式度列
-                            _batchPublish.Add(
-                                    exchange: "",
-                                    mandatory: true,
-                                    routingKey: newQueue,
-                                    properties: properties,
-                                    body: bytes);
-                        }
-                        else
-                        {
-                            //发送到正常队列
-                            _batchPublish.Add(
-                                    exchange: _exchange,
-                                    mandatory: true,
-                                    routingKey: routeKey,
-                                    properties: properties,
-                                    body: bytes);
-                        }
+                        persistentConnection.TryConnect();
                     }
-                };
 
-                await _eventBusSenderRetryPolicy.Execute(async () =>
-                {
-                    await Task.Run(() =>
+                    var channel = persistentConnection.GetProducer();
+
+                    // 提交走批量通道
+                    var batchPublish = channel.CreateBasicPublishBatch();
+
+                    for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
                     {
-                        //批量提交
-                        _batchPublish.Publish();
-
-                    });
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                throw ex;
-            }
-        }
-
-        async Task<bool> EnqueueConfirm(List<EventMessage> Events)
-        {
-            var persistentConnection = _senderLoadBlancer.Lease();
-
-            try
-            {
-                if (!persistentConnection.IsConnected)
-                {
-                    persistentConnection.TryConnect();
-                }
-             
-                var _channel = persistentConnection.GetModel();      
-
-                // 提交走批量通道
-                var _batchPublish = _channel.CreateBasicPublishBatch();
-
-                for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
-                {
-                    _eventBusSenderRetryPolicy.Execute(() =>
-                    {
-                        var MessageId = Events[eventIndex].MessageId;
-                        var json = Events[eventIndex].Body;
-                        var routeKey = Events[eventIndex].RouteKey;
-                        byte[] bytes = Encoding.UTF8.GetBytes(json);
-                        //设置消息持久化
-                        IBasicProperties properties = _channel.CreateBasicProperties();
-                        properties.DeliveryMode = 2;
-                        properties.MessageId = MessageId;
-                        properties.Headers = new Dictionary<string, Object>();
-                        properties.Headers["x-eventId"] = Events[eventIndex].EventId;
-
-                        using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish"))
+                   
+                        await _senderRetryPolicy.ExecuteAsync((ct) =>
                         {
-                            tracer.SetComponent(_compomentName);
-                            tracer.SetTag("x-messageId", MessageId);
-                            tracer.SetTag("x-eventId", Events[eventIndex].EventId);
-                            tracer.LogRequest(json);
+                            var MessageId = Events[eventIndex].MessageId;
+                            var json = Events[eventIndex].Body;
+                            var routeKey = Events[eventIndex].RouteKey;
+                            byte[] bytes = Encoding.UTF8.GetBytes(json);
+                            //设置消息持久化
+                            IBasicProperties properties = channel.CreateBasicProperties();
+                            properties.DeliveryMode = 2;
+                            properties.MessageId = MessageId;
+                            properties.Headers = new Dictionary<string, Object>();
+                            properties.Headers["x-eventId"] = Events[eventIndex].EventId;
 
-                            foreach (var key in Events[eventIndex].Headers.Keys)
+                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish"))
                             {
-                                if (!properties.Headers.ContainsKey(key))
+                                tracer.SetComponent(_compomentName);
+                                tracer.SetTag("x-messageId", MessageId);
+                                tracer.SetTag("x-eventId", Events[eventIndex].EventId);
+                                _logger.LogInformation(json);
+
+                                foreach (var key in Events[eventIndex].Headers.Keys)
                                 {
-                                    properties.Headers.Add(key, Events[eventIndex].Headers[key]);
+                                    if (!properties.Headers.ContainsKey(key))
+                                    {
+                                        properties.Headers.Add(key, Events[eventIndex].Headers[key]);
+                                    }
+                                }
+
+                                if (Events[eventIndex].Headers.ContainsKey("x-first-death-queue"))
+                                {
+                                    //延时队列或者直接写死信的情况
+                                    var newQueue = Events[eventIndex].Headers["x-first-death-queue"].ToString();
+
+                                    //创建一个队列                         
+                                    channel.QueueDeclare(
+                                                        queue: newQueue,
+                                                        durable: true,
+                                                        exclusive: false,
+                                                        autoDelete: false,
+                                                        arguments: Events[eventIndex].Headers);
+
+                                    batchPublish.Add(
+                                            exchange: "",
+                                            mandatory: true,
+                                            routingKey: newQueue,
+                                            properties: properties,
+                                            body: bytes);
+                                }
+                                else
+                                {
+                                    //发送到正常队列
+                                    batchPublish.Add(
+                                                    exchange: _exchange,
+                                                    mandatory: true,
+                                                    routingKey: routeKey,
+                                                    properties: properties,
+                                                    body: bytes);
                                 }
                             }
 
-                            if (Events[eventIndex].Headers.ContainsKey("x-first-death-queue"))
-                            {
-                                //延时队列或者直接写死信的情况
-                                var newQueue = Events[eventIndex].Headers["x-first-death-queue"].ToString();
+                            return Task.FromResult(true);
 
-                                //创建一个队列                         
-                                _channel.QueueDeclare(
-                                                queue: newQueue,
-                                                durable: true,
-                                                exclusive: false,
-                                                autoDelete: false,
-                                                arguments: Events[eventIndex].Headers);
+                        }, cancellationToken);
+                    }
 
-                                _batchPublish.Add(
-                                        exchange: "",
-                                        mandatory: true,
-                                        routingKey: newQueue,
-                                        properties: properties,
-                                        body: bytes);
-                            }
-                            else
-                            {
-                                //发送到正常队列
-                                _batchPublish.Add(
-                                            exchange: _exchange,
-                                            mandatory: true,
-                                            routingKey: routeKey,
-                                            properties: properties,
-                                            body: bytes);
-                            }
-                        }
+                    //批量提交
+                    batchPublish.Publish();
 
-                    });
+                    if (confirm)
+                    {
+                        return channel.WaitForConfirms(TimeSpan.FromMilliseconds(_senderConfirmTimeoutMillseconds));
+                    }
+                    else
+                    {
+                        return true;
+                    }
+
                 }
-           
-                //批量提交
-                _batchPublish.Publish();
-
-                return _channel.WaitForConfirms(TimeSpan.FromMilliseconds(500));
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                throw ex;
-            }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+                    throw ex;
+                }
+          
         }
 
         /// <summary>
@@ -392,12 +301,18 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// <param name="QueueName">消息类型名称</param>        
         /// <param name="EventTypeName">消息类型名称</param>        
         /// <returns></returns>
-        public IEventBus Register<TD, TH>(string QueueName, string EventTypeName = "")
+        public IEventBus Register<TD, TH>(string QueueName, string EventTypeName = "", CancellationToken cancellationToken = default(CancellationToken))
                 where TD : class
                 where TH : IEventHandler<TD>
         {
-
-            var persistentConnection = _receiveLoadBlancer.Lease();
+            var queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
+            var routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
+            var eventAction = _lifetimeScope.GetService(typeof(TH)) as IEventHandler<TD>;
+            if (eventAction == null)
+            {
+                eventAction = System.Activator.CreateInstance(typeof(TH)) as IEventHandler<TD>;
+            }
+            var persistentConnection = _receiverLoadBlancer.Lease();
 
             if (!persistentConnection.IsConnected)
             {
@@ -411,24 +326,17 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     try
                     {
 
-                        var _channel = persistentConnection.CreateModel();
-                        var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
-                        var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
-                        var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventHandler<TD>;
-                        if (EventAction == null)
-                        {
-                            EventAction = System.Activator.CreateInstance(typeof(TH)) as IEventHandler<TD>;
-                        }
+                        var _channel = persistentConnection.GetConsumer();
 
                         //direct fanout topic  
                         _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
 
                         //在MQ上定义一个持久化队列，如果名称相同不会重复创建
-                        _channel.QueueDeclare(_queueName, true, false, false, null);
+                        _channel.QueueDeclare(queueName, true, false, false, null);
                         //绑定交换器和队列
-                        _channel.QueueBind(_queueName, _exchange, _routeKey);
+                        _channel.QueueBind(queueName, _exchange, routeKey);
                         //绑定交换器和队列
-                        _channel.QueueBind(_queueName, _exchange, _queueName);
+                        _channel.QueueBind(queueName, _exchange, queueName);
                         //输入1，那如果接收一个消息，但是没有应答，则客户端不会收到下一个消息
                         _channel.BasicQos(0, _preFetch, false);
                         //在队列上定义一个消费者a
@@ -440,7 +348,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             {
                                 tracer.SetComponent(_compomentName);
                                 tracer.SetTag("x-messageId", ea.BasicProperties.MessageId);
-                                tracer.SetTag("queueName", _queueName);
+                                tracer.SetTag("queueName", queueName);
 
                                 #region AMQP Received
                                 try
@@ -466,43 +374,47 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
                                         Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
                                         Body = default(TD),
-                                        QueueName = _queueName,
-                                        RouteKey = _routeKey,
+                                        QueueName = queueName,
+                                        RouteKey = routeKey,
                                         BodySource = Encoding.UTF8.GetString(ea.Body)
                                     };
 
                                     try
                                     {
                                         eventResponse.Body = JsonConvert.DeserializeObject<TD>(eventResponse.BodySource);
-                                        tracer.LogRequest(eventResponse.BodySource);
+
+                                        if (!eventResponse.Headers.ContainsKey("x-exchange"))
+                                        {
+                                            eventResponse.Headers.Add("x-exchange", _exchange);
+                                        }
+
+                                        if (!eventResponse.Headers.ContainsKey("x-exchange-type"))
+                                        {
+                                            eventResponse.Headers.Add("x-exchange-type", _exchangeType);
+                                        }
+
+                                        _logger.LogInformation(eventResponse.BodySource);
                                     }
                                     catch (Exception ex)
                                     {
                                         _logger.LogError(ex, ex.Message);
                                     }
-                                    
-                                    if (!eventResponse.Headers.ContainsKey("x-exchange"))
-                                    {
-                                        eventResponse.Headers.Add("x-exchange", _exchange);
-                                    }
-
-                                    if (!eventResponse.Headers.ContainsKey("x-exchange-type"))
-                                    {
-                                        eventResponse.Headers.Add("x-exchange-type", _exchangeType);
-                                    }
 
                                     #region AMQP ExecuteAsync
-                                    using (var tracerExecuteAsync = new Hummingbird.Extensions.Tracing.Tracer("AMQP ExecuteAsync"))
+                                    using (var tracerExecuteAsync = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
                                     {
+                                        var handlerSuccess = false;
+                                        var handlerException = default(Exception);
+
                                         try
                                         {
-                                            var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
-                                            {
-                                                return await EventAction.Handle(eventResponse.Body, (Dictionary<string, object>)eventResponse.Headers, cancellationToken);
+                                            handlerSuccess = await _receiverPolicy.ExecuteAsync(async (handlerCancellationToken) =>
+                                           {
+                                               return await eventAction.Handle(eventResponse.Body, (Dictionary<string, object>)eventResponse.Headers, handlerCancellationToken);
 
-                                            }, CancellationToken.None);
+                                           }, cancellationToken);
 
-                                            if (handlerOK)
+                                            if (handlerSuccess)
                                             {
                                                 if (_subscribeAckHandler != null)
                                                 {
@@ -516,17 +428,27 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                             else
                                             {
                                                 tracerExecuteAsync.SetError();
-
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            _logger.LogError(ex, ex.Message);
+                                            tracerExecuteAsync.SetError();
+                                            handlerException = ex;
+                                        }
+                                        finally
+                                        {
+                                            if (!handlerSuccess)
+                                            {
                                                 //重新入队，默认：是
                                                 var requeue = true;
 
                                                 try
                                                 {
-                                                    //执行回调，等待业务层确认是否重新入队
+                                                    //执行回调，等待业务层的处理结果
                                                     if (_subscribeNackHandler != null)
                                                     {
-                                                        requeue = await _subscribeNackHandler((new EventResponse[] { eventResponse }, null));
-
+                                                        requeue = await _subscribeNackHandler((new EventResponse[] { eventResponse }, handlerException));
                                                     }
                                                 }
                                                 catch (Exception innterEx)
@@ -536,31 +458,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                                                 //确认消息
                                                 _channel.BasicReject(ea.DeliveryTag, requeue);
-
                                             }
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            tracerExecuteAsync.SetError();
-
-                                            //重新入队，默认：是
-                                            var requeue = true;
-
-                                            try
-                                            {
-                                                //执行回调，等待业务层的处理结果
-                                                if (_subscribeNackHandler != null)
-                                                {
-                                                    requeue = await _subscribeNackHandler((new EventResponse[] { eventResponse }, ex));
-                                                }
-                                            }
-                                            catch (Exception innterEx)
-                                            {
-                                                _logger.LogError(innterEx, innterEx.Message);
-                                            }
-
-                                            //确认消息
-                                            _channel.BasicReject(ea.DeliveryTag, requeue);
                                         }
                                     }
                                     #endregion
@@ -576,28 +474,26 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         consumer.Unregistered += (ch, ea) =>
                         {
-                            _logger.LogDebug($"MQ:{_queueName} Consumer_Unregistered");
+                            _logger.LogDebug($"MQ:{queueName} Consumer_Unregistered");
                         };
 
                         consumer.Registered += (ch, ea) =>
                         {
-                            _logger.LogDebug($"MQ:{_queueName} Consumer_Registered");
+                            _logger.LogDebug($"MQ:{queueName} Consumer_Registered");
                         };
 
                         consumer.Shutdown += (ch, ea) =>
                         {
-                            _logger.LogDebug($"MQ:{_queueName} Consumer_Shutdown.{ea.ReplyText}");
+                            _logger.LogDebug($"MQ:{queueName} Consumer_Shutdown.{ea.ReplyText}");
                         };
 
                         consumer.ConsumerCancelled += (object sender, ConsumerEventArgs e) =>
                         {
-                            _logger.LogDebug($"MQ:{_queueName} ConsumerCancelled");
+                            _logger.LogDebug($"MQ:{queueName} ConsumerCancelled");
                         };
 
                         //消费队列，并设置应答模式为程序主动应答
-                        _channel.BasicConsume(_queueName, false, consumer);
-
-                        _subscribeChannels.Add(_channel);
+                        _channel.BasicConsume(queueName, false, consumer);
                     }
                     catch(Exception ex)
                     {
@@ -620,11 +516,19 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         /// <typeparam name="TH"></typeparam>
         /// <param name="EventTypeName">消息类型名称</param>        
         /// <returns></returns>
-        public IEventBus RegisterBatch<TD, TH>(string QueueName, string EventTypeName = "", int BatchSize = 50)
+        public IEventBus RegisterBatch<TD, TH>(string QueueName, string EventTypeName = "", int BatchSize = 50, CancellationToken cancellationToken = default(CancellationToken))
                 where TD : class
                 where TH : IEventBatchHandler<TD>
         {
-            var persistentConnection = _receiveLoadBlancer.Lease();
+            var queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
+            var routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
+            var eventAction = _lifetimeScope.GetService(typeof(TH)) as IEventBatchHandler<TD>;
+
+            if (eventAction == null)
+            {
+                eventAction = System.Activator.CreateInstance(typeof(TH)) as IEventBatchHandler<TD>;
+            }
+            var persistentConnection = _receiverLoadBlancer.Lease();
 
             if (!persistentConnection.IsConnected)
             {
@@ -635,24 +539,16 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             {
                 try
                 {
-                    var _channel = persistentConnection.CreateModel();
-                    var _queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
-                    var _routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
-                    var EventAction = _lifetimeScope.GetService(typeof(TH)) as IEventBatchHandler<TD>;
-
-                    if (EventAction == null)
-                    {
-                        EventAction = System.Activator.CreateInstance(typeof(TH)) as IEventBatchHandler<TD>;
-                    }
+                    var _channel = persistentConnection.GetConsumer();
+                  
 
                     //direct fanout topic  
                     _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
-
                     //在MQ上定义一个持久化队列，如果名称相同不会重复创建
-                    _channel.QueueDeclare(_queueName, true, false, false, null);
+                    _channel.QueueDeclare(queueName, true, false, false, null);
                     //绑定交换器和队列
-                    _channel.QueueBind(_queueName, _exchange, _routeKey);
-                    _channel.QueueBind(_queueName, _exchange, _queueName);
+                    _channel.QueueBind(queueName, _exchange, routeKey);
+                    _channel.QueueBind(queueName, _exchange, queueName);
                     //输入1，那如果接收一个消息，但是没有应答，则客户端不会收到下一个消息
                     _channel.BasicQos(0, (ushort)BatchSize, false);
 
@@ -660,6 +556,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                     {
                         while (true)
                         {
+                            cancellationToken.ThrowIfCancellationRequested();
+
                             try
                             {
                                 var batchPool = new List<(string MessageId, BasicGetResult ea)>();
@@ -668,7 +566,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 #region batch Pull
                                 for (var i = 0; i < BatchSize; i++)
                                 {
-                                    var ea = _channel.BasicGet(_queueName, false);
+                                    var ea = _channel.BasicGet(queueName, false);
 
                                     if (ea != null)
                                     {
@@ -697,134 +595,129 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                 //队列不为空
                                 if (batchPool.Count > 0)
                                 {
-                                    var basicGetResults = batchPool.Select(a => a.ea).ToArray();
-
-                                    EventResponse[] Messages = new EventResponse[basicGetResults.Length];
-
-                                    try
+                                    using (var receiveTracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received"))
                                     {
-                                        for (int i = 0; i < basicGetResults.Length; i++)
-                                        {
-                                            var ea = basicGetResults[i];
-
-                                            Messages[i] = new EventResponse()
-                                            {
-                                                EventId = -1,
-                                                MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
-                                                Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
-                                                Body = default(TD),
-                                                RouteKey = _routeKey,
-                                                QueueName = _queueName,
-                                                BodySource = Encoding.UTF8.GetString(ea.Body)
-                                            };
-
-                                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP BasicGet"))
-                                            {
-                                                tracer.SetComponent(_compomentName);
-                                                tracer.SetTag("queueName", _queueName);
-                                                tracer.SetTag("x-messageId", Messages[i].MessageId);
-                                                tracer.SetTag("x-eventId", Messages[i].EventId);
-                                                try
-                                                {
-
-                                                    Messages[i].Body = JsonConvert.DeserializeObject<TD>(Messages[i].BodySource);
-                                                    tracer.LogRequest(Messages[i].BodySource);
-                                                }
-                                                catch (Exception ex)
-                                                {
-                                                    tracer.SetError();
-                                                    _logger.LogError(ex, ex.Message);
-                                                }
-                                            }
-                                        }
-
-                                        for (int i = 0; i < Messages.Length; i++)
-                                        {
-                                            if (Messages[i].Headers.ContainsKey("x-eventId") && long.TryParse(Messages[i].Headers["x-eventId"].ToString(), out long EventId))
-                                            {
-                                                Messages[i].EventId = EventId;
-                                            }
-
-                                            if (!Messages[i].Headers.ContainsKey("x-exchange"))
-                                            {
-                                                Messages[i].Headers.Add("x-exchange", _exchange);
-                                            }
-
-                                            if (!Messages[i].Headers.ContainsKey("x-exchange-type"))
-                                            {
-                                                Messages[i].Headers.Add("x-exchange-type", _exchangeType);
-                                            }
-                                        }
-
-                                        if (Messages != null && Messages.Any())
-                                        {
-                                            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
-                                            {
-                                                tracer.SetComponent(_compomentName);
-
-                                                var handlerOK = await _eventBusReceiverPolicy.ExecuteAsync(async (cancellationToken) =>
-                                                {
-                                                    return await EventAction.Handle(Messages.Select(a => (TD)a.Body).ToArray(), Messages.Select(a => (Dictionary<string, object>)a.Headers).ToArray(), cancellationToken);
-
-                                                }, CancellationToken.None);
-
-                                                if (handlerOK)
-                                                {
-                                                    #region 消息处理成功
-                                                    if (_subscribeAckHandler != null && Messages.Length > 0)
-                                                    {
-                                                        _subscribeAckHandler(Messages);
-                                                    }
-
-                                                    //确认消息被处理
-                                                    _channel.BasicAck(batchLastDeliveryTag, true);
-
-                                                    #endregion
-                                                }
-                                                else
-                                                {
-                                                    tracer.SetError();
-
-                                                    #region 消息处理失败
-                                                    var requeue = true;
-                                                    try
-                                                    {
-                                                        if (_subscribeNackHandler != null && Messages.Length > 0)
-                                                        {
-                                                            requeue = await _subscribeNackHandler((Messages, null));
-                                                        }
-                                                    }
-                                                    catch (Exception innterEx)
-                                                    { 
-                                                        _logger.LogError(innterEx.Message, innterEx);
-                                                    }
-
-                                                    _channel.BasicNack(batchLastDeliveryTag, true, requeue);
-
-                                                    #endregion
-                                                }
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        #region 业务处理消息出现异常，消息重新写入队列，超过最大重试次数后不再写入队列
-                                        var requeue = true;
+                                        var basicGetResults = batchPool.Select(a => a.ea).ToArray();
+                                        var Messages = new EventResponse[basicGetResults.Length];
+                                        var handlerSuccess = false;
+                                        var handlerException = default(Exception);
 
                                         try
                                         {
-                                            if (_subscribeNackHandler != null && Messages.Length > 0)
+                                            for (int i = 0; i < basicGetResults.Length; i++)
                                             {
-                                                requeue = await _subscribeNackHandler((Messages, ex));
+                                                var ea = basicGetResults[i];
+
+                                                Messages[i] = new EventResponse()
+                                                {
+                                                    EventId = -1,
+                                                    MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
+                                                    Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
+                                                    Body = default(TD),
+                                                    RouteKey = routeKey,
+                                                    QueueName = queueName,
+                                                    BodySource = Encoding.UTF8.GetString(ea.Body)
+                                                };
+
+                                                using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP BasicGet"))
+                                                {
+                                                    tracer.SetComponent(_compomentName);
+                                                    tracer.SetTag("queueName", queueName);
+                                                    tracer.SetTag("x-messageId", Messages[i].MessageId);
+                                                    tracer.SetTag("x-eventId", Messages[i].EventId);
+                                                    try
+                                                    {
+
+                                                        Messages[i].Body = JsonConvert.DeserializeObject<TD>(Messages[i].BodySource);
+                                                        _logger.LogInformation(Messages[i].BodySource);
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        tracer.SetError();
+                                                        _logger.LogError(ex, ex.Message);
+                                                    }
+                                                }
+                                            }
+
+                                            for (int i = 0; i < Messages.Length; i++)
+                                            {
+                                                if (Messages[i].Headers.ContainsKey("x-eventId") && long.TryParse(Messages[i].Headers["x-eventId"].ToString(), out long EventId))
+                                                {
+                                                    Messages[i].EventId = EventId;
+                                                }
+
+                                                if (!Messages[i].Headers.ContainsKey("x-exchange"))
+                                                {
+                                                    Messages[i].Headers.Add("x-exchange", _exchange);
+                                                }
+
+                                                if (!Messages[i].Headers.ContainsKey("x-exchange-type"))
+                                                {
+                                                    Messages[i].Headers.Add("x-exchange-type", _exchangeType);
+                                                }
+                                            }
+
+                                            if (Messages != null && Messages.Any())
+                                            {
+                                                using (var executeTracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
+                                                {
+                                                    executeTracer.SetComponent(_compomentName);
+
+                                                    handlerSuccess = await _receiverPolicy.ExecuteAsync(async (handlerCancellationToken) =>
+                                                   {
+                                                       return await eventAction.Handle(Messages.Select(a => (TD)a.Body).ToArray(), Messages.Select(a => (Dictionary<string, object>)a.Headers).ToArray(), handlerCancellationToken);
+
+                                                   }, cancellationToken);
+
+                                                    if (handlerSuccess)
+                                                    {
+                                                        #region 消息处理成功
+                                                        if (_subscribeAckHandler != null && Messages.Length > 0)
+                                                        {
+                                                            _subscribeAckHandler(Messages);
+                                                        }
+
+                                                        //确认消息被处理
+                                                        _channel.BasicAck(batchLastDeliveryTag, true);
+
+                                                        #endregion
+                                                    }
+                                                    else
+                                                    {
+                                                        executeTracer.SetError();
+                                                    }
+                                                }
                                             }
                                         }
-                                        catch (Exception innterEx)
+                                        catch (Exception ex)
                                         {
-                                            _logger.LogError(innterEx.Message, innterEx);
+                                            _logger.LogError(ex, ex.Message);
+                                            receiveTracer.SetError();
+                                            handlerException = ex;
                                         }
-                                        _channel.BasicNack(batchLastDeliveryTag, true, requeue);
+                                        finally
+                                        {
+                                            if (!handlerSuccess)
+                                            {
+                                                #region 消息处理失败
+                                                var requeue = true;
+                                                try
+                                                {
+                                                    if (_subscribeNackHandler != null && Messages.Length > 0)
+                                                    {
+                                                        requeue = await _subscribeNackHandler((Messages, handlerException));
+                                                    }
+                                                }
+                                                catch (Exception innterEx)
+                                                {
+                                                    _logger.LogError(innterEx.Message, innterEx);
+                                                }
 
-                                        #endregion
+                                                _channel.BasicNack(batchLastDeliveryTag, true, requeue);
+
+                                                #endregion
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -837,7 +730,6 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                         }
                     });
 
-                    _subscribeChannels.Add(_channel);
                 }
                 catch(Exception ex)
                 {
