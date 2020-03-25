@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>1.14.0</Version>
-    <AssemblyName>Hummingbird.Extersions.EventBus.SqlServerLogging</AssemblyName>
-    <RootNamespace>Hummingbird.Extersions.EventBus.SqlServerLogging</RootNamespace>
+    <Version>1.14.1</Version>
+    <AssemblyName>Hummingbird.Extersions.EventBus.MySqlLogging</AssemblyName>
+    <RootNamespace>Hummingbird.Extersions.EventBus.MySqlLogging</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Hummingbird.Extersions.EventBus.MySqlLogging</PackageId>
     <Authors>Hummingbird.Extersions.EventBus.MySqlLogging</Authors>
