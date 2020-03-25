@@ -93,7 +93,7 @@ namespace Hummingbird.Extersions.EventBus.MySqlLogging
                     }
                     using (var tran = db.BeginTransaction())
                     {
-                        await db.ExecuteAsync($"delete {_mySqlConfiguration.TablePrefix}EventLogs where EventId=@EventId", sqlParamtersList, transaction: tran);
+                        await db.ExecuteAsync($"delete from {_mySqlConfiguration.TablePrefix}EventLogs where EventId=@EventId", sqlParamtersList, transaction: tran);
                         tran.Commit();
                     }
                 }

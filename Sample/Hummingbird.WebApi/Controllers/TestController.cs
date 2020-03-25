@@ -34,8 +34,8 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
         public async Task<string> Publish()
         {
           var ret=  await  eventBus.PublishAsync(new List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>() {
-                new Hummingbird.Extersions.EventBus.Models.EventLogEntry("MyEvent",new { Name="郭明",Age=1 }),
-                   new Hummingbird.Extersions.EventBus.Models.EventLogEntry("MyEvent",new { Name="郭明2",Age=2 }),
+                new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new { Name="郭明",Age=1 }),
+                   new Hummingbird.Extersions.EventBus.Models.EventLogEntry("NewMsgEvent",new { Name="郭明2",Age=2 }),
             });
 
             return ret.ToString();

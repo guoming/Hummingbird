@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>1.13.0</Version><AssemblyName>Hummingbird.Extersions.EventBus.SqlServerLogging</AssemblyName>
+    <Version>1.14.0</Version><AssemblyName>Hummingbird.Extersions.EventBus.SqlServerLogging</AssemblyName>
 <RootNamespace>Hummingbird.Extersions.EventBus.SqlServerLogging</RootNamespace>
 <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 <PackageId>Hummingbird.Extersions.EventBus.SqlServerLogging</PackageId>

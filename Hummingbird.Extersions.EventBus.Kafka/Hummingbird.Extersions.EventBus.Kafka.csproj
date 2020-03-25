@@ -5,11 +5,11 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <ApplicationIcon />
     <StartupObject />
-    <Version>1.13.5</Version>
+    <Version>1.14.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Description>一致性消息，Rabbitmq消息队列客户端</Description>
+    <Description>一致性消息，Kafka消息队列客户端</Description>
   </PropertyGroup>
 
   <ItemGroup>
