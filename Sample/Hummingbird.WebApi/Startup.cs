@@ -32,18 +32,21 @@ namespace Hummingbird.WebApi
             services.AddHealthChecks(checks =>
             {
                 checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
-                checks.AddUrlCheck("http://123.com");
-
+               // checks.AddUrlCheck("http://123.com");
+                checks.AddKafkaCheck("kafka", a => {
+                    a.WithConfig(new Confluent.Kafka.ProducerConfig() { BootstrapServers = "192.168.78.22:9092" });
+                });
                 checks.AddMySqlCheck("mysql", "Server=dev.mysql.service.consul;Port=63307;Database=lms_openapi_cn_dev; User=lms-dev;Password=97bL8AtWmlfxQtK10Afg;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180;SslMode=None");
                 checks.AddSqlCheck("123", "Data Source=test.sqlserver.service.consul,63341;Initial Catalog=ZT_ConfigCenter_TEST;User Id=tms-test;Password=qtvf12Croexy4cXH7lZB");
                 checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);
-                checks.AddRabbitMQCheck("rabbitmq", factory =>
-                {
-                    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                //checks.AddRabbitMQCheck("rabbitmq", factory =>
+                //{
+                //    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                //    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                //    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
 
-                });
+                //});
+             
 
             });
             
@@ -112,27 +115,22 @@ namespace Hummingbird.WebApi
                     });
                     //builder.AddKafka(option =>
                     //{
-                    //    option.WithSenderConfig(new Confluent.Kafka.ProducerConfig() {
-                           
-                    //        EnableDeliveryReports=true,
-                    //        BootstrapServers = "121.40.88.68:9093,120.26.81.248:9093,120.26.82.93:9093",
-                    //        SecurityProtocol = Confluent.Kafka.SecurityProtocol.SaslPlaintext,
-                           
-                    //        SaslUsername = "alikafka_post-cn-mp91krfdu00k",
-                    //        SaslPassword= "nJjqxklWzs3RPXaz4VUxEsNznWA0fQL0",
-                    //        Debug = "msg" //  Debug = "broker,topic,msg"
+                    //    option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
+                    //    {
+
+                    //        EnableDeliveryReports = true,
+                    //        BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
+                    //        // Debug = "msg" //  Debug = "broker,topic,msg"
                     //    });
 
-                    //    option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig() {
-                    //       // Debug= "consumer,cgrp,topic,fetch",
+                    //    option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
+                    //    {
+                    //        // Debug= "consumer,cgrp,topic,fetch",
                     //        GroupId = "test-consumer-group",
-                    //        BootstrapServers = "121.40.88.68:9093,120.26.81.248:9093,120.26.82.93:9093",
-                    //        SecurityProtocol = Confluent.Kafka.SecurityProtocol.SaslPlaintext,
-                    //        SaslUsername = "alikafka_post-cn-mp91krfdu00k",
-                    //        SaslPassword = "nJjqxklWzs3RPXaz4VUxEsNznWA0fQL0",
+                    //        BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
                     //    });
-                    //    option.WithReceiver(1,1);
-                    //    option.WithSender(1,3,1000*5,50);
+                    //    option.WithReceiver(1, 1);
+                    //    option.WithSender(10, 3, 1000 * 5, 50);
                     //});
                     //.AddSqlServerEventLogging(a =>
                     // {
@@ -168,7 +166,7 @@ namespace Hummingbird.WebApi
                     sp.UseSubscriber(eventbus =>
                     {
                         //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
-                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
+                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventBatchHandler", "TestTopic");
                         //eventbus.RegisterBatch<ChangeDataCaptureEvent, ChangeDataCaptureEventToESIndexHandler>("", "#");
 
 
@@ -183,6 +181,7 @@ namespace Hummingbird.WebApi
 
                         }, async (obj) =>
                         {
+                            throw new Exception();
                             foreach (var message in obj.Messages)
                             {
                                 logger.LogError($"NAck: queue {message.QueueName} route={message.RouteKey} messageId:{message.MessageId}");

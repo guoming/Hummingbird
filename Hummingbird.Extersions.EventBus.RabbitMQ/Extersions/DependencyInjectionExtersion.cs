@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -198,8 +199,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 var logger = sp.GetRequiredService<ILogger<IConnectionFactory>>();
 
-                var factory = new ConnectionFactory();
-                factory.HostName = option.HostName;
+                var factory = new ConnectionFactory();              
                 factory.Port = option.Port;
                 factory.Password = option.Password;
                 factory.UserName = option.UserName;
@@ -221,11 +221,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 var connectionFactory = sp.GetRequiredService<IConnectionFactory>();                
                 var senderConnections = new List<IRabbitMQPersistentConnection>();
                 var receiveConnections = new List<IRabbitMQPersistentConnection>();
-
+                var hosts = option.HostName.Split(',').ToList();
+            
                 //消费端连接池
                 for (int i = 0; i < option.ReceiverMaxConnections; i++)
                 {
-                    var connection = new DefaultRabbitMQPersistentConnection(connectionFactory, loggerConnection, option.ReceiverAcquireRetryAttempts);
+                    var connection = new DefaultRabbitMQPersistentConnection(hosts, connectionFactory, loggerConnection, option.ReceiverAcquireRetryAttempts);
                     connection.TryConnect();
                     //消费端的连接池
                     receiveConnections.Add(connection);
@@ -234,7 +235,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 //发送端连接池
                 for (int i = 0; i < option.SenderMaxConnections; i++)
                 {
-                    var connection = new DefaultRabbitMQPersistentConnection(connectionFactory, loggerConnection, option.SenderAcquireRetryAttempts);
+                    var connection = new DefaultRabbitMQPersistentConnection(hosts, connectionFactory, loggerConnection, option.SenderAcquireRetryAttempts);
                     connection.TryConnect();
                     senderConnections.Add(connection);
                 }

@@ -17,14 +17,20 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
         private readonly IConnectionFactory _connectionFactory;
         private readonly ILogger<IRabbitMQPersistentConnection> _logger;
         private readonly int _retryCount;
-        private bool _disposed = false;
-        private object sync_root = new object();
+        private readonly List<string> _Hosts;
+        private readonly List<IModel> _consumers;
+        private readonly object sync_root = new object();
         private IConnection _connection;
         private IModel _producer;
-        private List<IModel> _consumers;
-
-        public DefaultRabbitMQPersistentConnection(IConnectionFactory connectionFactory, ILogger<IRabbitMQPersistentConnection> logger, int retryCount = 5)
+        private bool _disposed = false;
+   
+        public DefaultRabbitMQPersistentConnection(
+            List<string> Hosts,
+            IConnectionFactory connectionFactory,
+            ILogger<IRabbitMQPersistentConnection> logger,
+            int retryCount = 5)
         {
+            _Hosts = Hosts;
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _retryCount = retryCount;
@@ -136,7 +142,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
 
                         policy.Execute(() =>
                         {
-                            _connection = _connectionFactory.CreateConnection();                            
+                            _connection = _connectionFactory.CreateConnection(_Hosts);                            
                         });
 
                         if (IsConnected)

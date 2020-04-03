@@ -87,10 +87,10 @@ namespace Hummingbird.Extensions.HealthChecks
         {
             Guard.ArgumentNotNull(nameof(builder), builder);
 
-            return AddMySqlCheck(builder, name, setup, builder.DefaultCacheDuration);
+            return AddRabbitMQCheck(builder, name, setup, builder.DefaultCacheDuration);
         }
 
-        public static HealthCheckBuilder AddMySqlCheck(this HealthCheckBuilder builder, string name, Action<RabbitMqOption> setup, TimeSpan cacheDuration)
+        public static HealthCheckBuilder AddRabbitMQCheck(this HealthCheckBuilder builder, string name, Action<RabbitMqOption> setup, TimeSpan cacheDuration)
         {
             var option = new RabbitMqOption();
             setup(option);

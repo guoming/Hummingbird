@@ -3,7 +3,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-
+using Microsoft.Extensions.Logging;
 namespace Hummingbird.WebApi
 {
     public class Program
@@ -27,6 +27,11 @@ namespace Hummingbird.WebApi
                       config.AddJsonFile("cache.json");
                       config.AddEnvironmentVariables();
                   })
+           .ConfigureLogging((hostingContext, logging) =>
+           {
+               logging.ClearProviders();
+        
+           })
                 .Build();
     }
 }
