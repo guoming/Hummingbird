@@ -32,27 +32,25 @@ namespace Hummingbird.WebApi
             services.AddHealthChecks(checks =>
             {
                 checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
-               // checks.AddUrlCheck("http://123.com");
-                checks.AddKafkaCheck("kafka", a => {
-                    a.WithConfig(new Confluent.Kafka.ProducerConfig() { BootstrapServers = "192.168.78.22:9092" });
-                });
+            
+            
                 checks.AddMySqlCheck("mysql", "Server=dev.mysql.service.consul;Port=63307;Database=lms_openapi_cn_dev; User=lms-dev;Password=97bL8AtWmlfxQtK10Afg;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180;SslMode=None");
                 checks.AddSqlCheck("123", "Data Source=test.sqlserver.service.consul,63341;Initial Catalog=ZT_ConfigCenter_TEST;User Id=tms-test;Password=qtvf12Croexy4cXH7lZB");
                 checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);
-                //checks.AddRabbitMQCheck("rabbitmq", factory =>
-                //{
-                //    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                //    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                //    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                checks.AddRabbitMQCheck("rabbitmq", factory =>
+                {
+                    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
 
-                //});
-             
+                });
+
 
             });
             
             services.AddHummingbird(hummingbird =>
             {
-                hummingbird
+                hummingbird                
                  .AddResilientHttpClient((orign, option) =>
                  {
                      if (string.IsNullOrEmpty(orign))
@@ -96,6 +94,10 @@ namespace Hummingbird.WebApi
                     IdGenerator.CenterId = 0;
                     IdGenerator.UseStaticWorkIdCreateStrategy(0);
                 })
+                .AddOpenTracing(builder => {
+
+                    builder.AddJaeger(Configuration.GetSection("Tracing"));
+                })
                 .AddEventBus((builder) =>
                 {
                     var Database_Server = Configuration["Database:SQLServer:Server"];
@@ -110,7 +112,7 @@ namespace Hummingbird.WebApi
                         factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
                         factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
                         factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                        factory.WithReceiver();
+                        factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
                         factory.WithSender(10);
                     });
                     //builder.AddKafka(option =>
@@ -216,6 +218,9 @@ namespace Hummingbird.WebApi
     {
         public Task<bool> Handle(NewMsgEvent @event, Dictionary<string, object> headers, CancellationToken cancellationToken)
         {
+
+            Console.WriteLine("handle");
+            System.Threading.Thread.Sleep(10);
             return Task.FromResult(true);
         }
     }

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <Version>1.2.1</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseUrl>https://github.com/guoming/Hummingbird</PackageLicenseUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jaeger" Version="0.3.6" />
+    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.5.0" />
+    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj" />
+  </ItemGroup>
+</Project>

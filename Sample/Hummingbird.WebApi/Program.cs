@@ -25,6 +25,7 @@ namespace Hummingbird.WebApi
                       config.SetBasePath(Directory.GetCurrentDirectory());
                       config.AddJsonFile("appsettings.json");
                       config.AddJsonFile("cache.json");
+                      config.AddJsonFile("tracing.json");
                       config.AddEnvironmentVariables();
                   })
            .ConfigureLogging((hostingContext, logging) =>

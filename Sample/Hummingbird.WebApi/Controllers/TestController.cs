@@ -22,11 +22,14 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
     {
 
         public TestController(
+            Hummingbird.Extersions.Resilience.Http.IHttpClient httpClient,
             Hummingbird.Extersions.EventBus.Abstractions.IEventBus eventBus)
         {
+            this.httpClient = httpClient;
             this.eventBus = eventBus;
         }
 
+        private readonly IHttpClient httpClient;
         private readonly IEventBus eventBus;
 
         [HttpGet]
@@ -39,6 +42,13 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
             });
 
             return ret.ToString();
+        }
+
+        [HttpGet]
+        [Route("Publish2")]
+        public async Task<string> Publish2()
+        {
+           return await (await  httpClient.PostAsync("http://baidu.com", new { name = "123" }, null, null)).Content.ReadAsStringAsync();
         }
 
     }

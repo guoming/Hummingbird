@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using OpenTracing;
+
 using OpenTracing.Propagation;
 using System;
 using System.Collections;
