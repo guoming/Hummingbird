@@ -71,7 +71,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
            IServiceProvider lifetimeScope,
             int reveiverMaxDegreeOfParallelism = 10,
             int receiverAcquireRetryAttempts = 0,
-            int receiverHandlerTimeoutMillseconds = 0,
+            int receiverHandlerTimeoutMillseconds = 5000,
             int senderRetryCount = 3,
             int senderConfirmTimeoutMillseconds=500,
             ushort preFetch = 1,
@@ -123,8 +123,8 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             {
                 // 设置超时
                 _receiverPolicy = _receiverPolicy.WrapAsync(Policy.TimeoutAsync(
-                    TimeSpan.FromSeconds(receiverHandlerTimeoutMillseconds),
-                    TimeoutStrategy.Pessimistic,
+                    TimeSpan.FromMilliseconds(receiverHandlerTimeoutMillseconds),
+                    TimeoutStrategy.Optimistic,
                     (context, timespan, task) =>
                     {
                         return Task.FromResult(true);
