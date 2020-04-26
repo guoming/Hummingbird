@@ -33,7 +33,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             public long EventId { get; set; }
 
             public string MessageId { get; set; }
-
+            public string TraceId { get; set; }
             public string Body { get; set; }
 
             public string RouteKey { get; set; }
@@ -166,6 +166,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
             {
                 Body = a.Content,
                 MessageId = a.MessageId.ToString(),
+                TraceId=a.TraceId,
                 EventId = a.EventId,
                 RouteKey = a.EventTypeName,
                 Timestamp=a.CreationTime.ToTimestamp(),
@@ -178,6 +179,11 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                 {
                     //附加时间戳
                     message.Headers.Add("x-ts", message.Timestamp);
+                }
+
+                if (!message.Headers.ContainsKey("x-traceId"))
+                {
+                    message.Headers.Add("x-traceId", message.TraceId);
                 }
             });
 
@@ -217,12 +223,13 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                             properties.MessageId = MessageId;
                             properties.Headers = new Dictionary<string, Object>();
                             properties.Headers["x-eventId"] = Events[eventIndex].EventId;
-
+                            properties.Headers["x-traceId"] = Events[eventIndex].TraceId;
                             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish"))
                             {
                                 tracer.SetComponent(_compomentName);
                                 tracer.SetTag("x-messageId", MessageId);
                                 tracer.SetTag("x-eventId", Events[eventIndex].EventId);
+                                tracer.SetTag("x-traceId", Events[eventIndex].TraceId);
                                 _logger.LogInformation(json);
 
                                 foreach (var key in Events[eventIndex].Headers.Keys)
@@ -361,11 +368,33 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                     #endregion
 
                                     long EventId = -1;
+                                    var MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId;
+                                    var TraceId = MessageId;
+
                                     if (ea.BasicProperties.Headers != null && ea.BasicProperties.Headers.ContainsKey("x-eventId"))
                                     {
-                                        long.TryParse(ea.BasicProperties.Headers["x-eventId"].ToString(), out EventId);
+                                        try
+                                        {
+                                            long.TryParse(System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-eventId"] as byte[]), out EventId);
+                                        }
+                                        catch
+                                        { }
 
                                         tracer.SetTag("x-eventId", EventId);
+                                    }
+
+
+                                    if (ea.BasicProperties.Headers != null && ea.BasicProperties.Headers.ContainsKey("x-traceId"))
+                                    {
+                                        try
+                                        {
+                                            TraceId = System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-traceId"] as byte[]);
+                                        }
+                                        catch
+                                        {
+                                        }
+
+                                        tracer.SetTag("x-traceId", TraceId);
                                     }
 
                                     var eventResponse = new EventResponse()
@@ -376,6 +405,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                         Body = default(TD),
                                         QueueName = queueName,
                                         RouteKey = routeKey,
+                                        TraceId=TraceId,
                                         BodySource = Encoding.UTF8.GetString(ea.Body)
                                     };
 
@@ -612,6 +642,7 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                 {
                                                     EventId = -1,
                                                     MessageId = string.IsNullOrEmpty(ea.BasicProperties.MessageId) ? Guid.NewGuid().ToString("N") : ea.BasicProperties.MessageId,
+                                                    TraceId = string.Empty,
                                                     Headers = ea.BasicProperties.Headers ?? new Dictionary<string, object>(),
                                                     Body = default(TD),
                                                     RouteKey = routeKey,
@@ -619,12 +650,57 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                     BodySource = Encoding.UTF8.GetString(ea.Body)
                                                 };
 
-                                                using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP BasicGet"))
+
+                                                if (ea.BasicProperties.Headers != null)
+                                                {
+                                                    if (Messages[i].Headers.ContainsKey("x-eventId"))
+                                                    {
+                                                        try
+                                                        {
+                                                            if (long.TryParse(System.Text.Encoding.UTF8.GetString(Messages[i].Headers["x-eventId"] as byte[]), out long EventId))
+                                                            {
+                                                                Messages[i].EventId = EventId;
+                                                            }
+                                                        }
+                                                        catch
+                                                        { }
+                                                    }
+
+                                                    if (!Messages[i].Headers.ContainsKey("x-traceId"))
+                                                    {
+                                                        try
+                                                        {
+                                                            Messages[i].TraceId = System.Text.Encoding.UTF8.GetString(Messages[i].Headers["traceId"] as byte[]);
+                                                        }
+                                                        catch
+                                                        { }
+                                                    }
+                                                    else
+                                                    {
+                                                        Messages[i].TraceId = Messages[i].MessageId;
+                                                    }
+
+                                                    if (!Messages[i].Headers.ContainsKey("x-exchange"))
+                                                    {
+                                                        Messages[i].Headers.Add("x-exchange", _exchange);
+                                                    }
+
+                                                    if (!Messages[i].Headers.ContainsKey("x-exchange-type"))
+                                                    {
+                                                        Messages[i].Headers.Add("x-exchange-type", _exchangeType);
+                                                    }
+
+
+                                                }
+
+                                                using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP BasicGet", Messages[i].TraceId))
                                                 {
                                                     tracer.SetComponent(_compomentName);
                                                     tracer.SetTag("queueName", queueName);
                                                     tracer.SetTag("x-messageId", Messages[i].MessageId);
                                                     tracer.SetTag("x-eventId", Messages[i].EventId);
+                                                    tracer.SetTag("x-traceId", Messages[i].TraceId);
+
                                                     try
                                                     {
 
@@ -637,25 +713,10 @@ namespace Hummingbird.Extersions.EventBus.RabbitMQ
                                                         _logger.LogError(ex, ex.Message);
                                                     }
                                                 }
+
+                                          
                                             }
 
-                                            for (int i = 0; i < Messages.Length; i++)
-                                            {
-                                                if (Messages[i].Headers.ContainsKey("x-eventId") && long.TryParse(Messages[i].Headers["x-eventId"].ToString(), out long EventId))
-                                                {
-                                                    Messages[i].EventId = EventId;
-                                                }
-
-                                                if (!Messages[i].Headers.ContainsKey("x-exchange"))
-                                                {
-                                                    Messages[i].Headers.Add("x-exchange", _exchange);
-                                                }
-
-                                                if (!Messages[i].Headers.ContainsKey("x-exchange-type"))
-                                                {
-                                                    Messages[i].Headers.Add("x-exchange-type", _exchangeType);
-                                                }
-                                            }
 
                                             if (Messages != null && Messages.Any())
                                             {
