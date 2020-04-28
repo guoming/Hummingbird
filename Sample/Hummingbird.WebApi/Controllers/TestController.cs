@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Hummingbird.DynamicRoute;
-using Hummingbird.Extersions.Cache;
-using Hummingbird.Extersions.Cacheing;
-using Hummingbird.Extersions.EventBus.Abstractions;
-using Hummingbird.Extersions.Resilience.Http;
+using Hummingbird.Extensions.Cache;
+using Hummingbird.Extensions.Cacheing;
+using Hummingbird.Extensions.EventBus.Abstractions;
+using Hummingbird.Extensions.Resilience.Http;
 using Hummingbird.LoadBalancers;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
@@ -22,8 +22,8 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
     {
 
         public TestController(
-            Hummingbird.Extersions.Resilience.Http.IHttpClient httpClient,
-            Hummingbird.Extersions.EventBus.Abstractions.IEventBus eventBus)
+            Hummingbird.Extensions.Resilience.Http.IHttpClient httpClient,
+            Hummingbird.Extensions.EventBus.Abstractions.IEventBus eventBus)
         {
             this.httpClient = httpClient;
             this.eventBus = eventBus;
@@ -36,9 +36,9 @@ namespace DotNetCore.Resilience.HttpSample.Controllers
         [Route("Publish")]
         public async Task<string> Publish()
         {
-          var ret=  await  eventBus.PublishAsync(new List<Hummingbird.Extersions.EventBus.Models.EventLogEntry>() {
-                new Hummingbird.Extersions.EventBus.Models.EventLogEntry("TestTopic",new { Name="郭明",Age=1 }),
-                   new Hummingbird.Extersions.EventBus.Models.EventLogEntry("TestTopic",new { Name="郭明2",Age=2 }),
+          var ret=  await  eventBus.PublishAsync(new List<Hummingbird.Extensions.EventBus.Models.EventLogEntry>() {
+                new Hummingbird.Extensions.EventBus.Models.EventLogEntry("TestTopic",new { Name="郭明",Age=1 }),
+                   new Hummingbird.Extensions.EventBus.Models.EventLogEntry("TestTopic",new { Name="郭明2",Age=2 }),
             });
 
             return ret.ToString();

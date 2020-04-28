@@ -19,8 +19,8 @@ namespace Hummingbird.NetCoreWebApi
                       .SelectMany(a => a.GetTypes().Where(type => Array.Exists(type.GetInterfaces(), t => 
                       t.IsGenericType                     
                    
-                      && (t.GetGenericTypeDefinition() == typeof(Hummingbird.Extersions.EventBus.Abstractions.IEventHandler<>)
-                      || t.GetGenericTypeDefinition() == typeof(Hummingbird.Extersions.EventBus.Abstractions.IEventBatchHandler<>)
+                      && (t.GetGenericTypeDefinition() == typeof(Hummingbird.Extensions.EventBus.Abstractions.IEventHandler<>)
+                      || t.GetGenericTypeDefinition() == typeof(Hummingbird.Extensions.EventBus.Abstractions.IEventBatchHandler<>)
                       ))))
                       .ToArray();
 

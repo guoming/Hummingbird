@@ -6,7 +6,7 @@
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Description>分布式服务注册</Description>
-    <Version>1.14.5</Version>
+    <Version>1.15.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>NETCORE</DefineConstants>
@@ -14,7 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
-    <ProjectReference Include="..\Hummingbird.Extersions.Cache\Hummingbird.Extersions.Cache.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extensions.Cache\Hummingbird.Extensions.Cache.csproj" />
     <PackageReference Include="Consul" Version="0.7.2.4" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.1" />
     <PackageReference Include="Polly" Version="7.1.1" />        

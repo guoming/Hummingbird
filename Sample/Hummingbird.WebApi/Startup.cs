@@ -1,6 +1,6 @@
 ﻿using Hummingbird.Extensions.HealthChecks;
-using Hummingbird.Extersions.EventBus.Abstractions;
-using Hummingbird.Extersions.EventBus.RabbitMQ;
+using Hummingbird.Extensions.EventBus.Abstractions;
+using Hummingbird.Extensions.EventBus.RabbitMQ;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -32,8 +32,6 @@ namespace Hummingbird.WebApi
             services.AddHealthChecks(checks =>
             {
                 checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
-            
-            
                 checks.AddMySqlCheck("mysql", "Server=dev.mysql.service.consul;Port=63307;Database=lms_openapi_cn_dev; User=lms-dev;Password=97bL8AtWmlfxQtK10Afg;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180;SslMode=None");
                 checks.AddSqlCheck("123", "Data Source=test.sqlserver.service.consul,63341;Initial Catalog=ZT_ConfigCenter_TEST;User Id=tms-test;Password=qtvf12Croexy4cXH7lZB");
                 checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);
@@ -42,10 +40,7 @@ namespace Hummingbird.WebApi
                     factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
                     factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
                     factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-
                 });
-
-
             });
             
             services.AddHummingbird(hummingbird =>
@@ -214,7 +209,7 @@ namespace Hummingbird.WebApi
     public class NewMsgEvent
     { }
 
-    public class NewMsgEventHandler : Hummingbird.Extersions.EventBus.Abstractions.IEventHandler<NewMsgEvent>
+    public class NewMsgEventHandler : Hummingbird.Extensions.EventBus.Abstractions.IEventHandler<NewMsgEvent>
     {
         public Task<bool> Handle(NewMsgEvent @event, Dictionary<string, object> headers, CancellationToken cancellationToken)
         {
