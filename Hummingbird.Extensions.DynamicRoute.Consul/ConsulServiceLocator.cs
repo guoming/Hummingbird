@@ -30,34 +30,37 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
         public async Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name,string TagFilter, CancellationToken cancellationToken = default(CancellationToken))
         {
             var list = new List<ServiceEndPoint>();
-            var response = await _client.Agent.Services();
+            var response = await _client.Health.Service(Name,string.Empty, cancellationToken);
             var services = response.Response;
             var TagFilterList = TagFilter.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
-
+            
             foreach (var p in services)
-            {
-                if (p.Value.Service.ToUpper() == Name.ToUpper())
+            {  
+                if (p.Service.Service.ToUpper() == Name.ToUpper())
                 {
-                    if (TagFilterList.Any())
+                    if (p.Checks.All(a => a.Status.Status == HealthStatus.Passing.Status))
                     {
-                        if (p.Value.Tags.Intersect(TagFilterList).Any())
+                        if (TagFilterList.Any())
+                        {
+                            if (p.Service.Tags.Intersect(TagFilterList).Any())
+                            {
+                                list.Add(new ServiceEndPoint()
+                                {
+                                    Address = p.Service.Address,
+                                    Port = p.Service.Port,
+                                    Tags = p.Service.Tags,
+                                });
+                            }
+                        }
+                        else
                         {
                             list.Add(new ServiceEndPoint()
                             {
-                                Address = p.Value.Address,
-                                Port = p.Value.Port,
-                                Tags = p.Value.Tags,
+                                Address = p.Service.Address,
+                                Port = p.Service.Port,
+                                Tags = p.Service.Tags,
                             });
                         }
-                    }
-                    else
-                    {
-                        list.Add(new ServiceEndPoint()
-                        {
-                            Address = p.Value.Address,
-                            Port = p.Value.Port,
-                            Tags = p.Value.Tags,
-                        });
                     }
                 }
             }

@@ -1,29 +1,13 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:40739/",
-      "sslPort": 0
-    }
-  },
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "launchUrl": "api/values",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "dev"
-      }
-    },
     "Hummingbird.Example": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      "launchUrl": "healthcheck",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "dev"
       },
-      "applicationUrl": "http://localhost:40740/"
+      "applicationUrl": "http://0.0.0.0:40740/"
     }
   }
 }
