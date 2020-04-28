@@ -49,20 +49,21 @@ namespace Hummingbird.WebApi
                 hummingbird                
                  .AddResilientHttpClient((orign, option) =>
                  {
-                     if (string.IsNullOrEmpty(orign))
+                     var setting = Configuration.GetSection("HttpClient");
+
+                     if (!string.IsNullOrEmpty(orign))
                      {
-                         option.DurationSecondsOfBreak = int.Parse(Configuration["HttpClient:DurationSecondsOfBreak"]);
-                         option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration["HttpClient:ExceptionsAllowedBeforeBreaking"]);
-                         option.RetryCount = int.Parse(Configuration["HttpClient:RetryCount"]);
-                         option.TimeoutMillseconds = int.Parse(Configuration["HttpClient:TimeoutMillseconds"]);
+                         var orginSetting = Configuration.GetSection($"HttpClient:{orign.ToUpper()}");
+                         if(orginSetting.Exists())
+                         {
+                             setting = orginSetting;
+                         }
                      }
-                     else
-                     {
-                         option.DurationSecondsOfBreak = int.Parse(Configuration[$"HttpClient:DurationSecondsOfBreak"]);
-                         option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration["HttpClient:ExceptionsAllowedBeforeBreaking"]);
-                         option.RetryCount = int.Parse(Configuration["HttpClient:RetryCount"]);
-                         option.TimeoutMillseconds = int.Parse(Configuration["HttpClient:TimeoutMillseconds"]);
-                     }
+
+                     option.DurationSecondsOfBreak = int.Parse(setting["DurationSecondsOfBreak"]);
+                     option.ExceptionsAllowedBeforeBreaking = int.Parse(setting["ExceptionsAllowedBeforeBreaking"]);
+                     option.RetryCount = int.Parse(setting["RetryCount"]);
+                     option.TimeoutMillseconds = int.Parse(setting["TimeoutMillseconds"]);
                  })
                 .AddCache(option =>
                 {
@@ -143,6 +144,7 @@ namespace Hummingbird.WebApi
                 })
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
+                     
                      s.AddTags("22");
                  });
 
@@ -182,7 +184,6 @@ namespace Hummingbird.WebApi
 
                         }, async (obj) =>
                         {
-                            throw new Exception();
                             foreach (var message in obj.Messages)
                             {
                                 logger.LogError($"NAck: queue {message.QueueName} route={message.RouteKey} messageId:{message.MessageId}");

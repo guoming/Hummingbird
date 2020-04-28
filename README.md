@@ -23,7 +23,15 @@
   * Rabbitmq 健康检查
   * Redis 健康检查
   * SqlServer 健康检查
-
+* 负载均衡
+  * 随机负载均衡
+  * 轮训负载均衡
+* 服务动态路由
+  * 基于Consul服务注册和发现
+* 服务调用
+  * 基于HTTP 弹性客户端
+  * 基于HTTP非弹性客户端
+  
 ## 3. 如何使用
 ### 3.1 分布式锁
 ``` SHELL
@@ -519,6 +527,135 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
         }
     }
 ```
+
+
+### 3.8 服务注册 + 服务发现 + 服务HTTP调用
+appsettings.json
+```JSON
+{
+  "SERVICE_REGISTRY_ADDRESS": "localhost", // 注册中心地址
+  "SERVICE_REGISTRY_PORT": "8500", //注册中心端口
+  "SERVICE_SELF_REGISTER": true, //自注册开关打开
+  "SERVICE_NAME": "SERVICE_EXAMPLE", //服务名称
+  "SERVICE_ADDRESS": "",
+  "SERVICE_PORT": "80",
+  "SERVICE_TAGS": "test",
+  "SERVICE_REGION": "DC1",
+  "SERVICE_80_CHECK_HTTP": "/healthcheck",
+  "SERVICE_80_CHECK_INTERVAL": "15",
+  "SERVICE_80_CHECK_TIMEOUT": "15",
+  "SERVICE_CHECK_TCP": null,
+  "SERVICE_CHECK_SCRIPT": null,
+  "SERVICE_CHECK_TTL": "15",
+  "SERVICE_CHECK_INTERVAL": "5",
+  "SERVICE_CHECK_TIMEOUT": "5"
+}
+```
+
+
+``` C#
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            BuildWebHost(args).Run();
+        }
+
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()
+                .UseHealthChecks("/healthcheck")
+                .ConfigureAppConfiguration((builderContext, config) =>
+                  {
+                      config.SetBasePath(Directory.GetCurrentDirectory());
+                      config.AddJsonFile("appsettings.json");
+                      config.AddEnvironmentVariables();
+                  })
+           .ConfigureLogging((hostingContext, logging) =>
+           {
+               logging.ClearProviders();
+        
+           })
+           .Build();
+    }
+```
+
+```c#   
+    public class Startup
+    {
+
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddHummingbird(hummingbird =>
+            {
+                hummingbird                
+                 .AddResilientHttpClient((orign, option) =>
+                 {
+                     if (string.IsNullOrEmpty(orign))
+                     {
+                         option.TimeoutMillseconds = int.Parse(Configuration["HttpClient:TimeoutMillseconds"]); //调用超时毫秒数
+                         option.RetryCount = int.Parse(Configuration["HttpClient:RetryCount"]);  //调用失败重试次数
+                         option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration["HttpClient:ExceptionsAllowedBeforeBreaking"]); // 调用熔断前允许的异常梳理，超过则
+                         option.DurationSecondsOfBreak = int.Parse(Configuration["HttpClient:DurationSecondsOfBreak"]); // 调用熔断持续时间(秒)                         
+                     }
+                     else
+                     {
+                         option.DurationSecondsOfBreak = int.Parse(Configuration[$"HttpClient:{orign.ToUpper()}:DurationSecondsOfBreak"]);
+                         option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration[$"HttpClient:{orign.ToUpper()}:ExceptionsAllowedBeforeBreaking"]);
+                         option.RetryCount = int.Parse(Configuration[$"HttpClient:{orign.ToUpper()}:RetryCount"]);
+                         option.TimeoutMillseconds = int.Parse(Configuration[$"HttpClient:{orign.ToUpper()}:TimeoutMillseconds"]);
+                     }
+                 })              
+                .AddConsulDynamicRoute(Configuration, s =>
+                 {
+                     s.AddTags("version=v1");
+                 });
+
+            });
+        }
+    }
+```
+
+```c#   
+    using Hummingbird.Extensions.Resilience.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Threading;
+    using System.Threading.Tasks;
+    [Route("api/[controller]")]
+    public class HttpClientTestController : Controller
+    {
+        private readonly IHttpClient httpClient;
+        public HttpClientTestController(IHttpClient httpClient)
+        {
+            this.httpClient = httpClient;
+        }
+      
+
+        [HttpGet]
+        [Route("Test1")]
+        public async Task<string> Test1()
+        {
+            return await httpClient.GetStringAsync("http://baidu.com");
+        }
+
+        [HttpGet]
+        [Route("Test2")]
+        public async Task<string> Test2()
+        {
+            return await (await httpClient.PostAsync(
+                uri: "http://{SERVICE_EXAMPLE}/healthcheck",
+                item: new { },
+                authorizationMethod: null, 
+                authorizationToken: null,
+                dictionary: null,
+                cancellationToken: CancellationToken.None)).Content.ReadAsStringAsync();
+        }
+
+    }
+```  
+
 ## 4. 更新日志
 
 ## 5. 常见问题

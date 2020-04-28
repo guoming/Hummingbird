@@ -23,16 +23,16 @@ namespace Hummingbird.WebApi
                 .ConfigureAppConfiguration((builderContext, config) =>
                   {
                       config.SetBasePath(Directory.GetCurrentDirectory());
-                      config.AddJsonFile("appsettings.json");
-                      config.AddJsonFile("cache.json");
-                      config.AddJsonFile("tracing.json");
+                      config.AddJsonFile("Config/appsettings.json");
+                      config.AddJsonFile("Config/cache.json");
+                      config.AddJsonFile("Config/tracing.json");
                       config.AddEnvironmentVariables();
                   })
-           .ConfigureLogging((hostingContext, logging) =>
-           {
-               logging.ClearProviders();
-        
-           })
-                .Build();
+               .ConfigureLogging((hostingContext, logging) =>
+               {
+                   logging.ClearProviders();
+
+               })
+             .Build();
     }
 }

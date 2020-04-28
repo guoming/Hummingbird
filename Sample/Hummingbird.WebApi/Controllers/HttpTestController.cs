@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Hummingbird.DynamicRoute;
-using Hummingbird.Extensions.Cache;
-using Hummingbird.Extensions.Cacheing;
-using Hummingbird.Extensions.EventBus.Abstractions;
-using Hummingbird.Extensions.Resilience.Http;
-using Hummingbird.LoadBalancers;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
+﻿
 namespace Hummingbird.Example.Controllers
 {
-  
+    using Hummingbird.Extensions.Resilience.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Threading;
+    using System.Threading.Tasks;
     [Route("api/[controller]")]
     public class HttpClientTestController : Controller
     {
@@ -24,10 +16,21 @@ namespace Hummingbird.Example.Controllers
       
 
         [HttpGet]
-        [Route("Publish2")]
-        public async Task<string> Publish2()
+        [Route("Test1")]
+        public async Task<string> Test1()
         {
-           return await (await  httpClient.PostAsync("http://baidu.com", new { name = "123" }, null, null)).Content.ReadAsStringAsync();
+            return await httpClient.GetStringAsync("http://baidu.com");
+        }
+
+        [HttpGet]
+        [Route("Test2")]
+        public async Task<string> Test2()
+        {
+            return await httpClient.GetStringAsync(
+                uri: "http://{SERVICE_EXAMPLE}/healthcheck",
+                authorizationMethod: null,
+                authorizationToken: null,
+                dictionary: null);
         }
 
     }
