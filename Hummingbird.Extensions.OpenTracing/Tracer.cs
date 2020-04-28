@@ -1,22 +1,22 @@
 ﻿using Newtonsoft.Json;
-
+using OpenTracing;
 using OpenTracing.Propagation;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTracing.Util;
 
 namespace Hummingbird.Extensions.Tracing
 {
     public class Tracer : IDisposable
     {
-
-        private readonly OpenTracing.IScope Scope;
+        private readonly IScope Scope;
         private bool status = true;
 
         public Tracer(string operaName)
         {
-            Scope = OpenTracing.Util.GlobalTracer.Instance.BuildSpan(operaName).StartActive();
+            Scope = GlobalTracer.Instance.BuildSpan(operaName).StartActive();
         }
 
         public Tracer(string operaName, string spanContextStr)
@@ -24,14 +24,14 @@ namespace Hummingbird.Extensions.Tracing
             Dictionary<string, string> dic = new Dictionary<string, string>();
             dic.Add("uber-trace-id", spanContextStr);
             var callingHeaders = new TextMapExtractAdapter(dic);
-            var extractedContext = OpenTracing.Util.GlobalTracer.Instance.Extract(BuiltinFormats.HttpHeaders, callingHeaders);
-            Scope = OpenTracing.Util.GlobalTracer.Instance.BuildSpan(operaName).AsChildOf(extractedContext).StartActive();
+            var extractedContext = GlobalTracer.Instance.Extract(BuiltinFormats.HttpHeaders, callingHeaders);
+            Scope =GlobalTracer.Instance.BuildSpan(operaName).AsChildOf(extractedContext).StartActive();
         }
 
         public string GetCurrentContext()
         {
             TextMap textMap = new TextMap();
-            OpenTracing.Util.GlobalTracer.Instance.Inject(Scope.Span.Context, BuiltinFormats.HttpHeaders, textMap);
+            GlobalTracer.Instance.Inject(Scope.Span.Context, BuiltinFormats.HttpHeaders, textMap);
             if (textMap.Any())
             {
                 return textMap.FirstOrDefault().Value;

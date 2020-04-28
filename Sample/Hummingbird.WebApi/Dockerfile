@@ -5,10 +5,10 @@ EXPOSE 80
 FROM microsoft/aspnetcore-build:2.0 AS build
 WORKDIR /src
 COPY *.sln ./
-COPY DotNetCore.Resilience.HttpSample/DotNetCore.Resilience.HttpSample.csproj DotNetCore.Resilience.HttpSample/
+COPY Hummingbird.Example/Hummingbird.Example.csproj Hummingbird.Example/
 RUN dotnet restore
 COPY . .
-WORKDIR /src/DotNetCore.Resilience.HttpSample
+WORKDIR /src/Hummingbird.Example
 RUN dotnet build -c Release -o /app
 
 FROM build AS publish
@@ -17,4 +17,4 @@ RUN dotnet publish -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "DotNetCore.Resilience.HttpSample.dll"]
+ENTRYPOINT ["dotnet", "Hummingbird.Example.dll"]

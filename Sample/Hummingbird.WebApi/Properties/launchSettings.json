@@ -16,7 +16,7 @@
         "ASPNETCORE_ENVIRONMENT": "dev"
       }
     },
-    "DotNetCore.Resilience.HttpSample": {
+    "Hummingbird.Example": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "api/values",

@@ -48,7 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="cache.json">
+    <Content Update="Config\cache.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

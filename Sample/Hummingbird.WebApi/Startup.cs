@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Hummingbird.Example.Events;
 
 namespace Hummingbird.WebApi
 {
@@ -33,7 +34,7 @@ namespace Hummingbird.WebApi
             {
                 checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
                 checks.AddMySqlCheck("mysql", "Server=dev.mysql.service.consul;Port=63307;Database=lms_openapi_cn_dev; User=lms-dev;Password=97bL8AtWmlfxQtK10Afg;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180;SslMode=None");
-                checks.AddSqlCheck("123", "Data Source=test.sqlserver.service.consul,63341;Initial Catalog=ZT_ConfigCenter_TEST;User Id=tms-test;Password=qtvf12Croexy4cXH7lZB");
+                checks.AddSqlCheck("sqlserver", "Data Source=test.sqlserver.service.consul,63341;Initial Catalog=ZT_ConfigCenter_TEST;User Id=tms-test;Password=qtvf12Croexy4cXH7lZB");
                 checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);
                 checks.AddRabbitMQCheck("rabbitmq", factory =>
                 {
@@ -102,6 +103,14 @@ namespace Hummingbird.WebApi
                     var DatabaseConnectionString = $"Server={Database_Server};Database={Database_Database};User Id={Database_UserId};Password={Database_Password};MultipleActiveResultSets=true";
 
                     builder
+                 
+                    .AddMySqlEventLogging(o => {
+                        o.WithEndpoint("Server=localhost;Port=63307;Database=test; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180");
+                    })
+                    //.AddSqlServerEventLogging(a =>
+                    //{
+                    //    a.WithEndpoint(DatabaseConnectionString);
+                    //})
                     .AddRabbitmq(factory =>
                     {
                         factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
@@ -129,10 +138,8 @@ namespace Hummingbird.WebApi
                     //    option.WithReceiver(1, 1);
                     //    option.WithSender(10, 3, 1000 * 5, 50);
                     //});
-                    //.AddSqlServerEventLogging(a =>
-                    // {
-                    //     a.WithEndpoint(DatabaseConnectionString);
-                    // });
+                
+                    
                 })
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
@@ -162,11 +169,8 @@ namespace Hummingbird.WebApi
                 {
                     sp.UseSubscriber(eventbus =>
                     {
-                        //eventbus.RegisterBatch<Events.NewMsgEvent, Events.NewMsgEventBatchHandler>("NewMsgEventBatchHandler", "NewMsgEvent");
-                        eventbus.Register<NewMsgEvent, NewMsgEventHandler>("NewMsgEventBatchHandler", "TestTopic");
-                        //eventbus.RegisterBatch<ChangeDataCaptureEvent, ChangeDataCaptureEventToESIndexHandler>("", "#");
-
-
+                        eventbus.Register<TestEvent, TestEventHandler1>("TestEventHandler", "TestEvent");
+                        eventbus.Register<TestEvent, TestEventHandler2>("TestEventHandler2", "TestEvent");
 
                         //订阅消息
                         eventbus.Subscribe((Messages) =>
@@ -203,20 +207,6 @@ namespace Hummingbird.WebApi
             app.UseMvc();
 
 
-        }
-    }
-
-    public class NewMsgEvent
-    { }
-
-    public class NewMsgEventHandler : Hummingbird.Extensions.EventBus.Abstractions.IEventHandler<NewMsgEvent>
-    {
-        public Task<bool> Handle(NewMsgEvent @event, Dictionary<string, object> headers, CancellationToken cancellationToken)
-        {
-
-            Console.WriteLine("handle");
-            System.Threading.Thread.Sleep(10);
-            return Task.FromResult(true);
         }
     }
 }
