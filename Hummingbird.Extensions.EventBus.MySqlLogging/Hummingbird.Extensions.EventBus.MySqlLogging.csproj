@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Version>1.15.0</Version>
+    <AssemblyName>Hummingbird.Extersions.EventBus.MySqlLogging</AssemblyName>
+    <RootNamespace>Hummingbird.Extersions.EventBus.MySqlLogging</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Hummingbird.Extensions.EventBus.MySqlLogging</PackageId>
+    <Authors>Hummingbird.Extensions.EventBus.MySqlLogging</Authors>
+    <Company>Hummingbird.Extensions.EventBus.MySqlLogging</Company>
+    <Product>Hummingbird.Extensions.EventBus.MySqlLogging</Product>
+    <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Description>一致性消息，基于MySql消息持久化</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="db.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="MySql.Data" Version="8.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extensions.EventBus\Hummingbird.Extensions.EventBus.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extensions.UidGenerator\Hummingbird.Extensions.UidGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <HintPath>..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.dependencyinjection.abstractions\2.0.0\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

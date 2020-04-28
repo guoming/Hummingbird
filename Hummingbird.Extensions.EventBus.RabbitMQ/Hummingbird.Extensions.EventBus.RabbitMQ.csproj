@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <ApplicationIcon />
+    <StartupObject />
+    <Version>1.15.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Description>一致性消息，Rabbitmq消息队列客户端</Description>
+    <Authors>Hummingbird.Extensions.EventBus.RabbitMQ</Authors>
+    <PackageId>Hummingbird.Extensions.EventBus.RabbitMQ</PackageId>
+    <Company>Hummingbird.Extensions.EventBus.RabbitMQ</Company>
+    <Product>Hummingbird.Extensions.EventBus.RabbitMQ</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.6.0" />
+    <PackageReference Include="Polly" Version="7.1.1" />
+    <PackageReference Include="RabbitMQ.Client" Version="5.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extensions.EventBus\Hummingbird.Extensions.EventBus.csproj" />
+    <ProjectReference Include="..\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj" />
+  </ItemGroup>
+
+</Project>

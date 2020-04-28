@@ -103,12 +103,12 @@ namespace Hummingbird.Extensions.HealthChecks
             factory.AutomaticRecoveryEnabled = true;
             factory.TopologyRecoveryEnabled = true;
             factory.UseBackgroundThreadsForIO = true;
-
+            var hosts = option.HostName.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
             builder.AddCheck($"RabbitMqCheck({name})", () =>
             {
                 try
                 {
-                    using (var connection = factory.CreateConnection())
+                    using (var connection = factory.CreateConnection(hosts))
                     {
                         if(connection.IsOpen)
                         {

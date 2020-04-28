@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+   <TargetFrameworks>netstandard2.0;</TargetFrameworks>
+  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  <Version>1.15.0</Version>
+  <Description>分布式锁实现</Description>
+  <Authors>GUOMING</Authors>
+  <Company>GUOMING</Company>
+  <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
+  <RepositoryType>git</RepositoryType>
+  <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <DefineConstants>NETSTANDARD</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hummingbird.Extensions.Cacheing\Hummingbird.Extensions.Cacheing.csproj" />
+  </ItemGroup>
+</Project>
