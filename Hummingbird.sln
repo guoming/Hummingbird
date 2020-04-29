@@ -65,8 +65,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Even
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.OpenTracking.Jaeger", "Hummingbird.Extensions.OpenTracking.Jaeger\Hummingbird.Extensions.OpenTracking.Jaeger.csproj", "{B64D2A90-7BF2-40D5-A718-290E116BB87A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.ServiceDiscoveryProvider.Consul", "Hummingbird.Extensions.ServiceDiscoveryProvider.Consul\Hummingbird.Extensions.ServiceDiscoveryProvider.Consul.csproj", "{12D419CF-7539-4EC7-93D1-2F696CE442B4}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,10 +179,6 @@ Global
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{12D419CF-7539-4EC7-93D1-2F696CE442B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{12D419CF-7539-4EC7-93D1-2F696CE442B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{12D419CF-7539-4EC7-93D1-2F696CE442B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{12D419CF-7539-4EC7-93D1-2F696CE442B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -218,7 +212,6 @@ Global
 		{CB00B864-5606-4CFB-9458-A66A62789B09} = {54CC6103-E558-4122-9147-B73F2265997E}
 		{181E2F94-FABE-4FA9-91BD-6EBF9519C056} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
-		{12D419CF-7539-4EC7-93D1-2F696CE442B4} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

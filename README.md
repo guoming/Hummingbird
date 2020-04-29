@@ -591,23 +591,24 @@ appsettings.json
             services.AddHummingbird(hummingbird =>
             {
                 hummingbird                
-                 .AddResilientHttpClient((orign, option) =>
+                .AddResilientHttpClient((orign, option) =>
                  {
-                     if (string.IsNullOrEmpty(orign))
+                     var setting = Configuration.GetSection("HttpClient");
+
+                     if (!string.IsNullOrEmpty(orign))
                      {
-                         option.TimeoutMillseconds = int.Parse(Configuration["HttpClient:TimeoutMillseconds"]); //调用超时毫秒数
-                         option.RetryCount = int.Parse(Configuration["HttpClient:RetryCount"]);  //调用失败重试次数
-                         option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration["HttpClient:ExceptionsAllowedBeforeBreaking"]); // 调用熔断前允许的异常梳理，超过则
-                         option.DurationSecondsOfBreak = int.Parse(Configuration["HttpClient:DurationSecondsOfBreak"]); // 调用熔断持续时间(秒)                         
+                         var orginSetting = Configuration.GetSection($"HttpClient:{orign.ToUpper()}");
+                         if(orginSetting.Exists())
+                         {
+                             setting = orginSetting;
+                         }
                      }
-                     else
-                     {
-                         option.DurationSecondsOfBreak = int.Parse(Configuration[$"HttpClient:{orign.ToUpper()}:DurationSecondsOfBreak"]);
-                         option.ExceptionsAllowedBeforeBreaking = int.Parse(Configuration[$"HttpClient:{orign.ToUpper()}:ExceptionsAllowedBeforeBreaking"]);
-                         option.RetryCount = int.Parse(Configuration[$"HttpClient:{orign.ToUpper()}:RetryCount"]);
-                         option.TimeoutMillseconds = int.Parse(Configuration[$"HttpClient:{orign.ToUpper()}:TimeoutMillseconds"]);
-                     }
-                 })              
+
+                     option.DurationSecondsOfBreak = int.Parse(setting["DurationSecondsOfBreak"]);
+                     option.ExceptionsAllowedBeforeBreaking = int.Parse(setting["ExceptionsAllowedBeforeBreaking"]);
+                     option.RetryCount = int.Parse(setting["RetryCount"]);
+                     option.TimeoutMillseconds = int.Parse(setting["TimeoutMillseconds"]);
+                 })             
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
                      s.AddTags("version=v1");
