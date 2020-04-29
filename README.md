@@ -591,6 +591,7 @@ appsettings.json
             services.AddHummingbird(hummingbird =>
             {
                 hummingbird                
+
                 .AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");
@@ -609,6 +610,7 @@ appsettings.json
                      option.RetryCount = int.Parse(setting["RetryCount"]);
                      option.TimeoutMillseconds = int.Parse(setting["TimeoutMillseconds"]);
                  })             
+
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
                      s.AddTags("version=v1");
