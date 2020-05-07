@@ -1,4 +1,5 @@
 ﻿using Consul;
+using Hummingbird.Extensions.HealthChecks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,6 +19,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
     {
         private static List<AgentServiceRegistration> registrations = new List<AgentServiceRegistration>();
         private static ILogger<ConsulClient> logger;
+        private static IHealthCheckService healthCheckService;
         private static ConsulConfig serviceConfig = new ConsulConfig();
         private static ConsulClient client;
 
@@ -39,8 +41,8 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
 
         }
 
-        
 
+        #region 日志
         private static void LogDebug(string message, params object[] objs)
         {
             logger?.LogDebug( message, objs);
@@ -65,15 +67,18 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
         {
             logger?.LogInformation(message, objs);
         }
-        
+        #endregion
+
 
         public static void Build(IServiceProvider serviceProvider, Action<ConsulConfig> setup)
         {
+            healthCheckService = ServiceProviderServiceExtensions.GetService<IHealthCheckService>(serviceProvider);
             var hosting = ServiceProviderServiceExtensions.GetService<IHostingEnvironment>(serviceProvider);
             var configuration = ServiceProviderServiceExtensions.GetService<IConfiguration>(serviceProvider);
+
             logger = ServiceProviderServiceExtensions.GetService<ILogger<ConsulClient>>(serviceProvider);
 
-            var urls = string.Empty; ;
+            var urls = string.Empty;
             var tags = new List<string>();
 
             if(configuration!=null)
@@ -92,8 +97,6 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                 {
                     tags.Add(hosting.ApplicationName);
                 }
-
-             
             }
 
             try
@@ -238,19 +241,64 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                     var timer = new System.Timers.Timer((double)(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL) * 1000));
                     timer.Elapsed += async delegate
                     {
-                        foreach(var registration in registrations)
+                        try
                         {
-                         
-                            try
+                            var result = await healthCheckService.CheckHealthAsync();
+                            var status = result.CheckStatus;
+
+                            if (status == CheckStatus.Healthy)
                             {
-                                await client.Agent.PassTTL("service:" + registration.ID, "", default(CancellationToken));
-                                LogDebug("service " + registration.ID + " ttl passing", Array.Empty<object>());
+                                foreach (var registration in registrations)
+                                {
+                                    try
+                                    {
+                                        await client.Agent.PassTTL("service:" + registration.ID, result.Description, default(CancellationToken));
+                                        LogDebug("service " + registration.ID + " ttl passing", Array.Empty<object>());
+                                    }
+                                    catch (Exception ex)
+                                    {
+
+                                        LogWarning(ex, ex.Message);
+                                    }
+                                }
                             }
-                            catch(Exception ex)
+                            else if (status == CheckStatus.Warning)
                             {
-                             
-                                LogWarning(ex,ex.Message);
+                                foreach (var registration in registrations)
+                                {
+
+                                    try
+                                    {
+                                        await client.Agent.WarnTTL("service:" + registration.ID, result.Description, default(CancellationToken));
+                                        LogDebug("service " + registration.ID + " ttl warn", Array.Empty<object>());
+                                    }
+                                    catch (Exception ex)
+                                    {
+
+                                        LogWarning(ex, ex.Message);
+                                    }
+                                }
                             }
+                            else
+                            {
+                                foreach (var registration in registrations)
+                                {
+
+                                    try
+                                    {
+                                        await client.Agent.FailTTL("service:" + registration.ID, result.Description, default(CancellationToken));
+                                        LogDebug("service " + registration.ID + " ttl failed", Array.Empty<object>());
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogWarning(ex, ex.Message);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LogError(ex, ex.Message);
                         }
                     };
                     timer.Start();

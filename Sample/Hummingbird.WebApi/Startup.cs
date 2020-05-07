@@ -104,43 +104,46 @@ namespace Hummingbird.WebApi
                     var DatabaseConnectionString = $"Server={Database_Server};Database={Database_Database};User Id={Database_UserId};Password={Database_Password};MultipleActiveResultSets=true";
 
                     builder
-                 
-                    .AddMySqlEventLogging(o => {
+
+                    .AddMySqlEventLogging(o =>
+                    {
                         o.WithEndpoint("Server=localhost;Port=63307;Database=test; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180");
-                    })
+                    });
                     //.AddSqlServerEventLogging(a =>
                     //{
                     //    a.WithEndpoint(DatabaseConnectionString);
                     //})
-                    .AddRabbitmq(factory =>
-                    {
-                        factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                        factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                        factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                        factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
-                        factory.WithSender(10);
-                    });
-                    //builder.AddKafka(option =>
+                    //.AddRabbitmq(factory =>
                     //{
-                    //    option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
-                    //    {
-
-                    //        EnableDeliveryReports = true,
-                    //        BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
-                    //        // Debug = "msg" //  Debug = "broker,topic,msg"
-                    //    });
-
-                    //    option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
-                    //    {
-                    //        // Debug= "consumer,cgrp,topic,fetch",
-                    //        GroupId = "test-consumer-group",
-                    //        BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
-                    //    });
-                    //    option.WithReceiver(1, 1);
-                    //    option.WithSender(10, 3, 1000 * 5, 50);
+                    //    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                    //    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                    //    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                    //    factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
+                    //    factory.WithSender(10);
                     //});
-                
-                    
+                    builder.AddKafka(option =>
+                    {
+                        option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
+                        {
+
+                            EnableDeliveryReports = true,
+                            //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
+                            BootstrapServers= "192.168.9.194:9092,192.168.9.195:9092,192.168.9.196:9092",
+                            //Debug = "msg" //  Debug = "broker,topic,msg"
+                        });
+
+                        option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
+                        {
+                            // Debug= "consumer,cgrp,topic,fetch",
+                            GroupId = "test-consumer-group",
+                            //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
+                            BootstrapServers = "192.168.9.194:9092,192.168.9.195:9092,192.168.9.196:9092"
+                        });
+                        option.WithReceiver(1, 1);
+                        option.WithSender(10, 3, 100, 50);
+                    });
+
+
                 })
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
