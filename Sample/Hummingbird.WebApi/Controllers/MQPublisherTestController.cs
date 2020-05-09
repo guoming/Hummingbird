@@ -25,16 +25,23 @@ namespace Hummingbird.Example.Controllers
             this.eventBus = eventBus;
         }
 
+        [HttpGet]
+        [Route("Empty")]
+        public async Task<string> Empty()
+        {
+            return "";
+        }
+
 
         [HttpGet]
         [Route("Test1")]
         public async Task<string> Test1()
         {
             var events = new List<EventLogEntry>() {
-                   new EventLogEntry("TestEvent",new Events.TestEvent() {
+                   new EventLogEntry("fip_logistics_temp",new Events.TestEvent() {
                       EventType="Test1"
                    }),
-                   new EventLogEntry("TestEvent",new {
+                   new EventLogEntry("fip_logistics_temp",new {
                         EventType="Test1"
                    }),
             };
