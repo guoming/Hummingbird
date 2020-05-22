@@ -88,69 +88,88 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
 
                 while (true)
                 {
-                    var rs = (await _client.KV.Acquire(new KVPair($"{_resourceId}/LOCK") { Session = _sessionId })).Response;
-
-                    if (rs)
+                    try
                     {
-                        var rs2 = (await _client.KV.Acquire(new KVPair($"{_resourceId}/{_serviceId}") { Session = _sessionId })).Response;
+                        var rs = (await _client.KV.Acquire(new KVPair($"{_resourceId}/LOCK") { Session = _sessionId })).Response;
 
-                        if (rs2)
+                        if (rs)
                         {
-                            var kvList = await _client.KV.List(_resourceId);
+                            var rs2 = (await _client.KV.Acquire(new KVPair($"{_resourceId}/{_serviceId}") { Session = _sessionId })).Response;
 
-                            var workIdRange = new List<int> { };
-
-                            for (int i = 0; i < IdWorker.MaxWorkerId; i++)
+                            if (rs2)
                             {
-                                workIdRange.Add(i);
-                            }
+                                var kvList = await _client.KV.List(_resourceId);
 
-                            #region 排除已经存在workId
-                            foreach (var item in kvList.Response)
-                            {
-                                var key = item.Key;
-                                if (item.Value != null)
+                                var workIdRange = new List<int> { };
+
+                                for (int i = 0; i < IdWorker.MaxWorkerId; i++)
                                 {
-                                    var value = Encoding.UTF8.GetString(item.Value, 0, item.Value.Length);
-                                    if (int.TryParse(value, out int id))
+                                    workIdRange.Add(i);
+                                }
+
+                                #region 排除已经存在workId
+                                foreach (var item in kvList.Response)
+                                {
+                                    var key = item.Key;
+                                    if (item.Value != null)
                                     {
-                                        workIdRange.Remove(id);
+                                        var value = Encoding.UTF8.GetString(item.Value, 0, item.Value.Length);
+                                        if (int.TryParse(value, out int id))
+                                        {
+                                            workIdRange.Remove(id);
+                                        }
                                     }
                                 }
-                            }
-                            #endregion
+                                #endregion
 
 
-                            //存在可用的workId
-                            if (workIdRange.Any())
-                            {
-                                _workId = workIdRange.First();
-                                var ret = await _client.KV.Put(new KVPair($"{_resourceId}/{_serviceId}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(_workId.ToString()) });
-
-                                if (ret.StatusCode== HttpStatusCode.OK && !ret.Response)
+                                //存在可用的workId
+                                if (workIdRange.Any())
                                 {
-                                    throw new Exception($"Failed to allocate workid, failed to set workid");
+                                    _workId = workIdRange.First();
+                                    var ret = await _client.KV.Put(new KVPair($"{_resourceId}/{_serviceId}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(_workId.ToString()) });
+
+                                    if (ret.StatusCode == HttpStatusCode.OK && !ret.Response)
+                                    {
+                                        throw new Exception($"Failed to allocate workid, failed to set workid");
+                                    }
                                 }
+                                else
+                                {
+                                    throw new Exception($"Failed to allocate workid, no workid available");
+                                }
+
+                                break;
                             }
                             else
                             {
-                                throw new Exception($"Failed to allocate workid, no workid available");
+                                Console.WriteLine($"#sessionId={_sessionId}.#lock={_resourceId}/{_serviceId}.Failed to allocate workid, try again in 5 seconds");
+                                await System.Threading.Tasks.Task.Delay(5000);
+                                continue;
                             }
-
-                            break;
                         }
                         else
                         {
-                            Console.WriteLine($"#sessionId={_sessionId}.#lock={_resourceId}/{_serviceId}.Failed to allocate workid, try again in 5 seconds");
+                            Console.WriteLine($"#sessionId={_sessionId}.#lock={_resourceId}/LOCK Failed to allocate workid, try again in 5 seconds");
                             await System.Threading.Tasks.Task.Delay(5000);
                             continue;
                         }
-                    }
-                    else
+                    }                    
+                    finally
                     {
-                        Console.WriteLine($"#sessionId={_sessionId}.#lock={_resourceId}/LOCK Failed to allocate workid, try again in 5 seconds");
-                        await System.Threading.Tasks.Task.Delay(5000);
-                        continue;
+                        while(true)
+                        {
+                            var rs = (await _client.KV.Release(new KVPair($"{_resourceId}/LOCK") { Session = _sessionId })).Response;
+                            if(rs)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                await System.Threading.Tasks.Task.Delay(5000);
+                                continue;
+                            }
+                        }
                     }
                 }
 
