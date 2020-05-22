@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Hummingbird.AspNetCore.HealthChecks\Hummingbird.AspNetCore.HealthChecks.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
@@ -31,6 +32,7 @@
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.Rabbitmq\Hummingbird.Extensions.HealthChecks.Rabbitmq.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.Redis\Hummingbird.Extensions.HealthChecks.Redis.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks.SqlServer\Hummingbird.Extensions.HealthChecks.SqlServer.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extensions.HealthChecks\Hummingbird.Extensions.HealthChecks.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.OpenTracking.Jaeger\Hummingbird.Extensions.OpenTracking.Jaeger.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.Cacheing\Hummingbird.Extensions.Cacheing.csproj" />
@@ -43,6 +45,7 @@
     <ProjectReference Include="..\..\Hummingbird.Extensions.EventBus\Hummingbird.Extensions.EventBus.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.Idempotency\Hummingbird.Extensions.Idempotency.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.Resilience.Http\Hummingbird.Extensions.Resilience.Http.csproj" />
+    <ProjectReference Include="..\..\Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy\Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy.csproj" />
     <ProjectReference Include="..\..\Hummingbird.Extensions.UidGenerator\Hummingbird.Extensions.UidGenerator.csproj" />
     <ProjectReference Include="..\..\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj" />
   </ItemGroup>

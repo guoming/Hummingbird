@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.1;netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
+    <DefineConstants>NETCORE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Consul" Version="0.7.2.6" />
+    <PackageReference Include="DumpExtensions" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.4" />    
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+    <ProjectReference Include="..\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
+    <ProjectReference Include="..\Hummingbird.Extensions.UidGenerator\Hummingbird.Extensions.UidGenerator.csproj" />
+  </ItemGroup>
+
+</Project>

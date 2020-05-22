@@ -1,5 +1,6 @@
 ﻿using Hummingbird.Core;
 using Hummingbird.Extensions.UidGenerator;
+using Hummingbird.Extensions.UidGenerator.Abastracts;
 using Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy;
 using System;
 
@@ -7,53 +8,54 @@ using System;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public class IdGeneratorOption
-    {
-
-        /// <summary>
-        /// 数据中心ID(默认0)
-        /// </summary>
-        public int CenterId { get; set; } = 0;
-
-        public int WorkId
-        {
-            get
-            {
-                return WorkIdCreateStrategy.NextId();
-            }
-        }
-
-        /// <summary>
-        /// 工作进程ID初始化策略
-        /// </summary>
-        internal IWorkIdCreateStrategy WorkIdCreateStrategy { get; set; }
-    }
-
-
+   
     public static class DependencyInjectionExtersion
     {
-        public static IHummingbirdHostBuilder AddSnowflakeUniqueIdGenerator(this IHummingbirdHostBuilder hostBuilder, Action<IdGeneratorOption> setup)
+   
+
+        public static IHummingbirdHostBuilder AddSnowflakeUniqueIdGenerator(
+            this IHummingbirdHostBuilder hostBuilder, 
+            Action<IWorkIdCreateStrategyBuilder> workIdCreateStrategyBuilder)
         {
-            var option = new IdGeneratorOption();
-            setup(option);
+            
+            var builder = new WorkIdCreateStrategyBuilder(hostBuilder.Services);
+          
+            workIdCreateStrategyBuilder(builder);
 
             hostBuilder.Services.AddSingleton<IUniqueIdGenerator>(sp =>
             {
-                var workId = option.WorkIdCreateStrategy.NextId();
-                return new SnowflakeUniqueIdGenerator(workId, option.CenterId);
+                var WorkIdCreateStrategy = sp.GetService<IWorkIdCreateStrategy>();
+                var workId = WorkIdCreateStrategy.NextId().Result;
+                return new SnowflakeUniqueIdGenerator(workId, builder.CenterId);
             });
+
             return hostBuilder;
         }
 
-        public static void UseStaticWorkIdCreateStrategy(this IdGeneratorOption option, int WorkId)
+        public static IWorkIdCreateStrategyBuilder AddStaticWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder, int WorkId)
         {
-            option.WorkIdCreateStrategy = new StaticWorkIdCreateStrategy(WorkId);
+            hostBuilder.Services.AddSingleton<IWorkIdCreateStrategy>(sp =>
+            {
+                var strategy=  new StaticWorkIdCreateStrategy(WorkId);
+                return strategy;
+            });
+
+            return hostBuilder;
+
         }
-    
-        public static void UseHostNameWorkIdCreateStrategy(this IdGeneratorOption option)
+
+        public static IWorkIdCreateStrategyBuilder AddHostNameWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder)
         {
-            option.WorkIdCreateStrategy = new HostNameWorkIdCreateStrategy();
+            hostBuilder.Services.AddSingleton<IWorkIdCreateStrategy>(sp =>
+            {
+                var strategy= new HostNameWorkIdCreateStrategy();
+                return strategy;
+            });
+
+            return hostBuilder;
         }
+
+
     }
 
 }

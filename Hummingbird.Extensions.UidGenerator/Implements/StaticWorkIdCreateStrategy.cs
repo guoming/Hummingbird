@@ -1,4 +1,6 @@
-﻿namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
+﻿using System.Threading.Tasks;
+
+namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
 {
     public class StaticWorkIdCreateStrategy : IWorkIdCreateStrategy
     {
@@ -14,9 +16,9 @@
         /// 获取1~32之间的数字
         /// </summary>
         /// <returns></returns>
-        public int NextId()
+        public Task<int> NextId()
         {
-            return _WorkId;
+            return Task.FromResult(_WorkId);
         }
     }
 }

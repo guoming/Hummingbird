@@ -1,6 +1,6 @@
 ﻿{
   "Tracing": {
-    "Open": true,
+    "Open": false,
     "SerivceName": "Test",
     "FlushIntervalSeconds": 15,
     "SamplerType": "const",

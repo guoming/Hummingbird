@@ -46,8 +46,7 @@ namespace Hummingbird.WebApi
             
             services.AddHummingbird(hummingbird =>
             {
-                hummingbird                
-                 .AddResilientHttpClient((orign, option) =>
+                hummingbird.AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");
 
@@ -85,11 +84,15 @@ namespace Hummingbird.WebApi
                     option.Druation = TimeSpan.FromMinutes(5);
                     option.CacheRegion = "Idempotency";
                 })
-
-                .AddSnowflakeUniqueIdGenerator(IdGenerator =>
+                 .AddConsulDynamicRoute(Configuration, s =>
+                 {
+                     s.AddTags("22");
+                 })
+                .AddSnowflakeUniqueIdGenerator((workIdBuilder) =>
                 {
-                    IdGenerator.CenterId = 0;
-                    IdGenerator.UseStaticWorkIdCreateStrategy(0);
+                    workIdBuilder.CenterId = 0;
+                    //workIdBuilder.AddStaticWorkIdCreateStrategy(1);
+                    var WorkId = workIdBuilder.AddConsulWorkIdCreateStrategy(Configuration["SERVICE_NAME"]);
                 })
                 .AddOpenTracing(builder => {
 
@@ -128,7 +131,7 @@ namespace Hummingbird.WebApi
 
                             EnableDeliveryReports = true,
                             //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
-                            BootstrapServers= "192.168.9.194:9092,192.168.9.195:9092,192.168.9.196:9092",
+                            BootstrapServers = "192.168.9.194:9092,192.168.9.195:9092,192.168.9.196:9092",
                             //Debug = "msg" //  Debug = "broker,topic,msg"
                         });
 
@@ -144,16 +147,8 @@ namespace Hummingbird.WebApi
                     });
 
 
-                })
-                .AddConsulDynamicRoute(Configuration, s =>
-                 {
-                     
-                     s.AddTags("22");
-                 });
-
+                });
             });
-
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -169,7 +164,6 @@ namespace Hummingbird.WebApi
 
             app.UseHummingbird(humming =>
             {
-              
                 humming.UseEventBus(sp =>
                 {
                     sp.UseSubscriber(eventbus =>
@@ -206,7 +200,7 @@ namespace Hummingbird.WebApi
                         });
                     });
                 });
-
+                
             });
             app.UseMvc();
 

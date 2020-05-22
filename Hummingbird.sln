@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30104.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{54CC6103-E558-4122-9147-B73F2265997E}"
 EndProject
@@ -64,6 +64,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.EventBus.Kafka", "Hummingbird.Extensions.EventBus.Kafka\Hummingbird.Extensions.EventBus.Kafka.csproj", "{181E2F94-FABE-4FA9-91BD-6EBF9519C056}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.OpenTracking.Jaeger", "Hummingbird.Extensions.OpenTracking.Jaeger\Hummingbird.Extensions.OpenTracking.Jaeger.csproj", "{B64D2A90-7BF2-40D5-A718-290E116BB87A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy", "Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy\Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy.csproj", "{F7EA3E32-4389-4AFA-89A9-56A25A60F530}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -179,6 +181,10 @@ Global
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7EA3E32-4389-4AFA-89A9-56A25A60F530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7EA3E32-4389-4AFA-89A9-56A25A60F530}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7EA3E32-4389-4AFA-89A9-56A25A60F530}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7EA3E32-4389-4AFA-89A9-56A25A60F530}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -212,6 +218,7 @@ Global
 		{CB00B864-5606-4CFB-9458-A66A62789B09} = {54CC6103-E558-4122-9147-B73F2265997E}
 		{181E2F94-FABE-4FA9-91BD-6EBF9519C056} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{F7EA3E32-4389-4AFA-89A9-56A25A60F530} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
