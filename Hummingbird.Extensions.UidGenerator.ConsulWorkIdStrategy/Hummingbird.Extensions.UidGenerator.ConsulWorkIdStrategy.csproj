@@ -2,14 +2,13 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;netstandard2.0</TargetFrameworks>
-    <Version>1.15.1</Version>
+    <Version>1.15.3</Version>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>NETCORE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Consul" Version="0.7.2.6" />
-    <PackageReference Include="DumpExtensions" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.4" />    
   </ItemGroup>

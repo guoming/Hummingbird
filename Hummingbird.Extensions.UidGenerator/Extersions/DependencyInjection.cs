@@ -5,7 +5,6 @@ using Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy;
 using System;
 
 
-
 namespace Microsoft.Extensions.DependencyInjection
 {
    
@@ -28,6 +27,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 var workId = WorkIdCreateStrategy.NextId().Result;
                 return new SnowflakeUniqueIdGenerator(workId, builder.CenterId);
             });
+
+#if NETCORE
+            hostBuilder.Services.AddHostedService<InitWorkIdHostedService>();
+#endif
 
             return hostBuilder;
         }

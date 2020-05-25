@@ -31,7 +31,7 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
             this._client = consulClient;
             this._appId = appId;
             this._serviceId = _serviceDiscoveryProvider.ServiceId;
-            this._resourceId = $"workId/{this._appId}";
+            this._resourceId = $"workid/{this._appId}";
             this._sessionId = string.Empty;
 
             CreateSession();
@@ -66,8 +66,7 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
                                 };
                                 #endregion
 
-                                _client.Session.RenewPeriodic(TimeSpan.FromSeconds(5), _sessionId, CancellationToken.None);
-
+                                _client.Session.RenewPeriodic(TimeSpan.FromSeconds(5), _sessionId, CancellationToken.None);                                
                                 return;
                             }
                             else
@@ -85,7 +84,6 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
         {
             if (!_workId.HasValue)
             {
-
                 while (true)
                 {
                     try
@@ -94,59 +92,43 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
 
                         if (rs)
                         {
-                            var rs2 = (await _client.KV.Acquire(new KVPair($"{_resourceId}/{_serviceId}") { Session = _sessionId })).Response;
-
-                            if (rs2)
+                            var kvList = await _client.KV.List(_resourceId);
+                            var workIdRange = new List<int> { };
+                            
+                            for (int i = 0; i < IdWorker.MaxWorkerId; i++)
                             {
-                                var kvList = await _client.KV.List(_resourceId);
+                                workIdRange.Add(i);
+                            }
 
-                                var workIdRange = new List<int> { };
-
-                                for (int i = 0; i < IdWorker.MaxWorkerId; i++)
+                            #region 排除已经存在workId
+                            foreach (var item in kvList.Response)
+                            {
+                                if (int.TryParse(item.Key.Replace($"{_resourceId}/",""), out int id))
                                 {
-                                    workIdRange.Add(i);
+                                    workIdRange.Remove(id);
                                 }
+                            }
+                            #endregion
 
-                                #region 排除已经存在workId
-                                foreach (var item in kvList.Response)
+                            //存在可用的workId
+                            if (workIdRange.Any())
+                            {
+                                _workId = workIdRange.First();
+
+                                var ret = await _client.KV.Acquire(new KVPair($"{_resourceId}/{_workId}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(_serviceId.ToString()) });
+
+                                if (ret.StatusCode == HttpStatusCode.OK && !ret.Response)
                                 {
-                                    var key = item.Key;
-                                    if (item.Value != null)
-                                    {
-                                        var value = Encoding.UTF8.GetString(item.Value, 0, item.Value.Length);
-                                        if (int.TryParse(value, out int id))
-                                        {
-                                            workIdRange.Remove(id);
-                                        }
-                                    }
+                                    throw new Exception($"Failed to allocate workid, failed to set workid");
                                 }
-                                #endregion
-
-
-                                //存在可用的workId
-                                if (workIdRange.Any())
-                                {
-                                    _workId = workIdRange.First();
-                                    var ret = await _client.KV.Put(new KVPair($"{_resourceId}/{_serviceId}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(_workId.ToString()) });
-
-                                    if (ret.StatusCode == HttpStatusCode.OK && !ret.Response)
-                                    {
-                                        throw new Exception($"Failed to allocate workid, failed to set workid");
-                                    }
-                                }
-                                else
-                                {
-                                    throw new Exception($"Failed to allocate workid, no workid available");
-                                }
-
-                                break;
                             }
                             else
                             {
-                                Console.WriteLine($"#sessionId={_sessionId}.#lock={_resourceId}/{_serviceId}.Failed to allocate workid, try again in 5 seconds");
-                                await System.Threading.Tasks.Task.Delay(5000);
-                                continue;
+                                throw new Exception($"Failed to allocate workid, no workid available");
                             }
+
+                            break;
+
                         }
                         else
                         {

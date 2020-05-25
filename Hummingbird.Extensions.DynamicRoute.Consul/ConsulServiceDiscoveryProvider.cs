@@ -320,7 +320,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                 policy.Execute((Func<Task>)async delegate
                 {
                     LogInformation("service " + item3.ID + " registration", Array.Empty<object>());
-                    WriteResult ret3 = await _client.Agent.ServiceRegister(item3, default(CancellationToken));
+                    WriteResult ret3 = await _client.Agent.ServiceRegister(item3, default(CancellationToken));                    
                     LogInformation($"service {item3.ID} registered. time={ret3.RequestTime},statusCode={ret3.StatusCode}", Array.Empty<object>());
                 });
             }
