@@ -91,7 +91,7 @@ namespace Hummingbird.Extensions.UidGenerator
         //序列号识位数
         const int SequenceBits = 12;
         //机器ID最大值
-        const long MaxWorkerId = -1L ^ (-1L << WorkerIdBits);
+        public const long MaxWorkerId = -1L ^ (-1L << WorkerIdBits);
         //数据标志ID最大值
         const long MaxDatacenterId = -1L ^ (-1L << DatacenterIdBits);
         //序列号ID最大值

@@ -1,6 +1,8 @@
-﻿using Hummingbird.Extensions.HealthChecks;
+﻿using Hummingbird.DynamicRoute;
+using Hummingbird.Extensions.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,30 +18,32 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly IApplicationLifetime _lifetime;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceDiscoveryProvider _serviceDiscoveryProvider;
 
         public ConsulServiceRegisterHostedService(
             IApplicationLifetime lifetime,
             IServiceProvider serviceProvider,
+            IServiceDiscoveryProvider serviceDiscoveryProvider,
             ConsulConfig serviceConfig)
         {
             _lifetime = lifetime;
             _serviceProvider = serviceProvider;
             _cancellationTokenSource = new CancellationTokenSource();            
             _serviceConfig = serviceConfig;
+            _serviceDiscoveryProvider = serviceDiscoveryProvider;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-           ConsulGlobalServiceRegistry.Build(_serviceProvider, a => a.WithConfig(_serviceConfig));
 
             _lifetime.ApplicationStarted.Register(delegate
             {
-               ConsulGlobalServiceRegistry.Register();
+                _serviceDiscoveryProvider.Register();
 
             });
             _lifetime.ApplicationStopping.Register(delegate
             {
-                ConsulGlobalServiceRegistry.Deregister();
+                _serviceDiscoveryProvider.Deregister();
             });
         }
 

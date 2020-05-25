@@ -1,4 +1,5 @@
 ﻿using Consul;
+using Hummingbird.DynamicRoute;
 using Hummingbird.Extensions.HealthChecks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,16 +16,17 @@ using System.Threading.Tasks;
 
 namespace Hummingbird.Extensions.DynamicRoute.Consul
 {
-    internal static class ConsulGlobalServiceRegistry
+    class ConsulServiceDiscoveryProvider : IServiceDiscoveryProvider
     {
-        private static List<AgentServiceRegistration> registrations = new List<AgentServiceRegistration>();
-        private static ILogger<ConsulClient> logger;
-        private static IHealthCheckService healthCheckService;
-        private static ConsulConfig serviceConfig = new ConsulConfig();
-        private static ConsulClient client;
-
+        private readonly IHealthCheckService _healthCheckService;
+        private readonly ILogger<ConsulServiceDiscoveryProvider> _logger;
+        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IConfiguration _configuration;
+        private readonly ConsulConfig _serviceConfig = new ConsulConfig();
+        private readonly IConsulClient _client;
+        private readonly List<AgentServiceRegistration> _registrations;
         /**获取ip地址*/
-        private static List<string> getIps()
+        private List<string> getIps()
         {
             var ips = new List<string>();
             var addressList = Dns.GetHostEntry(Dns.GetHostName()).AddressList;//IP获取一个LIST里面有一个是IP
@@ -41,81 +43,78 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
 
         }
 
-
         #region 日志
-        private static void LogDebug(string message, params object[] objs)
+        private void LogDebug(string message, params object[] objs)
         {
-            logger?.LogDebug( message, objs);
+            _logger?.LogDebug(message, objs);
         }
 
-        private static void LogWarning(Exception exception, string message, params object[] objs)
+        private void LogWarning(Exception exception, string message, params object[] objs)
         {
-            logger?.LogWarning(exception, message, objs);
+            _logger?.LogWarning(exception, message, objs);
         }
 
-        private static void LogWarning(string message)
+        private void LogWarning(string message)
         {
-            logger?.LogWarning(message);
+            _logger?.LogWarning(message);
         }
 
-        private static void LogError(Exception exception, string message, params object[] objs)
+        private void LogError(Exception exception, string message, params object[] objs)
         {
-            logger?.LogError(exception, message, objs);
+            _logger?.LogError(exception, message, objs);
         }
 
-        private static void LogInformation(string message, params object[] objs)
+        private void LogInformation(string message, params object[] objs)
         {
-            logger?.LogInformation(message, objs);
+            _logger?.LogInformation(message, objs);
         }
         #endregion
 
-
-        public static void Build(IServiceProvider serviceProvider, Action<ConsulConfig> setup)
+        public ConsulServiceDiscoveryProvider(
+            IConsulClient client,
+            IHealthCheckService healthCheckService,
+            ILogger<ConsulServiceDiscoveryProvider> logger,
+            IHostingEnvironment hostingEnvironment,
+            IConfiguration configuration,      
+            ConsulConfig consulConfig)
         {
-            healthCheckService = ServiceProviderServiceExtensions.GetService<IHealthCheckService>(serviceProvider);
-            var hosting = ServiceProviderServiceExtensions.GetService<IHostingEnvironment>(serviceProvider);
-            var configuration = ServiceProviderServiceExtensions.GetService<IConfiguration>(serviceProvider);
-
-            logger = ServiceProviderServiceExtensions.GetService<ILogger<ConsulClient>>(serviceProvider);
-
+            this._client =client;
+            this._healthCheckService = healthCheckService;
+            this._logger = logger;
+            this._hostingEnvironment = hostingEnvironment;
+            this._configuration = configuration;
+            this._serviceConfig = consulConfig;
+            this._registrations = new List<AgentServiceRegistration>();
+                
             var urls = string.Empty;
             var tags = new List<string>();
 
-            if(configuration!=null)
+            if (configuration != null)
             {
                 urls = configuration["urls"]?.TrimEnd('/');
             }
 
-            if (hosting != null)
+            if (hostingEnvironment != null)
             {
-                if (!string.IsNullOrEmpty(hosting.EnvironmentName))
+                if (!string.IsNullOrEmpty(hostingEnvironment.EnvironmentName))
                 {
-                    tags.Add(hosting.EnvironmentName);
+                    tags.Add(hostingEnvironment.EnvironmentName);
                 }
 
-                if (!string.IsNullOrEmpty(hosting.ApplicationName))
+                if (!string.IsNullOrEmpty(hostingEnvironment.ApplicationName))
                 {
-                    tags.Add(hosting.ApplicationName);
+                    tags.Add(hostingEnvironment.ApplicationName);
                 }
             }
 
             try
             {
-                setup?.Invoke(serviceConfig);
-
-                if (!string.IsNullOrEmpty(serviceConfig.SERVICE_TAGS))
+                if (!string.IsNullOrEmpty(_serviceConfig.SERVICE_TAGS))
                 {
-                    tags.AddRange(serviceConfig.SERVICE_TAGS.Split(','));
+                    tags.AddRange(_serviceConfig.SERVICE_TAGS.Split(','));
                 }
-
-                client = new ConsulClient(delegate (ConsulClientConfiguration obj)
-                {
-                    obj.Address = new Uri("http://" + serviceConfig.SERVICE_REGISTRY_ADDRESS + ":" + serviceConfig.SERVICE_REGISTRY_PORT);
-                    obj.Datacenter = serviceConfig.SERVICE_REGION;
-                    obj.Token = serviceConfig.SERVICE_REGISTRY_TOKEN;
-                });
-
-                if (string.IsNullOrEmpty(serviceConfig.SERVICE_SELF_REGISTER) || serviceConfig.SERVICE_SELF_REGISTER.ToLower() == bool.TrueString.ToString().ToLower())
+            
+                if (string.IsNullOrEmpty(_serviceConfig.SERVICE_SELF_REGISTER) || _serviceConfig.SERVICE_SELF_REGISTER.ToLower() == bool.TrueString.ToString().ToLower())
                 {
                     if (!string.IsNullOrEmpty(urls) && urls.Contains("/") && urls.Contains(":"))
                     {
@@ -134,19 +133,21 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                             ipList.Add(ip);
                         }
 
+
+
                         if (port > 0)
                         {
                             foreach (string item2 in ipList)
                             {
                                 AgentServiceRegistration agentServiceRegistration = new AgentServiceRegistration();
-                                agentServiceRegistration.ID = string.IsNullOrEmpty(serviceConfig.SERVICE_ID) ? $"{serviceConfig.SERVICE_NAME}:{item2}:{port}" : $"{serviceConfig.SERVICE_NAME}:{serviceConfig.SERVICE_ID}";
-                                agentServiceRegistration.Name = serviceConfig.SERVICE_NAME;
+                                agentServiceRegistration.ID = string.IsNullOrEmpty(_serviceConfig.SERVICE_ID) ? $"{_serviceConfig.SERVICE_NAME}:{item2}:{port}" : $"{_serviceConfig.SERVICE_NAME}:{_serviceConfig.SERVICE_ID}";
+                                agentServiceRegistration.Name = _serviceConfig.SERVICE_NAME;
                                 agentServiceRegistration.Address = item2;
-                                agentServiceRegistration.Port = port;   
+                                agentServiceRegistration.Port = port;
                                 agentServiceRegistration.Tags = tags.ToArray();
                                 agentServiceRegistration.EnableTagOverride = true;
-                                agentServiceRegistration.Checks = GetChecks(item2, port,TimeSpan.FromDays(7)).ToArray();
-                                registrations.Add(agentServiceRegistration);
+                                agentServiceRegistration.Checks = GetChecks(item2, port, TimeSpan.FromDays(7)).ToArray();
+                                _registrations.Add(agentServiceRegistration);
                             }
                         }
                         else
@@ -157,19 +158,16 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                     else
                     {
                         AgentServiceRegistration agentServiceRegistration = new AgentServiceRegistration();
-                        agentServiceRegistration.ID = string.IsNullOrEmpty(serviceConfig.SERVICE_ID) ? $"{serviceConfig.SERVICE_NAME}:{Guid.NewGuid().ToString()}" : $"{serviceConfig.SERVICE_NAME}:{serviceConfig.SERVICE_ID}";
-                        agentServiceRegistration.Name = serviceConfig.SERVICE_NAME;                       
+                        agentServiceRegistration.ID = string.IsNullOrEmpty(_serviceConfig.SERVICE_ID) ? $"{_serviceConfig.SERVICE_NAME}:{Guid.NewGuid().ToString()}" : $"{_serviceConfig.SERVICE_NAME}:{_serviceConfig.SERVICE_ID}";
+                        agentServiceRegistration.Name = _serviceConfig.SERVICE_NAME;
                         agentServiceRegistration.Tags = tags.ToArray();
                         agentServiceRegistration.EnableTagOverride = true;
-                        agentServiceRegistration.Checks = GetChecks("", 0, TimeSpan.FromSeconds(10 * double.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))).ToArray();
-                        registrations.Add(agentServiceRegistration);
-                    }
-              
+                        agentServiceRegistration.Checks = GetChecks("", 0, TimeSpan.FromSeconds(10 * double.Parse(_serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))).ToArray();
+                        _registrations.Add(agentServiceRegistration);
 
-                    AppDomain.CurrentDomain.ProcessExit += delegate
-                    {
-                        Deregister();
-                    };
+                    }
+
+
                 }
                 else
                 {
@@ -182,49 +180,49 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             }
         }
 
-        private static List<AgentServiceCheck> GetChecks(string ip,int port, TimeSpan DeregisterCriticalServiceAfter)
+        private List<AgentServiceCheck> GetChecks(string ip, int port, TimeSpan DeregisterCriticalServiceAfter)
         {
             List<AgentServiceCheck> agentServiceChecks = new List<AgentServiceCheck>();
 
-            if (!string.IsNullOrEmpty(serviceConfig.SERVICE_80_CHECK_HTTP) && port>0 && !string.IsNullOrEmpty(ip))
+            if (!string.IsNullOrEmpty(_serviceConfig.SERVICE_80_CHECK_HTTP) && port > 0 && !string.IsNullOrEmpty(ip))
             {
                 agentServiceChecks.Add(new AgentServiceCheck
                 {
                     Status = HealthStatus.Critical,
-                    HTTP = $"http://{ip}:{port}/{serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
-                    Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')))),
-                    Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s')))),
+                    HTTP = $"http://{ip}:{port}/{_serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
+                    Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')))),
+                    Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(_serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s')))),
                     DeregisterCriticalServiceAfter = DeregisterCriticalServiceAfter
                 });
             }
-            else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_TCP))
+            else if (!string.IsNullOrEmpty(_serviceConfig.SERVICE_CHECK_TCP))
             {
                 agentServiceChecks.Add(new AgentServiceCheck
                 {
                     Status = HealthStatus.Critical,
-                    TCP = serviceConfig.SERVICE_CHECK_TCP,
-                    Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
-                    Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
+                    TCP = _serviceConfig.SERVICE_CHECK_TCP,
+                    Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(_serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
+                    Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(_serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
                     DeregisterCriticalServiceAfter = DeregisterCriticalServiceAfter
                 });
             }
-            else if (!string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_SCRIPT))
+            else if (!string.IsNullOrEmpty(_serviceConfig.SERVICE_CHECK_SCRIPT))
             {
                 agentServiceChecks.Add(new AgentServiceCheck
                 {
                     Status = HealthStatus.Critical,
-                    Script = serviceConfig.SERVICE_CHECK_SCRIPT,
-                    Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
-                    Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
+                    Script = _serviceConfig.SERVICE_CHECK_SCRIPT,
+                    Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(_serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s')))),
+                    Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(_serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))),
                     DeregisterCriticalServiceAfter = DeregisterCriticalServiceAfter
                 });
             }
-            else if (serviceConfig.SERVICE_CHECK_TTL.HasValue)
+            else if (_serviceConfig.SERVICE_CHECK_TTL.HasValue)
             {
                 agentServiceChecks.Add(new AgentServiceCheck
                 {
                     Status = HealthStatus.Critical,
-                    TTL = new TimeSpan?(TimeSpan.FromSeconds((double)serviceConfig.SERVICE_CHECK_TTL.Value)),
+                    TTL = new TimeSpan?(TimeSpan.FromSeconds((double)_serviceConfig.SERVICE_CHECK_TTL.Value)),
                     DeregisterCriticalServiceAfter = DeregisterCriticalServiceAfter
                 });
             }
@@ -232,18 +230,18 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             return agentServiceChecks;
         }
 
-        private static void Heartbeat()
+        private void Heartbeat(List<AgentServiceRegistration> registrations)
         {
-            if (serviceConfig.SERVICE_CHECK_TTL.HasValue && !string.IsNullOrEmpty(serviceConfig.SERVICE_CHECK_INTERVAL))
+            if (_serviceConfig.SERVICE_CHECK_TTL.HasValue && !string.IsNullOrEmpty(_serviceConfig.SERVICE_CHECK_INTERVAL))
             {
                 try
                 {
-                    var timer = new System.Timers.Timer((double)(int.Parse(serviceConfig.SERVICE_CHECK_INTERVAL) * 1000));
+                    var timer = new System.Timers.Timer((double)(int.Parse(_serviceConfig.SERVICE_CHECK_INTERVAL) * 1000));
                     timer.Elapsed += async delegate
                     {
                         try
                         {
-                            var result = await healthCheckService.CheckHealthAsync();
+                            var result = await _healthCheckService.CheckHealthAsync();
                             var status = result.CheckStatus;
 
                             if (status == CheckStatus.Healthy)
@@ -252,7 +250,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                                 {
                                     try
                                     {
-                                        await client.Agent.PassTTL("service:" + registration.ID, result.Description, default(CancellationToken));
+                                        await _client.Agent.PassTTL("service:" + registration.ID, result.Description, default(CancellationToken));
                                         LogDebug("service " + registration.ID + " ttl passing", Array.Empty<object>());
                                     }
                                     catch (Exception ex)
@@ -269,7 +267,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
 
                                     try
                                     {
-                                        await client.Agent.WarnTTL("service:" + registration.ID, result.Description, default(CancellationToken));
+                                        await _client.Agent.WarnTTL("service:" + registration.ID, result.Description, default(CancellationToken));
                                         LogDebug("service " + registration.ID + " ttl warn", Array.Empty<object>());
                                     }
                                     catch (Exception ex)
@@ -286,7 +284,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
 
                                     try
                                     {
-                                        await client.Agent.FailTTL("service:" + registration.ID, result.Description, default(CancellationToken));
+                                        await _client.Agent.FailTTL("service:" + registration.ID, result.Description, default(CancellationToken));
                                         LogDebug("service " + registration.ID + " ttl failed", Array.Empty<object>());
                                     }
                                     catch (Exception ex)
@@ -303,51 +301,66 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                     };
                     timer.Start();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     LogError(ex, ex.Message);
                 }
             }
         }
 
-        public static void Register()
+        public void Register()
         {
             var policy = Policy.Handle<Exception>().Or<IOException>().WaitAndRetryForever((int a) => TimeSpan.FromSeconds(5.0), delegate (Exception ex, TimeSpan time)
             {
-                logger.LogError(ex, ex.Message, Array.Empty<object>());
+                _logger.LogError(ex, ex.Message, Array.Empty<object>());
             });
 
-            foreach (AgentServiceRegistration item3 in registrations)
+            foreach (AgentServiceRegistration item3 in _registrations)
             {
                 policy.Execute((Func<Task>)async delegate
                 {
                     LogInformation("service " + item3.ID + " registration", Array.Empty<object>());
-                    WriteResult ret3 = await client.Agent.ServiceRegister(item3, default(CancellationToken));
+                    WriteResult ret3 = await _client.Agent.ServiceRegister(item3, default(CancellationToken));                    
                     LogInformation($"service {item3.ID} registered. time={ret3.RequestTime},statusCode={ret3.StatusCode}", Array.Empty<object>());
                 });
             }
 
-            Heartbeat();
+            Heartbeat(_registrations);
         }
 
-        public static void Deregister()
+        public void Deregister()
         {
             var policy = Policy.Handle<Exception>().Or<IOException>().WaitAndRetryForever((int a) => TimeSpan.FromSeconds(5.0), delegate (Exception ex, TimeSpan time)
             {
-                logger.LogError(ex, ex.Message, Array.Empty<object>());
+                _logger.LogError(ex, ex.Message, Array.Empty<object>());
             });
-          
-            foreach (AgentServiceRegistration item4 in registrations)
+
+            foreach (AgentServiceRegistration item4 in _registrations)
             {
                 policy.Execute(async delegate
                 {
-                    logger.LogInformation("service " + item4.ID + " deregister", Array.Empty<object>());
-                    WriteResult ret2 = await client.Agent.ServiceDeregister(item4.ID, default(CancellationToken));
-                    logger.LogInformation($"service {item4.ID} Deregistered. time={ret2.RequestTime},statusCode={ret2.StatusCode}", Array.Empty<object>());
-                  
+                    _logger.LogInformation("service " + item4.ID + " deregister", Array.Empty<object>());
+                    WriteResult ret2 = await _client.Agent.ServiceDeregister(item4.ID, default(CancellationToken));
+                    _logger.LogInformation($"service {item4.ID} Deregistered. time={ret2.RequestTime},statusCode={ret2.StatusCode}", Array.Empty<object>());
+
                 });
             }
-           
+
+        }
+
+        public string ServiceId
+        {
+            get
+            {
+                if (_registrations.Any())
+                {
+                    return string.Join(",", _registrations.Select(a => a.ID).ToList());
+                }
+                else
+                { return string.Empty; }
+            }
         }
     }
+
+
 }
