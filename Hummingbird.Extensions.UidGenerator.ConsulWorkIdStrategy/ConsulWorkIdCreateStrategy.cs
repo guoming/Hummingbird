@@ -1,17 +1,17 @@
 ﻿using Consul;
 using Hummingbird.DynamicRoute;
+using Hummingbird.Extensions.UidGenerator.Implements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
 {
-    public class ConsulWorkIdCreateStrategy : IWorkIdCreateStrategy
+    class ConsulWorkIdCreateStrategy : IWorkIdCreateStrategy
     {
         private readonly IServiceDiscoveryProvider _serviceDiscoveryProvider;
         private readonly IConsulClient _client;

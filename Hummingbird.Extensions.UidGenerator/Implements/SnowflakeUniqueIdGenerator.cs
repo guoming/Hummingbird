@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Hummingbird.Extensions.UidGenerator
+namespace Hummingbird.Extensions.UidGenerator.Implements
 {
     /// <summary>
     /// Twiter SnowFlake唯一ID生成算法
     /// </summary>
-    public class SnowflakeUniqueIdGenerator : IUniqueIdGenerator
+    class SnowflakeUniqueIdGenerator : IUniqueIdGenerator
     {
         readonly IdWorker idWorker;
         public SnowflakeUniqueIdGenerator(int WorkerId, int CenterId)

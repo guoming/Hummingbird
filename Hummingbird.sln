@@ -67,6 +67,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Open
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy", "Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy\Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy.csproj", "{F7EA3E32-4389-4AFA-89A9-56A25A60F530}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DistributedLock.Redis", "Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj", "{B56F893C-3E54-4FC9-B6A2-96BE2647E0CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,6 +187,10 @@ Global
 		{F7EA3E32-4389-4AFA-89A9-56A25A60F530}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7EA3E32-4389-4AFA-89A9-56A25A60F530}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7EA3E32-4389-4AFA-89A9-56A25A60F530}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B56F893C-3E54-4FC9-B6A2-96BE2647E0CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B56F893C-3E54-4FC9-B6A2-96BE2647E0CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B56F893C-3E54-4FC9-B6A2-96BE2647E0CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B56F893C-3E54-4FC9-B6A2-96BE2647E0CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -219,6 +225,7 @@ Global
 		{181E2F94-FABE-4FA9-91BD-6EBF9519C056} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{B64D2A90-7BF2-40D5-A718-290E116BB87A} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{F7EA3E32-4389-4AFA-89A9-56A25A60F530} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{B56F893C-3E54-4FC9-B6A2-96BE2647E0CD} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

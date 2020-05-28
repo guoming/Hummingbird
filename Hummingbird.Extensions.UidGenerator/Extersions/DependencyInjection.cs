@@ -1,13 +1,13 @@
 ﻿using Hummingbird.Core;
 using Hummingbird.Extensions.UidGenerator;
 using Hummingbird.Extensions.UidGenerator.Abastracts;
-using Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy;
+using Hummingbird.Extensions.UidGenerator.Implements;
 using System;
 
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-   
+
     public static class DependencyInjectionExtersion
     {
    

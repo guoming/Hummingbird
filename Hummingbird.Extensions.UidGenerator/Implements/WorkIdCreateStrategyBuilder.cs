@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Hummingbird.Extensions.UidGenerator
+namespace Hummingbird.Extensions.UidGenerator.Implements
 {
-    public class WorkIdCreateStrategyBuilder : IWorkIdCreateStrategyBuilder
+    class WorkIdCreateStrategyBuilder : IWorkIdCreateStrategyBuilder
     {
         private readonly IServiceCollection _serviceDescriptors;
 
