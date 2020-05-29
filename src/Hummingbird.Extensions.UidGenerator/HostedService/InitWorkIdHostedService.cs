@@ -1,5 +1,4 @@
-﻿using Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +6,7 @@ namespace Hummingbird.Extensions.UidGenerator
 {
 #if NETCORE
 
-    public class InitWorkIdHostedService : Microsoft.Extensions.Hosting.IHostedService
+    class InitWorkIdHostedService : Microsoft.Extensions.Hosting.IHostedService
     {
         private readonly IWorkIdCreateStrategy workIdCreateStrategy;
 

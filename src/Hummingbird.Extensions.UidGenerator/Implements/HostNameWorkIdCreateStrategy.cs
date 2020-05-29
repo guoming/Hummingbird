@@ -3,9 +3,9 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
+namespace Hummingbird.Extensions.UidGenerator.Implements
 {
-    public class HostNameWorkIdCreateStrategy : IWorkIdCreateStrategy
+    class HostNameWorkIdCreateStrategy : IWorkIdCreateStrategy
     {
 
         /**

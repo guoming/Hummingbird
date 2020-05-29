@@ -1,6 +1,6 @@
 ﻿using Consul;
-using Hummingbird.Core;
 using Hummingbird.DynamicRoute;
+using Hummingbird.Extensions.UidGenerator;
 using Hummingbird.Extensions.UidGenerator.Abastracts;
 using Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy;
 

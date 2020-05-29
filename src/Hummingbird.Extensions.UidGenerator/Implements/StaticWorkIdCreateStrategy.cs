@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
+namespace Hummingbird.Extensions.UidGenerator.Implements
 {
-    public class StaticWorkIdCreateStrategy : IWorkIdCreateStrategy
+    class StaticWorkIdCreateStrategy : IWorkIdCreateStrategy
     {
         private readonly int _WorkId;
 
