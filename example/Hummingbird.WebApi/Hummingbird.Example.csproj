@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\src\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.MySql\Hummingbird.Extensions.HealthChecks.MySql.csproj" />

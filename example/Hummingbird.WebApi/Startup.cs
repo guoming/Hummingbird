@@ -1,17 +1,14 @@
-﻿using Hummingbird.Extensions.HealthChecks;
+﻿using Hummingbird.Example.Events;
 using Hummingbird.Extensions.EventBus.Abstractions;
 using Hummingbird.Extensions.EventBus.RabbitMQ;
+using Hummingbird.Extensions.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Hummingbird.Example.Events;
 
 namespace Hummingbird.WebApi
 {
@@ -69,14 +66,22 @@ namespace Hummingbird.WebApi
                     option.ConfigName = "HummingbirdCache";
                     option.CacheRegion = Configuration["SERVICE_NAME"];
                 })
+                .AddDistributedLock((option) =>
+                {
+                    option.WithDb(0);
+                    option.WithKeyPrefix("");
+                    option.WithPassword("tY7cRu9HG_jyDw2r");
+                    option.WithServerList("192.168.109.114:63100");
+                    option.WithSsl(false);
+                })
                 .AddCacheing(option =>
                 {
 
                     option.WithDb(0);
                     option.WithKeyPrefix("");
-                    option.WithPassword("123456");
-                    option.WithReadServerList("192.168.109.44:6379");
-                    option.WithWriteServerList("192.168.109.44:6379");
+                    option.WithPassword("tY7cRu9HG_jyDw2r");
+                    option.WithReadServerList("192.168.109.114:63100");
+                    option.WithWriteServerList("192.168.109.114:63100");
                     option.WithSsl(false);
                 })
                 .AddIdempotency(option =>

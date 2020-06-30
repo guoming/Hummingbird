@@ -1,18 +1,16 @@
-﻿#if NETSTANDARD
+﻿
 using Hummingbird.Core;
-using Hummingbird.Extensions.Cacheing.StackExchange;
-#endif
+
 
 using Hummingbird.Extensions.DistributedLock;
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtersion
     {
 
-#if NETSTANDARD
+
         public static IHummingbirdHostBuilder AddDistributedLock(this IHummingbirdHostBuilder hostBuilder, Action<Config> action)
         {
             action = action ?? throw new ArgumentNullException(nameof(action));
@@ -21,7 +19,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return hostBuilder;
 
         }
-#endif
+
     }
 }
 

@@ -24,8 +24,10 @@ namespace Hummingbird.Example.Controllers
             var lockToken = Guid.NewGuid().ToString("N");
             try
             {
-                if (distributedLock.Enter(lockName, lockToken, TimeSpan.FromSeconds(30)))
+                if (distributedLock.Enter(lockName, lockToken, TimeSpan.FromSeconds(60), retryAttemptMillseconds:1000,retryTimes:10))
                 {
+                   await  System.Threading.Tasks.Task.Delay(5000);
+
                     // do something
                     return "ok";
                 }
