@@ -80,7 +80,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return services.AddConsulDynamicRoute(config, setup);
         }
 
-#if NETCORE
 
         public static IHummingbirdHostBuilder AddConsulDynamicRoute(this IHummingbirdHostBuilder hostBuilder, IConfiguration configuration)
         {
@@ -93,7 +92,6 @@ namespace Microsoft.Extensions.DependencyInjection
             hostBuilder.Services.AddConsulDynamicRoute(configuration, setup);
             return hostBuilder;
         }
-#endif
     }
 
 }
