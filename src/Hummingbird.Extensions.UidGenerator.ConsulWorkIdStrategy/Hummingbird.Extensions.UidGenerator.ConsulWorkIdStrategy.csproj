@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;netstandard2.0</TargetFrameworks>
-    <Version>1.15.5</Version>
+    <Version>1.15.7</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>NETCORE</DefineConstants>
@@ -15,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
-    <ProjectReference Include="..\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
     <ProjectReference Include="..\Hummingbird.Extensions.UidGenerator\Hummingbird.Extensions.UidGenerator.csproj" />
   </ItemGroup>
 

@@ -1,5 +1,4 @@
 ﻿using Consul;
-using Hummingbird.DynamicRoute;
 using Hummingbird.Extensions.UidGenerator.Implements;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,6 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
 {
     class ConsulWorkIdCreateStrategy : IWorkIdCreateStrategy
     {
-        private readonly IServiceDiscoveryProvider _serviceDiscoveryProvider;
         private readonly IConsulClient _client;
         private readonly string _appId;
         private readonly string _serviceId;
@@ -23,14 +21,11 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
         private static object _syncRoot = new object();
         
         public ConsulWorkIdCreateStrategy(
-            IServiceDiscoveryProvider serviceDiscoveryProvider,
             IConsulClient consulClient,
             string appId)
         {
-            this._serviceDiscoveryProvider = serviceDiscoveryProvider;
             this._client = consulClient;
             this._appId = appId;
-            this._serviceId = _serviceDiscoveryProvider.ServiceId;
             this._resourceId = $"workid/{this._appId}";
             this._sessionId = string.Empty;
 
@@ -115,7 +110,7 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
                             {
                                 _workId = workIdRange.First();
 
-                                var ret = await _client.KV.Acquire(new KVPair($"{_resourceId}/{_workId}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(_serviceId.ToString()) });
+                                var ret = await _client.KV.Acquire(new KVPair($"{_resourceId}/{_workId}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) });
 
                                 if (ret.StatusCode == HttpStatusCode.OK && !ret.Response)
                                 {
