@@ -1,0 +1,974 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>OpenTracing</name>
+    </assembly>
+    <members>
+        <member name="T:OpenTracing.IScope">
+            <summary>
+            A <see cref="T:OpenTracing.IScope"/> formalizes the activation and deactivation of a <see cref="T:OpenTracing.ISpan"/>, usually from a CPU
+            standpoint.
+            <para>
+            Many times a <see cref="T:OpenTracing.ISpan"/> will be extant (in that <see cref="M:OpenTracing.ISpan.Finish"/> has not been called)
+            despite being in a non-runnable state from a CPU/scheduler standpoint. For instance, a <see cref="T:OpenTracing.ISpan"/> representing
+            the child side of an RPC will be unfinished but blocked on IO while the RPC is still outstanding. A
+            <see cref="T:OpenTracing.IScope"/> defines when a given <see cref="T:OpenTracing.ISpan"/> <em>is</em> scheduled and on the path.
+            </para>
+            <para>
+            Calling <see cref="M:System.IDisposable.Dispose"/> marks the end of the active period for the current thread and
+            <see cref="T:OpenTracing.IScope"/>, updating the <see cref="P:OpenTracing.IScopeManager.Active"/> in the process.
+            </para>
+            </summary>
+        </member>
+        <member name="P:OpenTracing.IScope.Span">
+            <summary>The <see cref="T:OpenTracing.ISpan"/> that's been scoped by this <see cref="T:OpenTracing.IScope"/>.</summary>
+        </member>
+        <member name="T:OpenTracing.IScopeManager">
+            <summary>
+            The <see cref="T:OpenTracing.IScopeManager"/> interface abstracts both the activation of <see cref="T:OpenTracing.ISpan"/> instances (via
+            <see cref="M:OpenTracing.IScopeManager.Activate(OpenTracing.ISpan,System.Boolean)"/>) and access to an active <see cref="T:OpenTracing.ISpan"/>/<see cref="T:OpenTracing.IScope"/> (via
+            <see cref="P:OpenTracing.IScopeManager.Active"/>. <seealso cref="T:OpenTracing.IScope"/> <seealso cref="P:OpenTracing.ITracer.ScopeManager"/>
+            </summary>
+        </member>
+        <member name="P:OpenTracing.IScopeManager.Active">
+            <summary>
+            Return the currently active <see cref="T:OpenTracing.IScope"/> which can be used to access the currently active
+            <see cref="P:OpenTracing.IScope.Span"/>.
+            <para>
+            If there is an non-null <see cref="T:OpenTracing.IScope"/>, its wrapped <see cref="T:OpenTracing.ISpan"/> becomes an implicit parent of any
+            newly-created <see cref="T:OpenTracing.ISpan"/> at <see cref="M:OpenTracing.ISpanBuilder.StartActive(System.Boolean)"/> time (rather than at
+            <see cref="M:OpenTracing.ITracer.BuildSpan(System.String)"/> time).
+            </para>
+            </summary>
+            <returns>The active <see cref="T:OpenTracing.IScope"/>, or null if none could be found.</returns>
+        </member>
+        <member name="M:OpenTracing.IScopeManager.Activate(OpenTracing.ISpan,System.Boolean)">
+            <summary>Make a <see cref="T:OpenTracing.ISpan"/> instance active.</summary>
+            <param name="span">The <see cref="T:OpenTracing.ISpan"/> that should become the <see cref="P:OpenTracing.IScopeManager.Active"/>.</param>
+            <param name="finishSpanOnDispose">
+            Whether span should automatically be finished when <see cref="M:System.IDisposable.Dispose"/> is called.
+            </param>
+            <returns>
+            A <see cref="T:OpenTracing.IScope"/> instance to control the end of the active period for the <see cref="T:OpenTracing.ISpan"/>.
+            It is a programming error to neglect to call <see cref="M:System.IDisposable.Dispose"/> on the returned instance.
+            </returns>
+        </member>
+        <member name="T:OpenTracing.ISpan">
+            <summary>
+            Represents the OpenTracing specification's span contract. <seealso cref="T:OpenTracing.IScope"/>
+            <seealso cref="T:OpenTracing.IScopeManager"/> <seealso cref="M:OpenTracing.ISpanBuilder.Start"/> <seealso cref="M:OpenTracing.ISpanBuilder.StartActive(System.Boolean)"/>
+            </summary>
+        </member>
+        <member name="P:OpenTracing.ISpan.Context">
+            <summary>
+            Retrieve the associated <see cref="T:OpenTracing.ISpanContext"/>. This may be called at any time, including after calls to
+            <see cref="M:OpenTracing.ISpan.Finish"/>.
+            </summary>
+            <returns>The <see cref="T:OpenTracing.ISpanContext"/> that encapsulates span state that should propagate across process boundaries.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetTag(System.String,System.String)">
+            <summary>Set a key:value tag on the span.</summary>
+            <returns>This span instance, for chaining.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetTag(System.String,System.Boolean)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(System.String,System.String)"/> but for boolean values.</summary>
+            <returns>This span instance, for chaining.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetTag(System.String,System.Int32)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(System.String,System.String)"/> but for numeric values.</summary>
+            <returns>This span instance, for chaining.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetTag(System.String,System.Double)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(System.String,System.String)"/> but for numeric values.</summary>
+            <returns>This span instance, for chaining.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetTag(OpenTracing.Tag.BooleanTag,System.Boolean)">
+            <summary>Set a tag on the Span using the helper in <paramref name="tag"/>.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetTag(OpenTracing.Tag.IntOrStringTag,System.String)">
+            <summary>Set a tag on the Span using the helper in <paramref name="tag"/>.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetTag(OpenTracing.Tag.IntTag,System.Int32)">
+            <summary>Set a tag on the Span using the helper in <paramref name="tag"/>.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetTag(OpenTracing.Tag.StringTag,System.String)">
+            <summary>Set a tag on the Span using the helper in <paramref name="tag"/>.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpan.Log(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Object}})">
+            <summary>
+            Log key:value pairs to the span with the current timestamp.
+            <para><em>CAUTIONARY NOTE:</em> not all Tracer implementations support key:value log fields end-to-end. Caveat emptor.</para>
+            <para>
+            A contrived example:
+            <code>
+            span.Log(new Dictionary&lt;string, object&gt;
+            {
+              { "event", "soft error" },
+              { "type", "cache timeout" },
+              { "waited.millis", 1500 },
+            });
+            </code>
+            </para>
+            </summary>
+            <param name="fields">
+            key:value log fields. Tracer implementations should support string, int, double, and bool values;
+            some may also support arbitrary objects.
+            </param>
+            <returns>This span instance, for chaining.</returns>
+            <seealso cref="M:OpenTracing.ISpan.Log(System.String)"/>
+        </member>
+        <member name="M:OpenTracing.ISpan.Log(System.DateTimeOffset,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Object}})">
+            <summary>
+            Like <see cref="M:OpenTracing.ISpan.Log(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Object}})"/>, but with an explicit timestamp.
+            <para><em>CAUTIONARY NOTE:</em> not all Tracer implementations support key:value log fields end-to-end. Caveat emptor.</para>
+            </summary>
+            <param name="timestamp">
+            The explicit timestamp for the log record. Must be greater than or equal to the span's start
+            timestamp.
+            </param>
+            <param name="fields">
+            key:value log fields. Tracer implementations should support string, int, double, and bool values;
+            some may also support arbitrary objects.
+            </param>
+            <returns>This span instance, for chaining.</returns>
+            <seealso cref="M:OpenTracing.ISpan.Log(System.DateTimeOffset,System.String)"/>
+        </member>
+        <member name="M:OpenTracing.ISpan.Log(System.String)">
+            <summary>
+            Record an event at the current timestamp. Shorthand for
+            <code>
+            span.Log(new Dictionary&lt;string, object&gt; { { "event", event } });
+            </code>
+            </summary>
+            <param name="event">The event value; often a stable identifier for a moment in the span lifecycle.</param>
+            <returns>This span instance, for chaining.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.Log(System.DateTimeOffset,System.String)">
+            <summary>
+            Record an event at a specific timestamp. Shorthand for
+            <code>
+            span.Log(timestamp, new Dictionary&lt;string, object&gt; { { "event", event } });
+            </code>
+            </summary>
+            <param name="timestamp">
+            The explicit timestamp for the log record. Must be greater than or equal to the span's start
+            timestamp.
+            </param>
+            <param name="event">The event value; often a stable identifier for a moment in the span lifecycle.</param>
+            <returns>This span instance, for chaining.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetBaggageItem(System.String,System.String)">
+            <summary>
+            Sets a baggage item in the span (and its <see cref="P:OpenTracing.ISpan.Context"/>) as a key:value pair. Baggage enables powerful
+            distributed context propagation functionality where arbitrary application data can be carried along the full path of
+            request execution throughout the system. Note 1: Baggage is only propagated to the future (recursive) children of this
+            <see cref="P:OpenTracing.ISpan.Context"/>. Note 2: Baggage is sent in-band with every subsequent local and remote calls,
+            so this feature must be used with care.
+            </summary>
+            <returns>This span instance, for chaining.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.GetBaggageItem(System.String)">
+            <summary>The value of the baggage item identified by <paramref name="key"/>, or null if no such item could be found.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpan.SetOperationName(System.String)">
+            <summary>Sets the string name for the logical operation this span represents.</summary>
+            <returns>This span instance, for chaining.</returns>
+        </member>
+        <member name="M:OpenTracing.ISpan.Finish">
+            <summary>
+            Sets the end timestamp to now and records the span.
+            <para>
+            With the exception of calls to <see cref="P:OpenTracing.ISpan.Context"/>, this should be the last call made to the span
+            instance. Future calls to <see cref="M:OpenTracing.ISpan.Finish"/> are defined as noops, and future calls to methods other than
+            <see cref="P:OpenTracing.ISpan.Context"/> lead to undefined behavior (likely an exception).
+            </para>
+            </summary>
+            <seealso cref="P:OpenTracing.ISpan.Context"/>
+        </member>
+        <member name="M:OpenTracing.ISpan.Finish(System.DateTimeOffset)">
+            <summary>
+            Sets an explicit end timestamp and records the span.
+            <para>
+            With the exception of calls to <see cref="P:OpenTracing.ISpan.Context"/>, this should be the last call made to the span instance,
+            and to do otherwise leads to undefined behavior.
+            </para>
+            </summary>
+            <param name="finishTimestamp">An explicit finish timestamp.</param>
+            <seealso cref="P:OpenTracing.ISpan.Context"/>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.AsChildOf(OpenTracing.ISpanContext)">
+            <summary>A shorthand for <see cref="M:OpenTracing.ISpanBuilder.AddReference(System.String,OpenTracing.ISpanContext)"/>(References.ChildOf, parent).
+            <para>If parent == null, this is a noop.</para>
+            </summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.AsChildOf(OpenTracing.ISpan)">
+            <summary>A shorthand for <see cref="M:OpenTracing.ISpanBuilder.AddReference(System.String,OpenTracing.ISpanContext)"/>(References.ChildOf, parent.Context).
+            <para>If parent == null, this is a noop.</para>
+            </summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.AddReference(System.String,OpenTracing.ISpanContext)">
+            <summary>
+            Add a reference from the span being built to a distinct (usually parent) span. May be called multiple times to
+            represent multiple such references.
+            <para>
+            If
+            <list type="bullet">
+            <item>the <see cref="T:OpenTracing.ITracer"/>'s <see cref="P:OpenTracing.IScopeManager.Active"/> is not null, and </item>
+            <item>no <b>explicit</b> references are added via <see cref="M:OpenTracing.ISpanBuilder.AddReference(System.String,OpenTracing.ISpanContext)"/>, and </item>
+            <item><see cref="M:OpenTracing.ISpanBuilder.IgnoreActiveSpan"/> is not invoked, </item>
+            </list>
+            ... then an inferred <see cref="F:OpenTracing.References.ChildOf"/> reference is created to the <see cref="P:OpenTracing.IScopeManager.Active"/>
+            <see cref="T:OpenTracing.ISpanContext"/> when either <see cref="M:OpenTracing.ISpanBuilder.StartActive(System.Boolean)"/> or <see cref="M:OpenTracing.ISpanBuilder.Start"/> is invoked.
+            </para>
+            </summary>
+            <param name="referenceType">
+            The reference type, typically one of the constants defined in <see cref="T:OpenTracing.References"/>.
+            </param>
+            <param name="referencedContext">
+            The <see cref="T:OpenTracing.ISpanContext"/> being referenced; e.g., for a <see cref="F:OpenTracing.References.ChildOf"/>
+            reference, the referenecedContext is the parent. If referencedContext == null, the call to <see cref="M:OpenTracing.ISpanBuilder.AddReference(System.String,OpenTracing.ISpanContext)"/> is
+            a noop.
+            </param>
+            <seealso cref="T:OpenTracing.References"/>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.IgnoreActiveSpan">
+            <summary>
+            Do not create an implicit <see cref="F:OpenTracing.References.ChildOf"/> reference to the
+            <see cref="P:OpenTracing.IScopeManager.Active"/>.
+            </summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithTag(System.String,System.String)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(System.String,System.String)"/>, but for the span being built.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithTag(System.String,System.Boolean)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(System.String,System.Boolean)"/>, but for the span being built.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithTag(System.String,System.Int32)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(System.String,System.Int32)"/>, but for the span being built.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithTag(System.String,System.Double)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(System.String,System.Double)"/>, but for the span being built.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithTag(OpenTracing.Tag.BooleanTag,System.Boolean)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(OpenTracing.Tag.BooleanTag,System.Boolean)"/>, but for the span being built.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithTag(OpenTracing.Tag.IntOrStringTag,System.String)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(OpenTracing.Tag.IntOrStringTag,System.String)"/>, but for the span being built.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithTag(OpenTracing.Tag.IntTag,System.Int32)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(OpenTracing.Tag.IntTag,System.Int32)"/>, but for the span being built.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithTag(OpenTracing.Tag.StringTag,System.String)">
+            <summary>Same as <see cref="M:OpenTracing.ISpan.SetTag(OpenTracing.Tag.StringTag,System.String)"/>, but for the span being built.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.WithStartTimestamp(System.DateTimeOffset)">
+            <summary>Specify a timestamp of when the <see cref="T:OpenTracing.ISpan"/> was started.</summary>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.StartActive">
+            <summary>
+            Same as <see cref="M:OpenTracing.ISpanBuilder.StartActive(System.Boolean)"/> with <c>finishSpanOnDispose: true</c>.
+            <para/>
+            Returns a newly started and activated <see cref="T:OpenTracing.IScope"/>. The underlying span is finished
+            automatically when the scope is disposed.
+            <para/>
+            The returned <see cref="T:OpenTracing.IScope"/> supports using(). For example:
+            <code>
+            using (IScope scope = tracer.BuildSpan("...").StartActive())
+            {
+                // (Do work)
+                scope.Span.SetTag( ... );  // etc, etc
+            } // Span finishes automatically on Dispose.
+            </code>
+            <para>
+            If
+            <list type="bullet">
+            <item>the <see cref="T:OpenTracing.ITracer"/>'s <see cref="P:OpenTracing.IScopeManager.Active"/> is not null, and </item>
+            <item>no <b>explicit</b> references are added via <see cref="M:OpenTracing.ISpanBuilder.AddReference(System.String,OpenTracing.ISpanContext)"/>, and </item>
+            <item><see cref="M:OpenTracing.ISpanBuilder.IgnoreActiveSpan"/> is not invoked, </item>
+            </list>
+            ... then an inferred <see cref="F:OpenTracing.References.ChildOf"/> reference is created to the <see cref="P:OpenTracing.IScopeManager.Active"/>
+            <see cref="T:OpenTracing.ISpanContext"/> when either <see cref="M:OpenTracing.ISpanBuilder.Start"/> or <see cref="M:OpenTracing.ISpanBuilder.StartActive"/> is invoked.
+            </para>
+            </summary>
+            <returns>An <see cref="T:OpenTracing.IScope"/>, already registered via the <see cref="T:OpenTracing.IScopeManager"/>.</returns>
+            <seealso cref="T:OpenTracing.IScopeManager"/>
+            <seealso cref="T:OpenTracing.IScope"/>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.StartActive(System.Boolean)">
+            <summary>
+            Returns a newly started and activated <see cref="T:OpenTracing.IScope"/>.
+            <para>
+            The returned <see cref="T:OpenTracing.IScope"/> supports using(). For example:
+            <code>
+            using (IScope scope = tracer.BuildSpan("...").StartActive(finishSpanOnDispose: true))
+            {
+                // (Do work)
+                scope.Span.SetTag( ... );  // etc, etc
+            }
+            // Span finishes automatically only when 'finishSpanOnDispose' is true
+            </code>
+            </para>
+            <para>
+            If
+            <list type="bullet">
+            <item>the <see cref="T:OpenTracing.ITracer"/>'s <see cref="P:OpenTracing.IScopeManager.Active"/> is not null, and </item>
+            <item>no <b>explicit</b> references are added via <see cref="M:OpenTracing.ISpanBuilder.AddReference(System.String,OpenTracing.ISpanContext)"/>, and </item>
+            <item><see cref="M:OpenTracing.ISpanBuilder.IgnoreActiveSpan"/> is not invoked, </item>
+            </list>
+            ... then an inferred <see cref="F:OpenTracing.References.ChildOf"/> reference is created to the <see cref="P:OpenTracing.IScopeManager.Active"/>
+            <see cref="T:OpenTracing.ISpanContext"/> when either <see cref="M:OpenTracing.ISpanBuilder.Start"/> or <see cref="M:OpenTracing.ISpanBuilder.StartActive(System.Boolean)"/> is invoked.
+            </para>
+            </summary>
+            <param name="finishSpanOnDispose">
+            Whether span should automatically be finished when <see cref="M:System.IDisposable.Dispose"/> is called.
+            </param>
+            <returns>An <see cref="T:OpenTracing.IScope"/>, already registered via the <see cref="T:OpenTracing.IScopeManager"/>.</returns>
+            <seealso cref="T:OpenTracing.IScopeManager"/>
+            <seealso cref="T:OpenTracing.IScope"/>
+        </member>
+        <member name="M:OpenTracing.ISpanBuilder.Start">
+            <summary>
+            Like <see cref="M:OpenTracing.ISpanBuilder.StartActive(System.Boolean)"/>, but the returned <see cref="T:OpenTracing.ISpan"/> has not been registered via the
+            <see cref="T:OpenTracing.IScopeManager"/>.
+            </summary>
+            <returns>
+            The newly-started span instance, which has *not* been automatically registered via the
+            <see cref="T:OpenTracing.IScopeManager"/>.
+            </returns>
+            <seealso cref="M:OpenTracing.ISpanBuilder.StartActive(System.Boolean)"/>
+        </member>
+        <member name="T:OpenTracing.ISpanContext">
+            <summary>
+            <see cref="T:OpenTracing.ISpanContext"/> represents span state that must propagate to descendant spans and across process boundaries.
+            <see cref="T:OpenTracing.ISpanContext"/> is logically divided into two pieces: (1) the user-level "Baggage" that propagates across span
+            boundaries and (2) any Tracer-implementation-specific fields that are needed to identify or otherwise contextualize the associated
+            span instance(e.g., a { trace_id, span_id, sampled } tuple).
+            </summary>
+            <seealso cref="M:OpenTracing.ISpan.SetBaggageItem(System.String,System.String)"/>
+            <seealso cref="M:OpenTracing.ISpan.GetBaggageItem(System.String)"/>
+        </member>
+        <member name="P:OpenTracing.ISpanContext.TraceId">
+            <summary>
+            Globally unique. Every span in a trace shares this ID.
+            </summary>
+        </member>
+        <member name="P:OpenTracing.ISpanContext.SpanId">
+            <summary>
+            Unique within a trace. Each span within a trace contains a different ID.
+            </summary>
+        </member>
+        <member name="M:OpenTracing.ISpanContext.GetBaggageItems">
+            <returns>All zero or more baggage items propagating along with the associated span.</returns>
+            <seealso cref="M:OpenTracing.ISpan.SetBaggageItem(System.String,System.String)"/>
+            <seealso cref="M:OpenTracing.ISpan.GetBaggageItem(System.String)"/>
+        </member>
+        <member name="T:OpenTracing.ITracer">
+            <summary>
+            <see cref="T:OpenTracing.ITracer"/> is a simple, thin interface for span creation and propagation across arbitrary transports.
+            </summary>
+        </member>
+        <member name="P:OpenTracing.ITracer.ScopeManager">
+            <summary>The current <see cref="T:OpenTracing.IScopeManager"/>, which may be a noop but may not be null.</summary>
+        </member>
+        <member name="P:OpenTracing.ITracer.ActiveSpan">
+            <summary>
+            Get the active <see cref="T:OpenTracing.ISpan"/>. This is a shorthand for <code>tracer.ScopeManager.Active.Span</code>,
+            and null will be returned if <see cref="P:OpenTracing.IScopeManager.Active"/> is null.
+            </summary>
+        </member>
+        <member name="M:OpenTracing.ITracer.BuildSpan(System.String)">
+             <summary>
+             Returns a new <see cref="T:OpenTracing.ISpanBuilder"/> for a span with the given 'operationName'.
+             <para>You can override the operationName later via <see cref="M:OpenTracing.ISpan.SetOperationName(System.String)"/>.</para>
+             <para>
+             A contrived example:
+             <code>
+             ITracer tracer = ...
+            
+             // Note if there is a tracer.ActiveSpan, it will be used as the target of an implicit CHILD_OF
+             // reference for "workScope.Span" when StartActive() is invoked.
+             using (IScope workScope = tracer.BuildSpan("DoWork").StartActive(finishSpanOnDispose: true))
+             {
+                 workScope.Span.SetTag("...", "...");
+                 // etc, etc
+             }
+            
+             // It's also possible to create spans manually, bypassing the IScopeManager activation.
+             ISpan http = tracer.BuildSpan("HandleHTTPRequest")
+                               .AsChildOf(rpcSpanContext)  // an explicit parent
+                               .WithTag("user_agent", req.UserAgent)
+                               .WithTag("lucky_number", 42)
+                               .Start();
+                     </code>
+             </para>
+             </summary>
+             <param name="operationName">Sets the string name for the logical operation the span being built represents.</param>
+        </member>
+        <member name="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)">
+            <summary>
+            Inject a <see cref="T:OpenTracing.ISpanContext"/> into a 'carrier' of a given type, presumably for propagation across process boundaries.
+            <para>
+            Example:
+            <code>
+            ITracer tracer = ...
+            ISpan clientSpan = ...
+            ITextMap httpHeadersCarrier = new AnHttpHeaderCarrier(httpRequest);
+            tracer.Inject(span.Context, BuiltinFormats.HttpHeaders, httpHeadersCarrier);
+            </code>
+            </para>
+            </summary>
+            <typeparam name="TCarrier">The <paramref name="carrier"/> type, which also parametrizes the <paramref name="format"/>.</typeparam>
+            <param name="spanContext">The <see cref="T:OpenTracing.ISpanContext"/> instance to inject into the <paramref name="carrier"/>.</param>
+            <param name="format">The <see cref="T:OpenTracing.Propagation.IFormat`1"/> of the <paramref name="carrier"/>.</param>
+            <param name="carrier">
+            The carrier for the <see cref="T:OpenTracing.ISpanContext"/> state. All <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> implementations must support
+            <see cref="T:OpenTracing.Propagation.ITextMap"/> and <see cref="T:System.IO.Stream"/>.
+            </param>
+            <seealso cref="T:OpenTracing.Propagation.IFormat`1"/>
+            <seealso cref="T:OpenTracing.Propagation.BuiltinFormats"/>
+        </member>
+        <member name="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)">
+            <summary>
+            Extract a <see cref="T:OpenTracing.ISpanContext"/> from a <paramref name="carrier"/> of a given type,
+            presumably after propagation across a process boundary.
+            <para>
+            Example:
+            <code>
+            ITracer tracer = ...
+            ITextMap httpHeadersCarrier = new AnHttpHeaderCarrier(httpRequest);
+            ISpanContext spanContext = tracer.Extract(BuiltinFormats.HttpHeaders, httpHeadersCarrier);
+            ... = tracer.BuildSpan("...").AsChildOf(spanContext).StartActive(true);
+            </code>
+            </para>
+            If the span serialized state is invalid (corrupt, wrong version, etc) inside the carrier this will result in an
+            <see cref="T:System.ArgumentException"/>.
+            </summary>
+            <exception cref="T:System.ArgumentException">If the span serialized state is invalid (corrupt, wrong version, etc).</exception>
+            <typeparam name="TCarrier">The <paramref name="carrier"/> type, which also parametrizes the <paramref name="format"/>.</typeparam>
+            <param name="format">The <see cref="T:OpenTracing.Propagation.IFormat`1"/> of the <paramref name="carrier"/>.</param>
+            <param name="carrier">
+            The carrier for the <see cref="T:OpenTracing.ISpanContext"/> state. All <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/> implementations must support
+            <see cref="T:OpenTracing.Propagation.ITextMap"/> and <see cref="T:System.IO.Stream"/>.
+            </param>
+            <returns>The <see cref="T:OpenTracing.ISpanContext"/> instance holding context to create a span.</returns>
+            <seealso cref="T:OpenTracing.Propagation.IFormat`1"/>
+            <seealso cref="T:OpenTracing.Propagation.BuiltinFormats"/>
+        </member>
+        <member name="T:OpenTracing.LogFields">
+            <summary>
+            The following log fields are recommended for instrumentors who are trying to capture more information about a
+            logged event. Tracers may expose additional features based on these standardized data points.
+            <see href="https://github.com/opentracing/specification/blob/master/semantic_conventions.md"/>
+            </summary>
+        </member>
+        <member name="F:OpenTracing.LogFields.ErrorKind">
+            <summary>The type or "kind" of an error (only for event="error" logs). E.g., "Exception", "OSError".</summary>
+        </member>
+        <member name="F:OpenTracing.LogFields.ErrorObject">
+            <summary>
+            The actual <see cref="T:System.Exception"/> object instance.
+            </summary>
+        </member>
+        <member name="F:OpenTracing.LogFields.Event">
+            <summary>
+            A stable identifier for some notable moment in the lifetime of a span. For instance, a mutex lock acquisition
+            or release or the sorts of lifetime events in a browser page load described in the Performance.timing specification.
+            E.g., from Zipkin, "cs", "sr", "ss", or "cr". Or, more generally, "initialized" or "timed out". For errors, "error".
+            </summary>
+        </member>
+        <member name="F:OpenTracing.LogFields.Message">
+            <summary>
+            A concise, human-readable, one-line message explaining the event. E.g., "Could not connect to backend", "Cache
+            invalidation succeeded".
+            </summary>
+        </member>
+        <member name="F:OpenTracing.LogFields.Stack">
+            <summary>A stack trace in platform-conventional format; may or may not pertain to an error.</summary>
+            <example>
+            <code>
+            at App.Program.SomeMethod() in C:\app\Program.cs:line 14
+            at App.Program.Main(String[] args) in C:\app\Program.cs:line 9
+            </code>
+            </example>
+        </member>
+        <member name="T:OpenTracing.Mock.MockSpan">
+            <summary>
+            MockSpans are created via <see cref="M:OpenTracing.Mock.MockTracer.BuildSpan(System.String)"/>, but they are also returned via calls to
+            <see cref="M:OpenTracing.Mock.MockTracer.FinishedSpans"/>. They provide accessors to all span state.
+            </summary>
+            <seealso cref="M:OpenTracing.Mock.MockTracer.FinishedSpans"/>
+        </member>
+        <member name="F:OpenTracing.Mock.MockSpan._nextIdCounter">
+            <summary>
+            Used to monotonically update ids
+            </summary>
+        </member>
+        <member name="M:OpenTracing.Mock.MockSpan.NextId">
+            <summary>
+            A simple-as-possible (consecutive for repeatability) id generator.
+            </summary>
+        </member>
+        <member name="P:OpenTracing.Mock.MockSpan.ParentId">
+            <summary>
+            The spanId of the span's first <see cref="F:OpenTracing.References.ChildOf"/> reference, or the first reference of any type,
+            or null if no reference exists.
+            </summary>
+            <seealso cref="P:OpenTracing.Mock.MockSpanContext.SpanId"/>
+            <seealso cref="P:OpenTracing.Mock.MockSpan.References"/>
+        </member>
+        <member name="P:OpenTracing.Mock.MockSpan.FinishTimestamp">
+            <summary>
+            The finish time of the span; only valid after a call to <see cref="M:OpenTracing.Mock.MockSpan.Finish"/>.
+            </summary>
+        </member>
+        <member name="P:OpenTracing.Mock.MockSpan.Tags">
+            <summary>
+            A copy of all tags set on this span.
+            </summary>
+        </member>
+        <member name="P:OpenTracing.Mock.MockSpan.LogEntries">
+            <summary>
+            A copy of all log entries added to this span.
+            </summary>
+        </member>
+        <member name="P:OpenTracing.Mock.MockSpan.GeneratedErrors">
+            <summary>
+            A copy of exceptions thrown by this class (e.g. adding a tag after span is finished).
+            </summary>
+        </member>
+        <member name="P:OpenTracing.Mock.MockSpan.Reference.ReferenceType">
+            <summary>
+            See <see cref="T:OpenTracing.References"/>.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Mock.MockSpanContext">
+            <summary>
+            <see cref="T:OpenTracing.Mock.MockSpanContext"/> implements a Dapper-like <see cref="T:OpenTracing.ISpanContext"/> with a trace-id and span-id.
+            <para/>
+            Note that parent ids are part of the <see cref="T:OpenTracing.Mock.MockSpan"/>, not the <see cref="T:OpenTracing.Mock.MockSpanContext"/>
+            (since they do not need to propagate between processes).
+            </summary>
+        </member>
+        <member name="M:OpenTracing.Mock.MockSpanContext.#ctor(System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            An internal constructor to create a new <see cref="T:OpenTracing.Mock.MockSpanContext"/>.
+            This should only be called by <see cref="T:OpenTracing.Mock.MockSpan"/> and/or <see cref="T:OpenTracing.Mock.MockTracer"/>.
+            </summary>
+            <param name="traceId">The id of the trace.</param>
+            <param name="spanId">The id of the span.</param>
+            <param name="baggage">The MockContext takes ownership of the baggage parameter.</param>
+            <seealso cref="M:OpenTracing.Mock.MockSpanContext.WithBaggageItem(System.String,System.String)"/>
+        </member>
+        <member name="M:OpenTracing.Mock.MockSpanContext.WithBaggageItem(System.String,System.String)">
+            <summary>
+            Create and return a new (immutable) MockContext with the added baggage item.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Mock.MockTracer">
+            <summary>
+            <see cref="T:OpenTracing.Mock.MockTracer"/> makes it easy to test the semantics of OpenTracing instrumentation.
+            <para/>
+            By using a <see cref="T:OpenTracing.Mock.MockTracer"/> as an <see cref="T:OpenTracing.ITracer"/> implementation for unittests, a developer can assert that span
+            properties and relationships with other spans are defined as expected by instrumentation code.
+            <para/>
+            The MockTracerTests class has simple usage examples.
+            </summary>
+        </member>
+        <member name="M:OpenTracing.Mock.MockTracer.#ctor(OpenTracing.Mock.IPropagator)">
+            <summary>
+            Create a new <see cref="T:OpenTracing.Mock.MockTracer"/> that passes through any calls
+            to <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> and/or <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>.
+            </summary>
+        </member>
+        <member name="M:OpenTracing.Mock.MockTracer.Reset">
+            <summary>
+            Clear the <see cref="M:OpenTracing.Mock.MockTracer.FinishedSpans"/> queue.
+            <para/>
+            Note that this does *not* have any effect on spans created by MockTracer that have not Finish()ed yet; those
+            will still be enqueued in <see cref="M:OpenTracing.Mock.MockTracer.FinishedSpans"/> when they Finish().
+            </summary>
+        </member>
+        <member name="M:OpenTracing.Mock.MockTracer.FinishedSpans">
+            <summary>
+            Returns a copy of all Finish()ed MockSpans started by this MockTracer (since construction or the last call to
+            <see cref="M:OpenTracing.Mock.MockTracer.Reset"/>).
+            </summary>
+            <seealso cref="M:OpenTracing.Mock.MockTracer.Reset"/>
+        </member>
+        <member name="M:OpenTracing.Mock.MockTracer.OnSpanFinished(OpenTracing.Mock.MockSpan)">
+            <summary>
+            Noop method called on <see cref="M:OpenTracing.ISpan.Finish"/>.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Mock.IPropagator">
+            <summary>
+            Allows the developer to inject into the <see cref="M:OpenTracing.Mock.MockTracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> and <see cref="M:OpenTracing.Mock.MockTracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/> calls.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Mock.TextMapPropagator">
+            <summary>
+            <see cref="T:OpenTracing.Mock.IPropagator"/> implementation that uses <see cref="T:OpenTracing.Propagation.ITextMap"/> internally.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Noop.NoopScopeManager">
+            <summary>
+            A noop (i.e., cheap-as-possible) implementation of an <see cref="T:OpenTracing.IScopeManager"/>.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Noop.NoopTracerFactory">
+            <summary>
+            Provides access to the singleton <see cref="T:OpenTracing.Noop.NoopTracer"/> instance.
+            </summary>
+        </member>
+        <member name="M:OpenTracing.Noop.NoopTracerFactory.Create">
+            <summary>
+            Returns the singleton <see cref="T:OpenTracing.Noop.NoopTracer"/> instance.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Propagation.BinaryExtractAdapter">
+            <summary>
+            A <see cref="T:OpenTracing.Propagation.IBinary"/> carrier for use with <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/> only. It cannot be mutated, only read.
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+        </member>
+        <member name="M:OpenTracing.Propagation.BinaryExtractAdapter.Set(System.IO.MemoryStream)">
+            <inheritdoc />
+        </member>
+        <member name="M:OpenTracing.Propagation.BinaryExtractAdapter.Get">
+            <inheritdoc />
+        </member>
+        <member name="T:OpenTracing.Propagation.BinaryInjectAdapter">
+            <summary>
+            A <see cref="T:OpenTracing.Propagation.IBinary"/> carrier for use with <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> only. It cannot be read, only set.
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+        </member>
+        <member name="M:OpenTracing.Propagation.BinaryInjectAdapter.Set(System.IO.MemoryStream)">
+            <inheritdoc />
+        </member>
+        <member name="M:OpenTracing.Propagation.BinaryInjectAdapter.Get">
+            <inheritdoc />
+        </member>
+        <member name="F:OpenTracing.Propagation.BuiltinFormats.TextMap">
+            <summary>
+            The 'TextMap' format allows for arbitrary string-string dictionary encoding of <see cref="T:OpenTracing.ISpanContext"/> state for
+            <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> and <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>. Unlike <see cref="F:OpenTracing.Propagation.BuiltinFormats.HttpHeaders"/>,
+            the builtin 'TextMap' format expresses no constraints on keys or values.
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="T:OpenTracing.Propagation.IFormat`1"/>
+            <seealso cref="F:OpenTracing.Propagation.BuiltinFormats.HttpHeaders"/>
+        </member>
+        <member name="F:OpenTracing.Propagation.BuiltinFormats.HttpHeaders">
+            <summary>
+            The 'HttpHeaders' format allows for HTTP-header-compatible string-string dictionary encoding of <see cref="T:OpenTracing.ISpanContext"/> state
+            for <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> and <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>. I.e, keys written to the
+            <see cref="T:OpenTracing.Propagation.ITextMap"/> MUST be suitable for HTTP header keys (which are poorly defined but certainly restricted); and similarly for
+            values (i.e., URL-escaped and "not too long").
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="T:OpenTracing.Propagation.IFormat`1"/>
+            <seealso cref="F:OpenTracing.Propagation.BuiltinFormats.TextMap"/>
+        </member>
+        <member name="F:OpenTracing.Propagation.BuiltinFormats.Binary">
+            <summary>
+            The 'Binary' format allows for unconstrained byte encoding of <see cref="T:OpenTracing.ISpanContext"/> state
+            for <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> and <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/> using a <see cref="T:System.IO.MemoryStream"/>.
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="T:OpenTracing.Propagation.IFormat`1"/>
+            <seealso cref="T:System.Byte"/>
+        </member>
+        <member name="M:OpenTracing.Propagation.BuiltinFormats.Builtin`1.ToString">
+            <summary>Short name for built-in formats as they tend to show up in exception messages.</summary>
+        </member>
+        <member name="T:OpenTracing.Propagation.IBinary">
+            <summary>
+            <see cref="T:OpenTracing.Propagation.IBinary"/> is a built-in carrier for <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> and
+            <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>. IBinary implementations allow for the reading and writing of arbitrary streams.
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+        </member>
+        <member name="M:OpenTracing.Propagation.IBinary.Set(System.IO.MemoryStream)">
+            <summary>
+            Sets the backing MemoryStream of an <see cref="T:OpenTracing.Propagation.IBinary"/> store.
+            </summary>
+            <param name="stream">A memory-backed stream.</param>
+        </member>
+        <member name="M:OpenTracing.Propagation.IBinary.Get">
+            <summary>
+            Gets the backing MemoryStream of an <see cref="T:OpenTracing.Propagation.IBinary"/> store.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:OpenTracing.Propagation.IFormat`1">
+            <summary>
+            <see cref="T:OpenTracing.Propagation.IFormat`1"/> instances control the behavior of <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> and
+            <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/> (and also constrain the type of the carrier parameter to same). Most
+            OpenTracing users will only reference the <see cref="T:OpenTracing.Propagation.BuiltinFormats"/> constants. For example:
+            <code>
+            ITracer tracer = ...
+            ITextMap httpCarrier = new AnHttpHeaderCarrier(httpRequest);
+            ISpanContext spanContext = tracer.Extract(BuiltinFormats.HttpHeaders, httpHeaderRequest);
+            </code>
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+        </member>
+        <member name="T:OpenTracing.Propagation.ITextMap">
+            <summary>
+            <see cref="T:OpenTracing.Propagation.ITextMap"/> is a built-in carrier for <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> and
+            <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>. ITextMap implementations allows Tracers to read and write key:value string
+            pairs from arbitrary underlying sources of data.
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+        </member>
+        <member name="M:OpenTracing.Propagation.ITextMap.Set(System.String,System.String)">
+            <summary>Puts a key:value pair into the ITextMap's backing store.</summary>
+            <param name="key">
+            A string, possibly with constraints dictated by the particular <see cref="T:OpenTracing.Propagation.IFormat`1"/> this ITextMap is paired with.
+            </param>
+            <param name="value">
+            A string, possibly with constraints dictated by the particular <see cref="T:OpenTracing.Propagation.IFormat`1"/> this ITextMap is paired with.
+            </param>
+            <seealso cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/>
+            <seealso cref="F:OpenTracing.Propagation.BuiltinFormats.TextMap"/>
+            <seealso cref="F:OpenTracing.Propagation.BuiltinFormats.HttpHeaders"/>
+        </member>
+        <member name="T:OpenTracing.Propagation.TextMapExtractAdapter">
+            <summary>
+            A <see cref="T:OpenTracing.Propagation.ITextMap"/> carrier for use with <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/> ONLY (it has no mutating methods). Note that the
+            <see cref="T:OpenTracing.Propagation.ITextMap"/> interface can be made to wrap around arbitrary data types
+            (not just <code>Dictionary&lt;string, string&gt;</code> as illustrated here).
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/>
+        </member>
+        <member name="T:OpenTracing.Propagation.TextMapInjectAdapter">
+            <summary>
+            A <see cref="T:OpenTracing.Propagation.ITextMap"/> carrier for use with <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> ONLY (it has no read methods). Note that
+            the <see cref="T:OpenTracing.Propagation.ITextMap"/> interface can be made to wrap around arbitrary data types
+            (not just <code>Dictionary&lt;string, string&gt;</code> as illustrated here).
+            </summary>
+            <seealso cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/>
+        </member>
+        <member name="T:OpenTracing.References">
+            <summary>
+            <see cref="T:OpenTracing.References"/> is essentially a namespace for the official OpenTracing reference types. References
+            are used by <see cref="M:OpenTracing.ITracer.BuildSpan(System.String)"/> to describe the relationships between spans.
+            </summary>
+            <seealso cref="M:OpenTracing.ISpanBuilder.AddReference(System.String,OpenTracing.ISpanContext)"/>
+        </member>
+        <member name="F:OpenTracing.References.ChildOf">
+            <summary>
+            See https://github.com/opentracing/specification/blob/master/specification.md#references-between-spans for
+            more information about CHILD_OF references.
+            </summary>
+        </member>
+        <member name="F:OpenTracing.References.FollowsFrom">
+            <summary>
+            See https://github.com/opentracing/specification/blob/master/specification.md#references-between-spans for
+            more information about FOLLOWS_FROM references.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Tag.Tags">
+            <summary>
+            The following span tags are recommended for instrumentors who are trying to capture more semantic information
+            about the spans. Tracers may expose additional features based on these standardized data points. Tag names follow a
+            general structure of namespacing.
+            <see href="https://github.com/opentracing/specification/blob/master/semantic_conventions.md"/>
+            </summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.SpanKindServer">
+            <summary>A static readonlyant for setting the span kind to indicate that it represents a server span.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.SpanKindClient">
+            <summary>A static readonlyant for setting the span kind to indicate that it represents a client span.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.SpanKindProducer">
+            <summary>
+            A static readonlyant for setting the span kind to indicate that it represents a producer span, in a messaging
+            scenario.
+            </summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.SpanKindConsumer">
+            <summary>
+            A static readonlyant for setting the span kind to indicate that it represents a consumer span, in a messaging
+            scenario.
+            </summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.HttpUrl">
+            <summary>HttpUrl records the url of the incoming request.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.HttpStatus">
+            <summary>HttpStatus records the http status code of the response.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.HttpMethod">
+            <summary>HttpMethod records the http method. Case-insensitive.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.PeerHostIpv4">
+            <summary>PeerHostIpv4 records IPv4 host address of the peer.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.PeerHostIpv6">
+            <summary>PeerHostIpv6 records the IPv6 host address of the peer.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.PeerService">
+            <summary>PeerService records the service name of the peer.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.PeerHostname">
+            <summary>PeerHostname records the host name of the peer.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.PeerPort">
+            <summary>PeerPort records the port number of the peer.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.SamplingPriority">
+            <summary>SamplingPriority determines the priority of sampling this span.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.SpanKind">
+            <summary>SpanKind hints at the relationship between spans, e.g. client/server.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.Component">
+            <summary>Component is a low-cardinality identifier of the module, library, or package that is instrumented.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.Error">
+            <summary>Error indicates whether a span ended in an error state.</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.DbType">
+            <summary>
+            DbType indicates the type of Database. For any SQL database, "sql". For others, the lower-case database
+            category, e.g. "cassandra", "hbase", or "redis".
+            </summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.DbInstance">
+            <summary>
+            Database instance name. E.g., In java, if the jdbc.url="jdbc:mysql://127.0.0.1:3306/customers", instance name
+            is "customers".
+            </summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.DbUser">
+            <summary>DbUser indicates the user name of Database, e.g. "readonly_user" or "reporting_user".</summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.DbStatement">
+            <summary>
+            DbStatement records a database statement for the given database type. For db.type="SQL", "SELECT FROM
+            wuser_table". For db.type="redis", "SET mykey "WuValue"".
+            </summary>
+        </member>
+        <member name="F:OpenTracing.Tag.Tags.MessageBusDestination">
+            <summary>
+            MessageBusDestination records an address at which messages can be exchanged. E.g. A Kafka record has an
+            associated "topic name" that can be extracted by the instrumented producer or consumer and stored using this tag.
+            </summary>
+        </member>
+        <member name="T:OpenTracing.Util.AsyncLocalScope">
+            <summary>
+            The <see cref="T:OpenTracing.Util.AsyncLocalScope"/> is a simple <see cref="T:OpenTracing.IScope"/> implementation
+            that relies on C#'s AsyncLocal/CallContext storage primitive.
+            </summary>
+            <seealso cref="T:OpenTracing.IScopeManager"/>
+        </member>
+        <member name="T:OpenTracing.Util.AsyncLocalScopeManager">
+            <summary>
+            The <see cref="T:OpenTracing.Util.AsyncLocalScopeManager"/> is a simple <see cref="T:OpenTracing.IScopeManager"/> implementation
+            that relies on C#'s AsyncLocal/CallContext storage primitive.
+            </summary>
+            <seealso cref="T:OpenTracing.Util.AsyncLocalScope"/>
+        </member>
+        <member name="T:OpenTracing.Util.GlobalTracer">
+            <summary>
+            Global tracer that forwards all methods to another tracer that can be
+            configured by calling <see cref="M:OpenTracing.Util.GlobalTracer.Register(OpenTracing.ITracer)"/>.
+            <para/>
+            The <see cref="M:OpenTracing.Util.GlobalTracer.Register(OpenTracing.ITracer)"/> method should only be called once
+            during the application initialization phase.<br/>
+            If the <see cref="M:OpenTracing.Util.GlobalTracer.Register(OpenTracing.ITracer)"/> method is never called,
+            the default <see cref="T:OpenTracing.Noop.NoopTracer"/> is used.
+            <para/>
+            Where possible, use some form of dependency injection (of which there are
+            many) to access the <see cref="T:OpenTracing.ITracer"/> instance. For vanilla application code, this is
+            often reasonable and cleaner for all of the usual DI reasons.
+            <para/>
+            That said, instrumentation for packages that are themselves statically
+            configured (e.g., JDBC drivers) may be unable to make use of said DI
+            mechanisms for <see cref="T:OpenTracing.ITracer"/> access, and as such they should fall back on
+            <see cref="T:OpenTracing.Util.GlobalTracer"/>. By and large, OpenTracing instrumentation should
+            always allow the programmer to specify a <see cref="T:OpenTracing.ITracer"/> instance to use for
+            instrumentation, though the <see cref="T:OpenTracing.Util.GlobalTracer"/> is a reasonable fallback or
+            default value.
+            </summary>
+        </member>
+        <member name="F:OpenTracing.Util.GlobalTracer.s_instance">
+            <summary>
+            Singleton instance.
+            <para/>
+            Since we cannot prevent people using <see cref="P:OpenTracing.Util.GlobalTracer.Instance"/> as a constant,
+            this guarantees that references obtained before, during or after initialization
+            all behave as if obtained <em>after</em> initialization once properly initialized.<br/>
+            As a minor additional benefit it makes it harder to circumvent the <see cref="T:OpenTracing.ITracer"/> API.
+            </summary>
+        </member>
+        <member name="P:OpenTracing.Util.GlobalTracer.Instance">
+            <summary>
+            Returns the constant <see cref="T:OpenTracing.Util.GlobalTracer"/>.
+            <para/>
+            All methods are forwarded to the currently configured tracer.<br/>
+            Until a tracer is explicitly configured via <see cref="M:OpenTracing.Util.GlobalTracer.Register(OpenTracing.ITracer)"/>,
+            the <see cref="T:OpenTracing.Noop.NoopTracer"/> is used.
+            </summary>
+            <returns>The global tracer constant.</returns>
+            <seealso cref="M:OpenTracing.Util.GlobalTracer.Register(OpenTracing.ITracer)"/>
+        </member>
+        <member name="M:OpenTracing.Util.GlobalTracer.IsRegistered">
+            <summary>
+            Identify whether a <see cref="T:OpenTracing.ITracer"/> has previously been registered.
+            <para/>
+            This check is useful in scenarios where more than one component may be responsible
+            for registering a tracer.
+            </summary>
+            <returns>Whether a tracer has been registered.</returns>
+        </member>
+        <member name="M:OpenTracing.Util.GlobalTracer.RegisterIfAbsent(OpenTracing.ITracer)">
+            <summary>
+            Attempts to register a <see cref="T:OpenTracing.ITracer"/> to back the behaviour of the global tracer (<see cref="P:OpenTracing.Util.GlobalTracer.Instance"/>).
+            <para>
+            Registration is a one-time operation, subsequent attempts do not change the registered global tracer.
+            </para>
+            </summary>
+            <param name="tracer">The tracer to use as the global tracer.</param>
+            <returns>True if the tracer was successfully registered, otherwise false.</returns>
+        </member>
+        <member name="M:OpenTracing.Util.GlobalTracer.Register(OpenTracing.ITracer)">
+            <summary>
+            Register a <see cref="T:OpenTracing.ITracer"/> to back the behaviour of the global tracer (<see cref="P:OpenTracing.Util.GlobalTracer.Instance"/>).
+            <para/>
+            Registration is a one-time operation, attempting to call it more often will result in a runtime exception.
+            <para/>
+            Every application intending to use the global tracer is responsible for registering it once
+            during its initialization.
+            </summary>
+            <param name="tracer">Tracer to use as global tracer.</param>
+        </member>
+        <member name="P:OpenTracing.Util.GlobalTracer.ScopeManager">
+            <inheritdoc/>
+        </member>
+        <member name="P:OpenTracing.Util.GlobalTracer.ActiveSpan">
+            <inheritdoc/>
+        </member>
+        <member name="M:OpenTracing.Util.GlobalTracer.BuildSpan(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OpenTracing.Util.GlobalTracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OpenTracing.Util.GlobalTracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:OpenTracing.Util.GlobalTracer.ToString">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>

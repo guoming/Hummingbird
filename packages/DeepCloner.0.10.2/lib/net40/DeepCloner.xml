@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DeepCloner</name>
+    </assembly>
+    <members>
+        <member name="T:Force.DeepCloner.DeepClonerExtensions">
+            <summary>
+            Extensions for object cloning
+            </summary>
+        </member>
+        <member name="M:Force.DeepCloner.DeepClonerExtensions.DeepClone``1(``0)">
+            <summary>
+            Performs deep (full) copy of object and related graph
+            </summary>
+        </member>
+        <member name="M:Force.DeepCloner.DeepClonerExtensions.DeepCloneTo``2(``0,``1)">
+            <summary>
+            Performs deep (full) copy of object and related graph to existing object
+            </summary>
+            <returns>existing filled object</returns>
+            <remarks>Method is valid only for classes, classes should be descendants in reality, not in declaration</remarks>
+        </member>
+        <member name="M:Force.DeepCloner.DeepClonerExtensions.ShallowCloneTo``2(``0,``1)">
+            <summary>
+            Performs shallow copy of object to existing object
+            </summary>
+            <returns>existing filled object</returns>
+            <remarks>Method is valid only for classes, classes should be descendants in reality, not in declaration</remarks>
+        </member>
+        <member name="M:Force.DeepCloner.DeepClonerExtensions.ShallowClone``1(``0)">
+            <summary>
+            Performs shallow (only new object returned, without cloning of dependencies) copy of object
+            </summary>
+        </member>
+        <member name="M:Force.DeepCloner.Helpers.DeepClonerCache.ClearCache">
+            <summary>
+            This method can be used when we switch between safe / unsafe variants (for testing)
+            </summary>
+        </member>
+        <member name="T:Force.DeepCloner.Helpers.DeepClonerSafeTypes">
+            <summary>
+            Safe types are types, which can be copied without real cloning. e.g. simple structs or strings (it is immutable)
+            </summary>
+        </member>
+        <member name="M:Force.DeepCloner.Helpers.DeepClonerSafeTypes.CanNotDeepCopyClass(System.Type)">
+            <summary>
+            Classes with only safe fields are safe for ShallowClone (if they root objects for copying)
+            </summary>
+        </member>
+        <member name="T:Force.DeepCloner.Helpers.ShallowObjectCloner">
+            <summary>
+            Internal class but due implementation restriction should be public
+            </summary>
+        </member>
+        <member name="M:Force.DeepCloner.Helpers.ShallowObjectCloner.DoCloneObject(System.Object)">
+            <summary>
+            Abstract method for real object cloning
+            </summary>
+        </member>
+        <member name="M:Force.DeepCloner.Helpers.ShallowObjectCloner.CloneObject(System.Object)">
+            <summary>
+            Performs real shallow object clone
+            </summary>
+        </member>
+        <member name="M:Force.DeepCloner.Helpers.ShallowObjectCloner.SwitchTo(System.Boolean)">
+            <summary>
+            Purpose of this method is testing variants
+            </summary>
+        </member>
+    </members>
+</doc>

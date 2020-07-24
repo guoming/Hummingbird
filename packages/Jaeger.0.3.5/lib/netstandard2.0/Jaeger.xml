@@ -1,0 +1,925 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Jaeger</name>
+    </assembly>
+    <members>
+        <member name="T:Jaeger.Baggage.BaggageSetter">
+            <summary>
+            <see cref="T:Jaeger.Baggage.BaggageSetter"/> is a class that sets baggage and the logs associated
+            with the baggage on a given <see cref="T:Jaeger.Span"/>.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Baggage.BaggageSetter.SetBaggage(Jaeger.Span,System.String,System.String)">
+            <summary>
+            Sets the baggage key:value on the <see cref="T:Jaeger.Span"/> and the corresponding
+            logs. Whether the baggage is set on the span depends on if the key
+            is allowed to be set by this service.
+            <para/>
+            A <see cref="T:Jaeger.SpanContext"/> is returned with the new baggage key:value set
+            if key is valid, else returns the existing <see cref="T:Jaeger.SpanContext"/>
+            on the <see cref="T:Jaeger.Span"/>.
+            </summary>
+            <param name="span">The span to set the baggage on.</param>
+            <param name="key">The baggage key to set.</param>
+            <param name="value">the baggage value to set.</param>
+            <returns>The <see cref="T:Jaeger.SpanContext"/> with the baggage set.</returns>
+        </member>
+        <member name="T:Jaeger.Baggage.DefaultBaggageRestrictionManager">
+            <summary>
+            <see cref="T:Jaeger.Baggage.DefaultBaggageRestrictionManager"/> is a manager that returns a <see cref="T:Jaeger.Baggage.Restriction"/>
+            that allows all baggage.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Baggage.IBaggageRestrictionManager">
+            <summary>
+            <see cref="T:Jaeger.Baggage.IBaggageRestrictionManager"/> is an interface for a class that manages baggage
+            restrictions for baggage keys. The manager will return a <see cref="T:Jaeger.Baggage.Restriction"/>
+            for a specific baggage key which will determine whether the baggage key is
+            allowed for the current service and any other applicable restrictions on the
+            baggage value.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Baggage.IBaggageRestrictionManagerProxy">
+            <summary>
+            <see cref="T:Jaeger.Baggage.IBaggageRestrictionManagerProxy"/> is an interface for a class that fetches baggage
+            restrictions for specific service from a remote source i.e. jaeger-agent.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Baggage.RemoteBaggageRestrictionManager">
+            <summary>
+            <see cref="T:Jaeger.Baggage.RemoteBaggageRestrictionManager"/> returns a <see cref="T:Jaeger.Baggage.IBaggageRestrictionManager"/>
+            that polls the agent for the latest baggage restrictions.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Baggage.RemoteBaggageRestrictionManager.#ctor(System.String,Jaeger.Baggage.IBaggageRestrictionManagerProxy,Jaeger.Metrics.IMetrics,System.Boolean,System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Creates a <see cref="T:Jaeger.Baggage.RemoteBaggageRestrictionManager"/> that fetches <see cref="T:Jaeger.Baggage.Http.BaggageRestrictionResponse"/> from a remote
+            agent and keeps track of <see cref="T:Jaeger.Baggage.Restriction"/> for a service.
+            <para/>
+            <paramref name="initialDelay"/> is only exposed for testing purposes so users can determine when the first call to
+            remote agent is made. Under normal operations, this RemoteBaggageRestrictionManager will start up and
+            asynchronously fetch restrictions. If the user wants to know if restrictions are ready, they can check via
+            isReady().
+            </summary>
+            <param name="serviceName">Restrictions for this service are kept track of.</param>
+            <param name="proxy">Proxy to remote agent.</param>
+            <param name="metrics">Metrics for metrics emission.</param>
+            <param name="denyBaggageOnInitializationFailure">
+            Determines the startup failure mode of <see cref="T:Jaeger.Baggage.RemoteBaggageRestrictionManager"/>.
+            If <paramref name="denyBaggageOnInitializationFailure"/> is true,
+            <see cref="T:Jaeger.Baggage.RemoteBaggageRestrictionManager"/> will not allow any baggage to be written
+            until baggage restrictions have been retrieved from agent. If
+            <paramref name="denyBaggageOnInitializationFailure"/> is false,
+            <see cref="T:Jaeger.Baggage.RemoteBaggageRestrictionManager"/> will allow any baggage to be written
+            until baggage restrictions have been retrieved from agent.
+            </param>
+            <param name="refreshInterval">How often restriction are fetched from remote agent.</param>
+            <param name="initialDelay">Delay before first fetch of restrictions.</param>
+        </member>
+        <member name="T:Jaeger.Baggage.Restriction">
+            <summary>
+            <see cref="T:Jaeger.Baggage.Restriction"/> determines whether a baggage key is allowed and contains any
+            restrictions on the baggage value.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Configuration">
+            <summary>
+            This class is designed to provide <see cref="T:Jaeger.Tracer"/> or <see cref="T:Jaeger.Tracer.Builder"/> when Jaeger client
+            configuration is provided in environmental variables. It also simplifies creation
+            of the client from configuration files.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerPrefix">
+            <summary>
+            Prefix for all properties used to configure the Jaeger tracer.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerEndpoint">
+            <summary>
+            The full URL to the "traces" endpoint, like https://jaeger-collector:14268/api/traces.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerAuthToken">
+            <summary>
+            The Auth Token to be added as "Bearer" on Authorization headers for requests sent to the endpoint.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerUser">
+            <summary>
+            The Basic Auth username to be added on Authorization headers for requests sent to the endpoint.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerPassword">
+            <summary>
+            The Basic Auth password to be added on Authorization headers for requests sent to the endpoint.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerAgentHost">
+            <summary>
+            The host name used to locate the agent.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerAgentPort">
+            <summary>
+            The port used to locate the agent.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerReporterLogSpans">
+            <summary>
+            Whether the reporter should log the spans.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerReporterMaxQueueSize">
+            <summary>
+            The maximum queue size for use when reporting spans remotely.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerReporterFlushInterval">
+            <summary>
+            The flush interval when reporting spans remotely.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerSamplerType">
+            <summary>
+            The sampler type.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerSamplerParam">
+            <summary>
+            The sampler parameter (number).
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerSamplerManagerHostPort">
+            <summary>
+            The sampler manager host:port.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerServiceName">
+            <summary>
+            The service name.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerTags">
+            <summary>
+            The tracer level tags.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerTraceId128Bit">
+            <summary>
+            Whether to use 128bit TraceID instead of 64bit.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.JaegerPropagation">
+            <summary>
+            Comma separated list of formats to use for propagating the trace context. Default will the
+            standard Jaeger format. Valid values are jaeger and b3.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Configuration.Propagation">
+            <summary>
+            The supported trace context propagation formats.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.Propagation.Jaeger">
+            <summary>
+            The default Jaeger trace context propagation format.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration.Propagation.B3">
+            <summary>
+            The Zipkin B3 trace context propagation format.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.ServiceName">
+            <summary>
+            The serviceName that the tracer will use.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Configuration._tracer">
+            <summary>
+            Lazy singleton <see cref="T:Jaeger.Tracer"/> initialized in <see cref="M:Jaeger.Configuration.GetTracer"/> method.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.FromIConfiguration(Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Returns <see cref="T:Jaeger.Configuration"/> object from a Configuration.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.FromEnv(Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Returns <see cref="T:Jaeger.Configuration"/> object from environmental variables.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Configuration.SamplerConfiguration">
+            <summary>
+            SamplerConfiguration allows to configure which sampler the tracer will use.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SamplerConfiguration.Type">
+            <summary>
+            The type of sampler to use in the tracer. Optional. Valid values: remote (default),
+            ratelimiting, probabilistic, const.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SamplerConfiguration.Param">
+            <summary>
+            The integer or floating point value that makes sense for the correct samplerType. Optional.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SamplerConfiguration.ManagerHostPort">
+            <summary>
+            HTTP host:port of the sampling manager that can provide sampling strategy to this service.
+            Optional.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.SamplerConfiguration.FromIConfiguration(Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Attempts to create a new <see cref="T:Jaeger.Configuration.SamplerConfiguration"/> based on an IConfiguration.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.SamplerConfiguration.FromEnv(Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Attempts to create a new <see cref="T:Jaeger.Configuration.SamplerConfiguration"/> based on the environment variables.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Configuration.CodecConfiguration">
+            <summary>
+            CodecConfiguration can be used to support additional trace context propagation codec.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.CodecConfiguration.FromIConfiguration(Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Attempts to create a new <see cref="T:Jaeger.Configuration.CodecConfiguration"/> based on an IConfiguration.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.CodecConfiguration.FromEnv(Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Attempts to create a new <see cref="T:Jaeger.Configuration.CodecConfiguration"/> based on the environment variables.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.ReporterConfiguration.FromIConfiguration(Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Attempts to create a new <see cref="T:Jaeger.Configuration.ReporterConfiguration"/> based on an IConfiguration.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.ReporterConfiguration.FromEnv(Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Attempts to create a new <see cref="T:Jaeger.Configuration.ReporterConfiguration"/> based on the environment variables.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Configuration.SenderConfiguration">
+            <summary>
+            Holds the configuration related to the sender. A sender can be a <see cref="T:Jaeger.Senders.HttpSender"/> or <see cref="T:Jaeger.Senders.UdpSender"/>.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SenderConfiguration.Sender">
+            <summary>
+            A custom sender set by our consumers. If set, nothing else has effect. Optional.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SenderConfiguration.AgentHost">
+            <summary>
+            The Agent Host. Has no effect if the sender is set. Optional.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SenderConfiguration.AgentPort">
+            <summary>
+            The Agent Port. Has no effect if the sender is set. Optional.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SenderConfiguration.Endpoint">
+            <summary>
+            The endpoint, like https://jaeger-collector:14268/api/traces.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SenderConfiguration.AuthToken">
+            <summary>
+            The Auth Token to be added as "Bearer" on Authorization headers for requests sent to the endpoint.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SenderConfiguration.AuthUsername">
+            <summary>
+            The Basic Auth username to be added on Authorization headers for requests sent to the endpoint.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Configuration.SenderConfiguration.AuthPassword">
+            <summary>
+            The Basic Auth password to be added on Authorization headers for requests sent to the endpoint.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.SenderConfiguration.GetSender">
+            <summary>
+            Returns a sender if one was given when creating the configuration, or attempts to create a sender based on the
+            configuration's state.
+            </summary>
+            <returns>The sender passed via the constructor or a properly configured sender.</returns>
+        </member>
+        <member name="M:Jaeger.Configuration.SenderConfiguration.FromIConfiguration(Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Attempts to create a new <see cref="T:Jaeger.Configuration.SenderConfiguration"/> based on an IConfiguration.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.SenderConfiguration.FromEnv(Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Attempts to create a new <see cref="T:Jaeger.Configuration.SenderConfiguration"/> based on the environment variables.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Configuration.GetPropertyAsBool(System.String,Microsoft.Extensions.Logging.ILogger,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Gets the system property defined by the name, and returns a boolean value represented by
+            the name. This method defaults to returning false for a name that doesn't exist.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Constants.SamplerTypeTagKey">
+            <summary>
+            Span tag key to describe the type of sampler used on the root span.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Constants.SamplerParamTagKey">
+            <summary>
+            Span tag key to describe the parameter of the sampler used on the root span.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Constants.DebugIdHeaderKey">
+            <summary>
+            The name of HTTP header or a <see cref="T:OpenTracing.Propagation.ITextMap"/> carrier key which,
+            if found in the carrier, forces the trace to be sampled as "debug" trace.
+            The value of the header is recorded as the tag on the root span, so that the trace
+            can be found in the UI using this value as a correlation ID.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Constants.JaegerClientVersionTagKey">
+            <summary>
+            The name of the tag used to report client version.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Constants.TracerHostnameTagKey">
+            <summary>
+            The name used to report host name of the process.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Constants.TracerIpTagKey">
+            <summary>
+            The name used to report ip of the process.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.TraceStartedSampled">
+            <summary>
+            Number of traces started by this tracer as sampled.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.TraceStartedNotSampled">
+            <summary>
+            Number of traces started by this tracer as not sampled.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.TracesJoinedSampled">
+            <summary>
+            Number of externally started sampled traces this tracer joined.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.TracesJoinedNotSampled">
+            <summary>
+            Number of externally started not-sampled traces this tracer joined.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.SpansStartedSampled">
+            <summary>
+            Number of sampled spans started by this tracer.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.SpansStartedNotSampled">
+            <summary>
+            Number of unsampled spans started by this tracer.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.SpansFinished">
+            <summary>
+            Number of spans finished by this tracer.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.DecodingErrors">
+            <summary>
+            Number of errors decoding tracing context.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.ReporterSuccess">
+            <summary>
+            Number of spans successfully reported.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.ReporterFailure">
+            <summary>
+            Number of spans not reported due to a Sender failure.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.ReporterDropped">
+            <summary>
+            Number of spans dropped due to internal queue overflow.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.ReporterQueueLength">
+            <summary>
+            Current number of spans in the reporter queue.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.SamplerRetrieved">
+            <summary>
+            Number of times the Sampler succeeded to retrieve sampling strategy.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.SamplerQueryFailure">
+            <summary>
+            Number of times the Sampler failed to retrieve sampling strategy.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.SamplerUpdated">
+            <summary>
+            Number of times the Sampler succeeded to retrieve and update sampling strategy.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.SamplerParsingFailure">
+            <summary>
+            Number of times the Sampler failed to update sampling strategy.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.BaggageUpdateSuccess">
+            <summary>
+            Number of times baggage was successfully written or updated on spans.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.BaggageUpdateFailure">
+            <summary>
+            Number of times baggage failed to write or update on spans.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.BaggageTruncate">
+            <summary>
+            Number of times baggage was truncated as per baggage restrictions.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.BaggageRestrictionsUpdateSuccess">
+            <summary>
+            Number of times baggage restrictions were successfully updated.
+            </summary>
+        </member>
+        <member name="P:Jaeger.Metrics.IMetrics.BaggageRestrictionsUpdateFailure">
+            <summary>
+            Number of times baggage restrictions failed to update.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Metrics.IMetricsFactory">
+            <summary>
+            Provides a standardized way to create metrics-related objects, like <see cref="T:Jaeger.Metrics.ICounter"/>,
+            <see cref="T:Jaeger.Metrics.ITimer"/> and <see cref="T:Jaeger.Metrics.IGauge"/>.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Metrics.IMetricsFactory.CreateCounter(System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Creates a counter with the given counter name and set of tags. The actual metric name is a combination of those two
+            values. The counter starts at 0.
+            </summary>
+            <param name="name">The counter name.</param>
+            <param name="tags">The tags to add to the counter.</param>
+            <returns>A <see cref="T:Jaeger.Metrics.ICounter"/> with a metric name following the counter name and tags.</returns>
+            <seealso cref="M:Jaeger.Metrics.MetricsImpl.AddTagsToMetricName(System.String,System.Collections.Generic.Dictionary{System.String,System.String})"/>
+        </member>
+        <member name="M:Jaeger.Metrics.IMetricsFactory.CreateTimer(System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Creates a timer with the given timer name and set of tags. The actual metric name is a combination of those two
+            values. The timer starts at 0.
+            </summary>
+            <param name="name">The timer name.</param>
+            <param name="tags">The tags to add to the timer.</param>
+            <returns>A <see cref="T:Jaeger.Metrics.ITimer"/> with a metric name following the timer name and tags.</returns>
+            <seealso cref="M:Jaeger.Metrics.MetricsImpl.AddTagsToMetricName(System.String,System.Collections.Generic.Dictionary{System.String,System.String})"/>
+        </member>
+        <member name="M:Jaeger.Metrics.IMetricsFactory.CreateGauge(System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Creates a gauge with the given gauge name and set of tags. The actual metric name is a combination of those two
+            values. The gauge starts at 0.
+            </summary>
+            <param name="name">The gauge name.</param>
+            <param name="tags">The tags to add to the gauge.</param>
+            <returns>A <see cref="T:Jaeger.Metrics.IGauge"/> with a metric name following the gauge name and tags.</returns>
+            <seealso cref="M:Jaeger.Metrics.MetricsImpl.AddTagsToMetricName(System.String,System.Collections.Generic.Dictionary{System.String,System.String})"/>
+        </member>
+        <member name="T:Jaeger.Metrics.InMemoryMetricsFactory">
+            <summary>
+            An ephemeral metrics factory, storing data in memory. This metrics factory is not meant to be used for
+            production purposes.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Metrics.InMemoryMetricsFactory.GetCounter(System.String,System.String)">
+            <summary>
+            Returns the counter value information for the counter with the given metric name.
+            Note that the metric name is not the counter name, as a metric name usually includes the tags.
+            </summary>
+            <param name="name">The metric name, which includes the tags.</param>
+            <param name="tags">The metric tags as comma separated list of entries, like "foo=bar,baz=qux".</param>
+            <returns>The counter value or -1, if no counter exists for the given metric name.</returns>
+        </member>
+        <member name="M:Jaeger.Metrics.InMemoryMetricsFactory.GetCounter(System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Returns the counter value information for the counter with the given metric name.
+            Note that the metric name is not the counter name, as a metric name usually includes the tags.
+            </summary>
+            <param name="name">The metric name, which includes the tags.</param>
+            <param name="tags">The metric tags.</param>
+            <returns>The counter value or -1, if no counter exists for the given metric name.</returns>
+        </member>
+        <member name="M:Jaeger.Metrics.InMemoryMetricsFactory.GetGauge(System.String,System.String)">
+            <summary>
+            Returns the current value for the gauge with the given metric name. Note that the metric name is not the gauge
+            name, as a metric name usually includes the tags.
+            </summary>
+            <param name="name">The metric name, which includes the tags.</param>
+            <param name="tags">The metric tags as comma separated list of entries, like "foo=bar,baz=qux".</param>
+            <returns>The gauge value or -1, if no gauge exists for the given metric name.</returns>
+        </member>
+        <member name="M:Jaeger.Metrics.InMemoryMetricsFactory.GetGauge(System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Returns the current value for the gauge with the given metric name. Note that the metric name is not the gauge
+            name, as a metric name usually includes the tags.
+            </summary>
+            <param name="name">The metric name, which includes the tags.</param>
+            <param name="tags">The metric tags.</param>
+            <returns>The gauge value or -1, if no gauge exists for the given metric name.</returns>
+        </member>
+        <member name="M:Jaeger.Metrics.InMemoryMetricsFactory.GetTimer(System.String,System.String)">
+            <summary>
+            Returns the current accumulated timing information for the timer with the given metric name.
+            Note that the metric name is not the timer name, as a metric name usually includes the tags.
+            </summary>
+            <param name="name">The metric name, which includes the tags.</param>
+            <param name="tags">The metric tags as comma separated list of entries, like "foo=bar,baz=qux".</param>
+            <returns>The timer value or -1, if no timer exists for the given metric name.</returns>
+        </member>
+        <member name="M:Jaeger.Metrics.InMemoryMetricsFactory.GetTimer(System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Returns the current accumulated timing information for the timer with the given metric name.
+            Note that the metric name is not the timer name, as a metric name usually includes the tags.
+            </summary>
+            <param name="name">The metric name, which includes the tags.</param>
+            <param name="tags">The metric tags.</param>
+            <returns>The timer value or -1, if no timer exists for the given metric name.</returns>
+        </member>
+        <member name="M:Jaeger.Metrics.ITimer.DurationTicks(System.Int64)">
+            <remarks>
+            This is called "durationMicros" in Java but since everything is done via ticks in C# we use this name.
+            </remarks>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.TraceStartedSampled">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.TraceStartedNotSampled">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.TracesJoinedSampled">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.TracesJoinedNotSampled">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.SpansStartedSampled">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.SpansStartedNotSampled">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.SpansFinished">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.DecodingErrors">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.ReporterSuccess">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.ReporterFailure">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.ReporterDropped">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.ReporterQueueLength">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.SamplerRetrieved">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.SamplerQueryFailure">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.SamplerUpdated">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.SamplerParsingFailure">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.BaggageUpdateSuccess">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.BaggageUpdateFailure">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.BaggageTruncate">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.BaggageRestrictionsUpdateSuccess">
+            <inheritdoc/>
+        </member>
+        <member name="P:Jaeger.Metrics.MetricsImpl.BaggageRestrictionsUpdateFailure">
+            <inheritdoc/>
+        </member>
+        <member name="T:Jaeger.Metrics.NoopMetricsFactory">
+            <summary>
+            A metrics factory that implements NOOP counters, timers and gauges.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Propagation.B3TextMapCodec">
+            <summary>
+            This format is compatible with other Zipkin based trace libraries such as Brave, Wingtips, zipkin-js, etc.
+            <para/>
+            Example usage:
+            <code>
+            var b3TextMapCodec = new B3TextMapCodec();
+            tracer = new Tracer.Builder(serviceName)
+                               .With...()
+                               .RegisterCodec(BuiltinFormats.HttpHeaders, b3TextMapCodec)
+                               ...
+            </code>
+            <para/>
+            See <a href="http://zipkin.io/pages/instrumenting.html">Instrumenting a Library</a>
+            </summary>
+        </member>
+        <member name="T:Jaeger.Propagation.IExtractor">
+            <summary>
+            You should implement this class if you want to add possibility to extract information about
+            SpanContext that is provided in your custom propagation scheme. Otherwise you should probably use
+            built-in <see cref="T:Jaeger.Propagation.TextMapCodec"/> or <see cref="T:Jaeger.Propagation.B3TextMapCodec"/>.
+            </summary>
+            <seealso cref="T:Jaeger.Propagation.TextMapCodec"/>
+            <seealso cref="T:Jaeger.Propagation.B3TextMapCodec"/>
+            <seealso cref="T:Jaeger.Propagation.ICodec"/>
+        </member>
+        <member name="M:Jaeger.Propagation.IExtractor.Extract(System.Object)">
+            <summary>
+            Called when <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/> is used. It should handle the logic behind extracting propagation-scheme
+            specific information from carrier (e.g. http request headers, amqp message headers, etc.).
+            <para/>
+            This method must not modify the carrier.
+            <para/>
+            All exceptions thrown from this method will be caught and logged on <code>WARN</code> level so
+            that business code execution isn't affected. If possible, catch implementation specific
+            exceptions and log more meaningful information.
+            </summary>
+            <param name="carrier">Input that you extract Span information from, usually <see cref="T:OpenTracing.Propagation.ITextMap"/>.</param>
+            <returns><see cref="T:Jaeger.SpanContext"/> or <code>null</code> if carrier doesn't contain tracing information, it
+            is not valid or is incomplete.</returns>
+            <seealso cref="T:Jaeger.Propagation.TextMapCodec"/>
+            <seealso cref="T:Jaeger.Propagation.B3TextMapCodec"/>
+        </member>
+        <member name="T:Jaeger.Propagation.IInjector">
+            <summary>
+            You should implement this class if you want to add possibility to inject information about
+            <see cref="T:Jaeger.SpanContext"/> that is passed between services in your custom propagation scheme. Otherwise you
+            should probably use built-in <see cref="T:Jaeger.Propagation.TextMapCodec"/> or <see cref="T:Jaeger.Propagation.B3TextMapCodec"/>.
+            </summary>
+            <seealso cref="T:Jaeger.Propagation.TextMapCodec"/>
+            <seealso cref="T:Jaeger.Propagation.B3TextMapCodec"/>
+            <seealso cref="T:Jaeger.Propagation.ICodec"/>
+        </member>
+        <member name="M:Jaeger.Propagation.IInjector.Inject(Jaeger.SpanContext,System.Object)">
+            <summary>
+            Called when <see cref="M:OpenTracing.ITracer.Inject``1(OpenTracing.ISpanContext,OpenTracing.Propagation.IFormat{``0},``0)"/> is used. It should handle the logic behind injecting propagation scheme
+            specific information into the carrier (e.g. http request headers, amqp message headers,
+            etc.).
+            <para/>
+            All exceptions thrown from this method will be caught and logged on <code>ERROR</code> level so
+            that business code execution isn't affected. If possible, catch implementation specific
+            exceptions and log more meaningful information.
+            </summary>
+            <param name="spanContext">Span context that should be used to pass trace information with the carrier.</param>
+            <param name="carrier">Holder of data that is used to pass tracing information between processes.</param>
+            <seealso cref="T:Jaeger.Propagation.TextMapCodec"/>
+            <seealso cref="T:Jaeger.Propagation.B3TextMapCodec"/>
+        </member>
+        <member name="F:Jaeger.Propagation.TextMapCodec.SpanContextKey">
+            <summary>
+            Key used to store serialized span context representation.
+            </summary>
+        </member>
+        <member name="F:Jaeger.Propagation.TextMapCodec.BaggageKeyPrefix">
+            <summary>
+            Key prefix used for baggage items.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Reporters.IReporter">
+            <summary>
+            <see cref="T:Jaeger.Reporters.IReporter"/> is the interface <see cref="T:Jaeger.Tracer"/> uses to report finished spans to something that
+            collects those spans. Default implementation is <see cref="T:Jaeger.Reporters.RemoteReporter"/> that sends spans out of process.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Reporters.IReporter.CloseAsync(System.Threading.CancellationToken)">
+            <summary>
+            Release any resources used by the reporter.
+            </summary>
+            <remarks>
+            We don't use <see cref="T:System.IDisposable"/> because the <see cref="T:Jaeger.Tracer"/> should
+            be able to close the reporter. If we would use <see cref="T:System.IDisposable"/> then
+            the <see cref="T:Jaeger.Tracer"/> would call Dispose on a member it did not create itself.
+            </remarks>
+        </member>
+        <member name="T:Jaeger.Reporters.LoggingReporter">
+            <summary>
+            <see cref="T:Jaeger.Reporters.LoggingReporter"/> logs every span it's given.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Reporters.RemoteReporter">
+            <summary>
+            <see cref="T:Jaeger.Reporters.RemoteReporter"/> buffers spans in memory and sends them out of process using <see cref="T:Jaeger.Senders.ISender"/>.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Samplers.GuaranteedThroughputSampler">
+            <summary>
+            <see cref="T:Jaeger.Samplers.GuaranteedThroughputSampler"/> is a <see cref="T:Jaeger.Samplers.ISampler"/> that guarantees a throughput by using
+            a <see cref="T:Jaeger.Samplers.ProbabilisticSampler"/> and <see cref="T:Jaeger.Samplers.RateLimitingSampler"/> in tandem.
+            <para/>
+            The <see cref="T:Jaeger.Samplers.RateLimitingSampler"/> is used to establish a lowerBound so that every operation is sampled
+            at least once in the time interval defined by the lowerBound.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Samplers.GuaranteedThroughputSampler.Update(System.Double,System.Double)">
+            <summary>
+            Updates the probabilistic and lowerBound samplers.
+            </summary>
+            <param name="samplingRate">The sampling rate for probabilistic sampling.</param>
+            <param name="lowerBound">The lower bound limit for lower bound sampling.</param>
+            <returns><c>true</c>, if any samplers were updated.</returns>
+        </member>
+        <member name="M:Jaeger.Samplers.GuaranteedThroughputSampler.Sample(System.String,Jaeger.TraceId)">
+            <summary>
+            Calls <see cref="M:Jaeger.Samplers.ISampler.Sample(System.String,Jaeger.TraceId)"/> on both samplers, returning <c>true</c> for
+            <see cref="P:Jaeger.Samplers.SamplingStatus.IsSampled"/> if either samplers set <see cref="P:Jaeger.Samplers.SamplingStatus.IsSampled"/> to <c>true</c>.
+            The tags corresponding to the sampler that returned <c>true</c> are set on <see cref="P:Jaeger.Samplers.SamplingStatus.Tags"/>.
+            If both samplers return <c>true</c>, tags for <see cref="T:Jaeger.Samplers.ProbabilisticSampler"/> is given priority.
+            </summary>
+            <param name="operation">The operation name, which is ignored by this sampler.</param>
+            <param name="id">The traceId on the span.</param>
+        </member>
+        <member name="T:Jaeger.Samplers.ISampler">
+            <summary>
+            <see cref="T:Jaeger.Samplers.ISampler"/> is responsible for deciding if a new trace should be sampled and captured for storage.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Samplers.ISampler.Sample(System.String,Jaeger.TraceId)">
+            <summary>
+            Returns whether or not the new trace should be sampled.
+            </summary>
+            <param name="operation">The operation name set on the span.</param>
+            <param name="id">The traceId on the span.</param>
+        </member>
+        <member name="M:Jaeger.Samplers.ISampler.Close">
+            <summary>
+            Release any resources used by the sampler.
+            </summary>
+            <remarks>
+            We don't use <see cref="T:System.IDisposable"/> because the <see cref="T:Jaeger.Tracer"/> should
+            be able to close the sampler. If we would use <see cref="T:System.IDisposable"/> then
+            the <see cref="T:Jaeger.Tracer"/> would call Dispose on a member it did not create itself.
+            </remarks>
+        </member>
+        <member name="T:Jaeger.Samplers.PerOperationSampler">
+            <summary>
+            Computes <see cref="M:Jaeger.Samplers.PerOperationSampler.Sample(System.String,Jaeger.TraceId)"/> using the name of the operation, and maintains a specific
+            <see cref="T:Jaeger.Samplers.GuaranteedThroughputSampler"/> instance for each operation.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Samplers.PerOperationSampler.Update(Jaeger.Samplers.HTTP.OperationSamplingParameters)">
+            <summary>
+            Updates the <see cref="T:Jaeger.Samplers.GuaranteedThroughputSampler"/> for each operation.
+            </summary>
+            <param name="strategies">The parameters for operation sampling.</param>
+            <returns><c>true</c>, if any samplers were updated.</returns>
+        </member>
+        <member name="T:Jaeger.Samplers.ProbabilisticSampler">
+            <summary>
+            <see cref="T:Jaeger.Samplers.ProbabilisticSampler"/> creates a sampler that randomly samples a certain percentage of traces specified by the
+            samplingRate, in the range between 0.0 and 1.0.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Samplers.RateLimitingSampler">
+            <summary>
+            <see cref="T:Jaeger.Samplers.RateLimitingSampler"/> creates a sampler that samples at most maxTracesPerSecond. The distribution of sampled
+            traces follows burstiness of the service, i.e. a service with uniformly distributed requests will have those
+            requests sampled uniformly as well, but if requests are bursty, especially sub-second, then a number of
+            sequential requests can be sampled each second.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Samplers.RemoteControlledSampler.UpdateSampler">
+            <summary>
+            Updates <see cref="P:Jaeger.Samplers.RemoteControlledSampler.Sampler"/> to a new sampler when it is different.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Samplers.RemoteControlledSampler.UpdateRateLimitingOrProbabilisticSampler(Jaeger.Samplers.HTTP.SamplingStrategyResponse)">
+            <summary>
+            Replace <see cref="P:Jaeger.Samplers.RemoteControlledSampler.Sampler"/> with a new instance when parameters are updated.
+            </summary>
+            <param name="response">Response which contains either a <see cref="T:Jaeger.Samplers.ProbabilisticSampler"/>
+            or <see cref="T:Jaeger.Samplers.RateLimitingSampler"/>.</param>
+        </member>
+        <member name="M:Jaeger.Senders.HttpSender.#ctor(System.String)">
+            <summary>
+            </summary>
+            <param name="endpoint">Jaeger REST endpoint consuming jaeger.thrift, e.g
+            http://localhost:14268/api/traces</param>
+        </member>
+        <member name="T:Jaeger.Senders.ThriftSender">
+            <summary>
+            JaegerThriftTransport is the base class for transporting spans from C# into Jaeger.
+            It provides the basic implementation of serializing spans but leaves the buffering
+            and sending of the serialized spans to concrete implementations.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Senders.UdpSender">
+            <inheritdoc />
+            <summary>
+            JaegerUdpTransport provides an implementation to transport spans over UDP using
+            Compact Thrift. It handles making sure payloads efficiently use the UDP packet
+            size by filling up as much of a UDP message it can before sending.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Senders.UdpSender.#ctor">
+            <summary>
+            This constructor expects Jaeger running on <see cref="F:Jaeger.Senders.UdpSender.DefaultAgentUdpHost"/>
+            and port <see cref="F:Jaeger.Senders.UdpSender.DefaultAgentUdpCompactPort"/>.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Senders.UdpSender.#ctor(System.String,System.Int32,System.Int32)">
+            <param name="host">If empty it will use <see cref="F:Jaeger.Senders.UdpSender.DefaultAgentUdpHost"/>.</param>
+            <param name="port">If 0 it will use <see cref="F:Jaeger.Senders.UdpSender.DefaultAgentUdpCompactPort"/>.</param>
+            <param name="maxPacketSize">If 0 it will use <see cref="F:Jaeger.Thrift.Senders.Internal.ThriftUdpClientTransport.MaxPacketSize"/>.</param>
+        </member>
+        <member name="M:Jaeger.Span.AddExceptionLogs(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Object}})">
+            <summary>
+            Creates logs related to logged exception.
+            </summary>
+            <param name="fields">Current logging fields.</param>
+            <returns>Logged fields.</returns>
+        </member>
+        <member name="M:Jaeger.SpanContext.IsDebugIdContainerOnly">
+            <summary>
+            Returns <c>true</c> when the instance of the context is only used to return the debug/correlation ID
+            from <see cref="M:OpenTracing.ITracer.Extract``1(OpenTracing.Propagation.IFormat{``0},``0)"/> method. This happens in the situation when "jaeger-debug-id" header is passed in
+            the carrier to the extract method, but the request otherwise has no span context in it.
+            Previously this would've returned <c>null</c> from the extract method, but now it returns a dummy
+            context with only debugId filled in.
+            </summary>
+            <seealso cref="F:Jaeger.Constants.DebugIdHeaderKey"/>
+        </member>
+        <member name="M:Jaeger.SpanContext.WithDebugId(System.String)">
+            <summary>
+            Create a new dummy <see cref="T:Jaeger.SpanContext"/> as a container for <paramref name="debugId"/> string.
+            This is used when "jaeger-debug-id" header is passed in the request headers and forces the trace to be sampled as
+            debug trace, and the value of header recorded as a span tag to serve as a searchable
+            correlation ID.
+            </summary>
+            <param name="debugId">Arbitrary string used as correlation ID</param>
+            <returns>New dummy <see cref="T:Jaeger.SpanContext"/> that serves as a container for debugId only.</returns>
+            <seealso cref="F:Jaeger.Constants.DebugIdHeaderKey"/>
+        </member>
+        <member name="T:Jaeger.SpanId">
+            <summary>
+            Represents a unique 64bit identifier of a span.
+            </summary>
+        </member>
+        <member name="T:Jaeger.TraceId">
+            <summary>
+            Represents a unique 128bit identifier of a trace.
+            </summary>
+        </member>
+        <member name="M:Jaeger.Tracer.CloseAsync(System.Threading.CancellationToken)">
+            <summary>
+            Shuts down the <see cref="T:Jaeger.Reporters.IReporter"/> and <see cref="T:Jaeger.Samplers.ISampler"/>.
+            </summary>
+        </member>
+        <member name="T:Jaeger.Util.RateLimiter">
+            <summary>
+            <see cref="T:Jaeger.Util.RateLimiter"/> is a rate limiter based on leaky bucket algorithm, formulated in terms of a
+            credits balance that is replenished every time <see cref="M:Jaeger.Util.RateLimiter.CheckCredit(System.Double)"/> method is called (tick) by the amount proportional
+            to the time elapsed since the last tick, up to max of creditsPerSecond. A call to <see cref="M:Jaeger.Util.RateLimiter.CheckCredit(System.Double)"/> takes a cost
+            of an item we want to pay with the balance. If the balance exceeds the cost of the item, the item is "purchased"
+            and the balance reduced, indicated by returned value of true. Otherwise the balance is unchanged and return false.
+            <para/>
+            This can be used to limit a rate of messages emitted by a service by instantiating the Rate Limiter with the
+            max number of messages a service is allowed to emit per second, and calling <c>CheckCredit(1.0)</c> for each message
+            to determine if the message is within the rate limit.
+            <para/>
+            It can also be used to limit the rate of traffic in bytes, by setting creditsPerSecond to desired throughput
+            as bytes/second, and calling <see cref="M:Jaeger.Util.RateLimiter.CheckCredit(System.Double)"/> with the actual message size.
+            </summary>
+        </member>
+    </members>
+</doc>

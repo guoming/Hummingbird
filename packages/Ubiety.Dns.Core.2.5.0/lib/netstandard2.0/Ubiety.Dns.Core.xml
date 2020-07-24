@@ -1,0 +1,3326 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Ubiety.Dns.Core</name>
+    </assembly>
+    <members>
+        <member name="T:Ubiety.Dns.Core.AdditionalResourceRecord">
+            <summary>
+                Additional resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.AdditionalResourceRecord.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.AdditionalResourceRecord" /> class.
+            </summary>
+            <param name="br"><see cref="T:Ubiety.Dns.Core.ResourceRecord" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.AnswerResourceRecord">
+            <summary>
+                Answer resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.AnswerResourceRecord.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.AnswerResourceRecord" /> class.
+            </summary>
+            <param name="br"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.AuthorityResourceRecord">
+            <summary>
+                Authority resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.AuthorityResourceRecord.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.AuthorityResourceRecord" /> class.
+            </summary>
+            <param name="br"><see cref="T:Ubiety.Dns.Core.ResourceRecord" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.EnumExtensions">
+            <summary>
+                Enumeration extension methods.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Common.EnumExtensions.GetRecord(Ubiety.Dns.Core.Common.RecordType,Ubiety.Dns.Core.RecordReader,System.Int32)">
+            <summary>
+                Gets the record for the record type.
+            </summary>
+            <param name="type">Type of record to get.</param>
+            <param name="reader">Resource reader to create record with.</param>
+            <param name="length">Length of the record.</param>
+            <returns>A <see cref="T:Ubiety.Dns.Core.Records.Record"/> instance for the given type.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.ObjectExtensions">
+            <summary>
+               Object class extension methods.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Common.ObjectExtensions.ThrowIfNull``1(``0,System.String)">
+            <summary>
+                Checks for null and throws an exception.
+            </summary>
+            <param name="target">Object to check for null.</param>
+            <param name="name">Name of the parameter.</param>
+            <typeparam name="T">Type of object to check.</typeparam>
+            <returns>Target object if not null.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.OperationClass">
+            <summary>
+                Resource record class.
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationClass.IN">
+            <summary>
+                Internet class
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationClass.CS">
+            <summary>
+                CSNET class
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationClass.CH">
+            <summary>
+                CHAOS class
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationClass.HS">
+            <summary>
+                Hesiod class
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.OperationCode">
+            <summary>
+                DNS Record OpCode.
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.Query">
+            <summary>
+                Standard DNS Query
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.IQUERY">
+            <summary>
+                Retired IQUERY code
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.Status">
+            <summary>
+                Server status request
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED3">
+            <summary>
+                Reserved OpCode
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.Notify">
+            <summary>
+                Notify OpCode
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.Update">
+            <summary>
+                Update OpCode
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED6">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED7">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED8">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED9">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED10">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED11">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED12">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED13">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED14">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.OperationCode.RESERVED15">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.QuestionClass">
+            <summary>
+                Question class.
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionClass.IN">
+            <summary>
+                Internet class
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionClass.CS">
+            <summary>
+                CSNET class
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionClass.CH">
+            <summary>
+                CHAOS class
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionClass.HS">
+            <summary>
+                Hesiod class
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionClass.Any">
+            <summary>
+                Any question class
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.QuestionType">
+            <summary>
+                DNS question type.
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.A">
+            <summary>
+                IPv4 host address type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NS">
+            <summary>
+                An authoritative nameserver
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MD">
+            <summary>
+                Mail destination type (Obsolete - Use MX)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MF">
+            <summary>
+                Mail forwarder type (Obsolete - use MX)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.CNAME">
+            <summary>
+                Canonical name DNS record type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.SOA">
+            <summary>
+                Marks the start of a zone of authority
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MB">
+            <summary>
+                Mailbox domain name type (EXPERIMENTAL)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MG">
+            <summary>
+                Mail group member type (EXPERIMENTAL)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MR">
+            <summary>
+                Mail rename domain type (EXPERIMENTAL)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NULL">
+            <summary>
+                Null resource record type (EXPERIMENTAL)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.WKS">
+            <summary>
+                Well known service description type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.PNTR">
+            <summary>
+                Domain name pointer type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.HINFO">
+            <summary>
+                Host information type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MINFO">
+            <summary>
+                Mailbox or mail list information
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MX">
+            <summary>
+                Mail exchange type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.TXT">
+            <summary>
+                Text string type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.RP">
+            <summary>
+                Responsible person DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.AFSDB">
+            <summary>
+                AFS database location
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.X25">
+            <summary>
+                X.25 address
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.ISDN">
+            <summary>
+                ISDN address
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.RT">
+            <summary>
+                Route through DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NSAP">
+            <summary>
+                Network service access point address
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NSAPPTR">
+            <summary>
+                Network service access point pointer (Obsolete)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.SIG">
+            <summary>
+                Cryptographic public key signature
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.KEY">
+            <summary>
+                Public key for DNSSEC
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.PX">
+            <summary>
+                Pointer to X.400 mail mapping information
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.GPOS">
+            <summary>
+                Global position DNS type (Obsolete)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.AAAA">
+            <summary>
+                IPv6 address DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.LOC">
+            <summary>
+                DNS location information
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NXT">
+            <summary>
+                Obsolete DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.EID">
+            <summary>
+                Endpoint identifier
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NIMLOC">
+            <summary>
+                Nimrod locator
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.SRV">
+            <summary>
+                Location of services
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.ATMA">
+            <summary>
+                ATM address
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NAPTR">
+            <summary>
+                Naming authority pointer
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.KX">
+            <summary>
+                Key exchange delegation record
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.CERT">
+            <summary>
+                Certificate DNS record
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.A6">
+            <summary>
+                IPv6 address type (Historic)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.DNAME">
+            <summary>
+                DNS name redirection
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.SINK">
+            <summary>
+                SINK DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.OPT">
+            <summary>
+                OPT DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.APL">
+            <summary>
+                APL DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.DS">
+            <summary>
+                Delegation signer DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.SSHFP">
+            <summary>
+                SSH key fingerprint
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.IPSECKEY">
+            <summary>
+                IPSEC key DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.RRSIG">
+            <summary>
+                Resource record signature
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NSEC">
+            <summary>
+                NSEC DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.DNSKEY">
+            <summary>
+                DNSKEY DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.DHCID">
+            <summary>
+                DHCP identifier type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NSEC3">
+            <summary>
+                NSEC3 DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.NSEC3PARAM">
+            <summary>
+                NSEC3PARAM DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.HIP">
+            <summary>
+                HIP DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.SPF">
+            <summary>
+                SPF DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.UINFO">
+            <summary>
+                UINFO DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.UID">
+            <summary>
+                UID DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.GID">
+            <summary>
+                GID DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.UNSPEC">
+            <summary>
+                UNSPEC DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.TKEY">
+            <summary>
+                Transaction key DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.TSIG">
+            <summary>
+                Transaction signature DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.IXFR">
+            <summary>
+                Incremental transfer
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.AXFR">
+            <summary>
+                Zone transfer question
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MAILB">
+            <summary>
+                Mailbox resource record question
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.MAILA">
+            <summary>
+                Mail agent resource record question
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.ANY">
+            <summary>
+                Request all records for a domain
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.TA">
+            <summary>
+                DNSSEC trust authorities
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.QuestionType.DLV">
+            <summary>
+                DNSSEC lookaside validation
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.RecordAttribute">
+            <summary>
+                Applies a record class type to the enum type.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Common.RecordAttribute.#ctor(System.Type)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Common.RecordAttribute"/> class.
+            </summary>
+            <param name="record">Record to use.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Common.RecordAttribute.RecordType">
+            <summary>
+                Gets the record type.
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.RecordType">
+            <summary>
+                DNS record type.
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.A">
+            <summary>
+                IPv4 address
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NS">
+            <summary>
+                Authoritative nameserver
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.MD">
+            <summary>
+                Mail destination
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.MF">
+            <summary>
+                Mail forwarder
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.CNAME">
+            <summary>
+                Canonical name for a domain alias
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.SOA">
+            <summary>
+                The start of a zone of authority
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.MB">
+            <summary>
+                Mailbox domain name
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.MG">
+            <summary>
+                Mail group member
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.MR">
+            <summary>
+                Mail rename domain
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NULL">
+            <summary>
+                Null resource record
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.WKS">
+            <summary>
+                Well known service description
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.PNTR">
+            <summary>
+                Domain pointer type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.HINFO">
+            <summary>
+                Host information type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.MINFO">
+            <summary>
+                Mailbox or list information
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.MX">
+            <summary>
+                Mail exchange type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.TXT">
+            <summary>
+                Text string
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.RP">
+            <summary>
+                Responsible person type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.AFSDB">
+            <summary>
+                AFS database location
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.X25">
+            <summary>
+                X.25 address type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.ISDN">
+            <summary>
+                ISDN address type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.RT">
+            <summary>
+                Route through DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NSAP">
+            <summary>
+                Network service access point address
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NSAPPTR">
+            <summary>
+                Obsolete DNS type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.SIG">
+            <summary>
+                Cryptographic public key signature
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.KEY">
+            <summary>
+                DNSSEC public key
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.PX">
+            <summary>
+                Pointer for X.400 mail mapping information
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.GPOS">
+            <summary>
+                Geographical position type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.AAAA">
+            <summary>
+                IPv6 host address
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.LOC">
+            <summary>
+                Location information
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NXT">
+            <summary>
+                Next domain type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.EID">
+            <summary>
+                Endpoint identifier
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NIMLOC">
+            <summary>
+                Nimrod locator
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.SRV">
+            <summary>
+                Location of services
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.ATMA">
+            <summary>
+                ATM address type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NAPTR">
+            <summary>
+                Naming authority pointer
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.KX">
+            <summary>
+                Key exchange record type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.CERT">
+            <summary>
+                Certificate
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.A6">
+            <summary>
+                IPv6 address (Historic)
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.DNAME">
+            <summary>
+                Domain alias
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.SINK">
+            <summary>
+                SINK type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.OPT">
+            <summary>
+                OPT type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.APL">
+            <summary>
+                APL type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.DS">
+            <summary>
+                Delegation signer
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.SSHFP">
+            <summary>
+                SSH key fingerprint
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.IPSECKEY">
+            <summary>
+                IPSEC key
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.RRSIG">
+            <summary>
+                Resource record signature
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NSEC">
+            <summary>
+                NSEC type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.DNSKEY">
+            <summary>
+                DNS key
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.DHCID">
+            <summary>
+                DHCP information
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NSEC3">
+            <summary>
+                NSEC3 type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.NSEC3PARAM">
+            <summary>
+                NSEC3PARAM type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.HIP">
+            <summary>
+                Host Identity protocol
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.SPF">
+            <summary>
+                SPF type
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.UINFO">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.UID">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.GID">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.UNSPEC">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.TKEY">
+            <summary>
+                Transaction key
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.TSIG">
+            <summary>
+                Transaction signature
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.TA">
+            <summary>
+                DNSSEC trust authorities
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.RecordType.DLV">
+            <summary>
+                DNSSEC lookaside validation
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.ResponseCode">
+            <summary>
+                DNS Server response code.
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.NoError">
+            <summary>
+                No error in query
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.FormErr">
+            <summary>
+                Format error in query
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.ServFail">
+            <summary>
+                Server failure
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.NXDomain">
+            <summary>
+                Non-Existent Domain
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.NotImp">
+            <summary>
+                Not implemented
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.Refused">
+            <summary>
+                Query refused
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.YXDomain">
+            <summary>
+                Name exists when it should not
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.YXRRSet">
+            <summary>
+                RR set exists when it should not
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.NXRRSet">
+            <summary>
+                RR set that exists does not
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.NotAuth">
+            <summary>
+                Server not authoritative for zone
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.NotZone">
+            <summary>
+                Name not contained in zone
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.RESERVED11">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.RESERVED12">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.RESERVED13">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.RESERVED14">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.RESERVED15">
+            <summary>
+                Reserved
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.BADVERSSIG">
+            <summary>
+                Bad OPT version
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.BADKEY">
+            <summary>
+                Key not recognized
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.BADTIME">
+            <summary>
+                Signature out of time window
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.BADMODE">
+            <summary>
+                Bad TKEY mode
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.BADNAME">
+            <summary>
+                Duplicate key name
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.BADALG">
+            <summary>
+                Algorithm not supported
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.ResponseCode.BADTRUNC">
+            <summary>
+                Bad truncation
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.TransportType">
+            <summary>
+                Network transport type.
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.TransportType.Udp">
+            <summary>
+                Use the UDP transport
+            </summary>
+        </member>
+        <member name="F:Ubiety.Dns.Core.Common.TransportType.Tcp">
+            <summary>
+                Use the TCP transport
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.VerboseEventArgs">
+            <summary>
+                Verbose event args.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Common.VerboseEventArgs.#ctor(System.String)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Common.VerboseEventArgs" /> class.
+            </summary>
+            <param name="message">Verbose message.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Common.VerboseEventArgs.Message">
+            <summary>
+                Gets or sets the message to output.
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Common.VerboseOutputEventArgs">
+            <summary>
+                Event args for verbose output.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Common.VerboseOutputEventArgs.#ctor(System.String)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Common.VerboseOutputEventArgs" /> class.
+            </summary>
+            <param name="message">Message to output.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Common.VerboseOutputEventArgs.Message">
+            <summary>
+                Gets the string message.
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Header">
+            <summary>
+                DNS Record header.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Header.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Header" /> class.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Header.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Header" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> of the record.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.Id">
+            <summary>
+                Gets or sets the unique identifier of the record.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.QuestionCount">
+            <summary>
+                Gets or sets the number of questions in the record.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.AnswerCount">
+            <summary>
+                Gets or sets the number of answers in the record.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.NameserverCount">
+            <summary>
+                Gets or sets the number of name servers in the record.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.AdditionalRecordsCount">
+            <summary>
+                Gets or sets the number of additional records in the record.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.QueryResponse">
+            <summary>
+                Gets or sets a value indicating whether the record is a query or response.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.OpCode">
+            <summary>
+                Gets or sets the record opcode flag.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.AuthoritativeAnswer">
+            <summary>
+                Gets or sets a value indicating whether the record is an authoritative answer.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.Truncation">
+            <summary>
+                Gets or sets a value indicating whether the truncation flag is set.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.Recursion">
+            <summary>
+                Gets or sets a value indicating whether the recursion flag is set.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.RecursionAvailable">
+            <summary>
+                Gets or sets a value indicating whether the recursion available flag is set.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.Z">
+            <summary>
+                Gets or sets a record reserved flag.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Header.ResponseCode">
+            <summary>
+                Gets or sets the record response code.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Header.GetData">
+            <summary>
+                Gets the header as a byte array.
+            </summary>
+            <returns>Byte array of the header data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Question">
+            <summary>
+                DNS Question record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Question.#ctor(System.String,Ubiety.Dns.Core.Common.QuestionType,Ubiety.Dns.Core.Common.QuestionClass)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Question" /> class.
+            </summary>
+            <param name="questionName">Query name.</param>
+            <param name="questionType">Question type.</param>
+            <param name="questionClass">Question class.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Question.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Question" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> of the record.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Question.QuestionName">
+            <summary>
+                Gets the question name.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Question.QuestionType">
+            <summary>
+                Gets the query type.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Question.QuestionClass">
+            <summary>
+                Gets the query class.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Question.ToString">
+            <summary>
+                String representation of the question.
+            </summary>
+            <returns>String of the question.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Question.GetData">
+            <summary>
+                Gets the question as a byte array.
+            </summary>
+            <returns>Byte array of the question data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.RecordReader">
+            <summary>
+                DNS record reader.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.#ctor(System.Byte[])">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.RecordReader" /> class.
+            </summary>
+            <param name="data">Byte array of the record.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.#ctor(System.Byte[],System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.RecordReader" /> class.
+            </summary>
+            <param name="data">Byte array of the record.</param>
+            <param name="position">Position of the cursor in the record.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.RecordReader.Position">
+            <summary>
+                Gets or sets the position of the cursor in the record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadByte">
+            <summary>
+                Read a byte from the record.
+            </summary>
+            <returns>Next available byte of the record.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadChar">
+            <summary>
+                Read a char from the record.
+            </summary>
+            <returns>Next available char of the record.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadUInt16">
+            <summary>
+                Read an unsigned int 16 from the record.
+            </summary>
+            <returns>Next available unsigned int 16 of the record.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadUInt16(System.Int32)">
+            <summary>
+                Read an unsigned int 16 from the offset of the record.
+            </summary>
+            <param name="offset">Offset to start reading from.</param>
+            <returns>Next unsigned int 16 from the offset.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadUInt32">
+            <summary>
+                Read an unsigned int 32 from the record.
+            </summary>
+            <returns>Next available unsigned int 32 in the record.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadDomainName">
+            <summary>
+                Read the domain name from the record.
+            </summary>
+            <returns>Domain name of the record.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadString">
+            <summary>
+                Read a string from the record.
+            </summary>
+            <returns>String read from the record.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadBytes(System.Int32)">
+            <summary>
+                Read a series of bytes from the record.
+            </summary>
+            <param name="length">Length to read from the record.</param>
+            <returns>Byte array read from the record.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.RecordReader.ReadRecord(Ubiety.Dns.Core.Common.RecordType)">
+            <summary>
+                Read record from the data.
+            </summary>
+            <param name="type">Type of the record to read.</param>
+            <returns>Record read from the data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.General.RecordA">
+            <summary>
+                IPv4 Address DNS record.
+            </summary>
+            <remarks>
+                # [Description](#tab/description)
+                A Records are the most basic type of DNS record and are used to point
+                a domain or subdomain to an IP address.
+                # [RFC](#tab/rfc)
+                ```
+                A RDATA format
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                |                    ADDRESS                    |
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                where:
+                ADDRESS     A 32 bit internet address
+                Hosts that have multiple internet address will have multiple A
+                records.
+                ```.
+            </remarks>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.General.RecordA.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.General.RecordA" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.General.RecordA.Address">
+            <summary>
+                Gets the IP address.
+            </summary>
+            <value>IP address of the A record.</value>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.General.RecordA.ToString">
+            <summary>
+                String representation of the address.
+            </summary>
+            <returns>String of the IP address.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.General.RecordAaaa">
+            <summary>
+                IPv6 Address record.
+            </summary>
+            <remarks>
+                # [Description](#tab/description)
+                The AAAA resource record type is a record specific to the Internet
+                class that stores a single IPv6 address
+                # [RFC](#tab/rfc)
+                ```
+                A 128 bit IPv6 address is encoded in the data portion of an AAAA
+                resource record in network byte order (high-order byte first)
+                ```.
+            </remarks>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.General.RecordAaaa.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.General.RecordAaaa" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.General.RecordAaaa.Address">
+            <summary>
+                Gets the IP address of the record.
+            </summary>
+            <value>IP address of the AAAA record.</value>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.General.RecordAaaa.ToString">
+            <summary>
+                String version of the record.
+            </summary>
+            <returns>String of the address.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.General.RecordCname">
+            <summary>
+                Canonical name DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.General.RecordCname.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.General.RecordCname" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.General.RecordCname.Cname">
+            <summary>
+                Gets the canonical name.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.General.RecordCname.ToString">
+            <summary>
+                String representation of the record.
+            </summary>
+            <returns>String version of the cname.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Mail.RecordMb">
+            <summary>
+                Mailbox DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMb.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Mail.RecordMb" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Mail.RecordMb.MadName">
+            <summary>
+                Gets the mailbox domain.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMb.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>String version of the domain.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Mail.RecordMg">
+            <summary>
+                Mail group DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMg.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Mail.RecordMg" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Mail.RecordMg.MgmName">
+            <summary>
+                Gets the mail group name.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMg.ToString">
+            <summary>
+                String representation of the record.
+            </summary>
+            <returns>Mail group name as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Mail.RecordMinfo">
+            <summary>
+                Mail list DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMinfo.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Mail.RecordMinfo" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Mail.RecordMinfo.ResponsibleMailbox">
+            <summary>
+                Gets the responsible mailbox.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Mail.RecordMinfo.ErrorMailbox">
+            <summary>
+                Gets the error mailbox.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMinfo.ToString">
+            <summary>
+                String representation of the record.
+            </summary>
+            <returns>String version of the domains.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Mail.RecordMr">
+            <summary>
+                Mailbox rename DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMr.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Mail.RecordMr" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Mail.RecordMr.NewName">
+            <summary>
+                Gets the new name.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMr.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Rename domain from the record.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Mail.RecordMx">
+            <summary>
+                Mail exchange DNS record.
+            </summary>
+            <remarks>
+                # [Description](#tab/description)
+                Standard MX mail DNS record
+                # [RFC](#tab/rfc)
+                ```
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                |                  PREFERENCE                   |
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                /                   EXCHANGE                    /
+                /                                               /
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                where:
+                PREFERENCE      A 16 bit integer which specifies the preference given to
+                this RR among others at the same owner.  Lower values
+                are preferred.
+                EXCHANGE        A [domain-name] which specifies a host willing to act as
+                a mail exchange for the owner name.
+                MX records cause type A additional section processing for the host
+                specified by EXCHANGE.  The use of MX RRs is explained in detail in
+                [RFC-974].
+                ```.
+            </remarks>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Mail.RecordMx" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Mail.RecordMx.Preference">
+            <summary>
+                Gets the preference.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Mail.RecordMx.Exchange">
+            <summary>
+                Gets the exchange.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.op_LessThan(Ubiety.Dns.Core.Records.Mail.RecordMx,Ubiety.Dns.Core.Records.Mail.RecordMx)">
+            <summary>
+            Is the left less than the right.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.op_GreaterThan(Ubiety.Dns.Core.Records.Mail.RecordMx,Ubiety.Dns.Core.Records.Mail.RecordMx)">
+            <summary>
+            Is the left greater than the right.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.op_LessThanOrEqual(Ubiety.Dns.Core.Records.Mail.RecordMx,Ubiety.Dns.Core.Records.Mail.RecordMx)">
+            <summary>
+            Is the left less than or equal to the right.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.op_GreaterThanOrEqual(Ubiety.Dns.Core.Records.Mail.RecordMx,Ubiety.Dns.Core.Records.Mail.RecordMx)">
+            <summary>
+            Is the left greater than or equal to the right.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.op_Equality(Ubiety.Dns.Core.Records.Mail.RecordMx,Ubiety.Dns.Core.Records.Mail.RecordMx)">
+            <summary>
+            Are the left and right objects equal.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.op_Inequality(Ubiety.Dns.Core.Records.Mail.RecordMx,Ubiety.Dns.Core.Records.Mail.RecordMx)">
+            <summary>
+            Are the left and right objects not equal.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.CompareTo(System.Object)">
+            <summary>
+                Compares record to an object.
+            </summary>
+            <param name="obj">Object to compare record to.</param>
+            <returns>Int value of the comparison.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.Equals(Ubiety.Dns.Core.Records.Mail.RecordMx)">
+            <summary>
+                Does this instance equal another instance of RecordMx.
+            </summary>
+            <param name="other">RecordMx to compare to.</param>
+            <returns>Boolean indicating whether the objects are equal.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.Equals(System.Object)">
+            <summary>
+                Does this instance equal an object.
+            </summary>
+            <param name="obj">Object to compare to.</param>
+            <returns>Boolean indicating whether the objects are equal.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Exchange and preference as a string.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Mail.RecordMx.GetHashCode">
+            <summary>
+                Gets the record hash code.
+            </summary>
+            <returns>Integer representing the hash code.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordA6">
+            <summary>
+                Historic IPv6 record lookup.
+            </summary>
+            <remarks>
+                > [!WARNING]
+                > AAAA is preferred over A6
+                # [Description](#tab/description)
+                A6 records are defined to map a domain name to an IPv6 address.
+                # [RFC](#tab/rfc)
+                ```
+                The RDATA portion of the A6 record contains two or three fields
+                +-----------+------------------+-------------------+
+                |Prefix len.|  Address suffix  |     Prefix name   |
+                | (1 octet) |  (0..16 octets)  |   (0..255 octets) |
+                +-----------+------------------+-------------------+
+                * A prefix length, encoded as an eight-bit unsigned integer with
+                value between 0 and 128 inclusive
+                * An IPv6 address suffix, encoded in network order (high-order octet
+                first). There MUST be exactly enough octets in this field to
+                contain a number of bits equal to 128 minus prefix length, with 0
+                to 7 leading pad bits to make this field an integral number of
+                octets. Pad bits, if present, MUST be set to zero when loading a
+                zone file and ignored.
+                ```.
+            </remarks>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordA6.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordA6" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordApl">
+            <summary>
+                Experimental address prefix list resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordApl.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordApl" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordAtma">
+            <summary>
+                Asynchronous transfer mode address resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordAtma.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordAtma" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordDhcid">
+            <summary>
+                DCHP information resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordDhcid.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordDhcid" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordDnsKey">
+            <summary>
+                DNS public key resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordDnsKey.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordDnsKey" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordEid">
+            <summary>
+                DNS entity identifier resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordEid.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordEid" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordGid">
+            <summary>
+                GID DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordGid.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordGid" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordHip">
+            <summary>
+                Host Identity Protocol record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordHip.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordHip" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordIpsecKey">
+            <summary>
+                IPSEC Key DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordIpsecKey.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordIpsecKey" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordNimloc">
+            <summary>
+                Nimloc record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordNimloc.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordNimloc" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordNsec">
+            <summary>
+                NSEC DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordNsec.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordNsec" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordNsec3">
+            <summary>
+                NSEC3 DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordNsec3.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordNsec3" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordNsec3Param">
+            <summary>
+                NSEC3PARAM DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordNsec3Param.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordNsec3Param" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordOpt">
+            <summary>
+                OPT DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordOpt.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordOpt" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordRrsig">
+            <summary>
+                Resource record signature record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordRrsig.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordRrsig" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordSink">
+            <summary>
+                SINK DNS Record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordSink.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordSink" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordSpf">
+            <summary>
+                Sender policy framework.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordSpf.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordSpf" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordSshfp">
+            <summary>
+                SSH fingerprint record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordSshfp.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordSshfp" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordUid">
+            <summary>
+                UID DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordUid.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordUid" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordUinfo">
+            <summary>
+                UINFO DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordUinfo.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordUinfo" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordUnknown">
+            <summary>
+                Unknown DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordUnknown.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordUnknown" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.NotUsed.RecordUnspec">
+            <summary>
+                UNSPEC DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.NotUsed.RecordUnspec.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.NotUsed.RecordUnspec" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Obsolete.RecordGpos">
+            <summary>
+                GPOS DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordGpos.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Obsolete.RecordGpos" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Obsolete.RecordGpos.Longitude">
+            <summary>
+                Gets the longitude.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Obsolete.RecordGpos.Latitude">
+            <summary>
+                Gets the latitude.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Obsolete.RecordGpos.Altitude">
+            <summary>
+                Gets the altitude.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordGpos.ToString">
+            <summary>
+                String representation of the position.
+            </summary>
+            <returns>String of the version.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Obsolete.RecordMd">
+            <summary>
+                Mail domain record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordMd.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Obsolete.RecordMd" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Obsolete.RecordMd.MadName">
+            <summary>
+                Gets the mail domain.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordMd.ToString">
+            <summary>
+                String representing the mail domain.
+            </summary>
+            <returns>String version of the record.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Obsolete.RecordMf">
+            <summary>
+                Mail forwarder record (Obsolete - use MX).
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordMf.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Obsolete.RecordMf" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Obsolete.RecordMf.MadName">
+            <summary>
+                Gets the mail domain.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordMf.ToString">
+            <summary>
+                String representation of the record.
+            </summary>
+            <returns>String of the mail domain.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Obsolete.RecordNsapPtr">
+            <summary>
+                NSAP PTR DNS Record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordNsapPtr.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Obsolete.RecordNsapPtr" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Obsolete.RecordNsapPtr.Owner">
+            <summary>
+                Gets the owner.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordNsapPtr.ToString">
+            <summary>
+                String representation of the record.
+            </summary>
+            <returns>String version of the data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Obsolete.RecordNxt">
+            <summary>
+                NXT DNS Record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordNxt.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Obsolete.RecordNxt" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Obsolete.RecordNxt.NextDomainName">
+            <summary>
+                Gets the next domain name.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Obsolete.RecordNxt.Bitmap">
+            <summary>
+                Gets the record bitmap.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Obsolete.RecordNxt.ToString">
+            <summary>
+                String representation of the record.
+            </summary>
+            <returns>String version of the data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.Record">
+            <summary>
+                Abstract record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Record.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Record" /> class.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Record.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.Record" /> class.
+            </summary>
+            <param name="reader"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Record.RecordData">
+            <summary>
+                Gets the record data.
+            </summary>
+            <value>Byte list of the raw record data.</value>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.Record.ResourceRecord">
+            <summary>
+                Gets or sets the resource record this record is a part of.
+            </summary>
+            <value>Resource record of the data.</value>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.Record.ToString">
+            <summary>
+                String representation of the record.
+            </summary>
+            <returns>String version of the data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordAfsdb">
+            <summary>
+                DNS AFSDB Record.
+            </summary>
+            <remarks>
+                # [Description](#tab/description)
+                AFS Database location resource record
+                # [RFC](#tab/rfc)
+                This section defines an extension of the DNS to locate servers both
+                for AFS (AFS is a registered trademark of Transarc Corporation) and
+                for the Open Source Foundation's (OSF) Distributed Computing
+                Environment (DCE) authenticated naming system using HP/Apollo's NCA,
+                both to be components of the OSF DCE. The discussion assumes that
+                the reader is familiar with AFS [5] and NCA [6].
+                The AFS (originally the Andrew File System) system uses the DNS to
+                map from a domain name to the name of an AFS cell database server.
+                The DCE Naming service uses the DNS for a similar function: mapping
+                from the domain name of a cell to authenticated name servers for that
+                cell. The method uses a new RR type with mnemonic AFSDB and type
+                code of 18 (decimal).
+                AFSDB has the following format:
+                [owner] [ttl] [class] AFSDB [subtype] [hostname]
+                Both RDATA fields are required in all AFSDB RRs. The [subtype] field
+                is a 16 bit integer. The [hostname] field is a domain name of a host
+                that has a server for the cell named by the owner name of the RR.
+            </remarks>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordAfsdb.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordAfsdb" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordAfsdb.SubType">
+            <summary>
+                Gets the subtype.
+            </summary>
+            <value>AFSDB subtype as an unsigned short.</value>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordAfsdb.Hostname">
+            <summary>
+                Gets the hostname.
+            </summary>
+            <value>AFSDB hostname as a string.</value>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordAfsdb.ToString">
+            <summary>
+                String representation of the record.
+            </summary>
+            <returns>String version of the data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordCert">
+            <summary>
+                Certificate DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordCert.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordCert" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordCert.Type">
+            <summary>
+                Gets the record type.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordCert.KeyTag">
+            <summary>
+                Gets the key tag.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordCert.Algorithm">
+            <summary>
+                Gets the algorithm.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordCert.PublicKey">
+            <summary>
+                Gets the public key.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordCert.RawKey">
+            <summary>
+                Gets the raw key.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordCert.ToString">
+            <summary>
+                String version of the record.
+            </summary>
+            <returns>String of the public key.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordDname">
+            <summary>
+                DNAME DNS Record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordDname.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordDname" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordDname.Target">
+            <summary>
+                Gets the target.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordDname.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>String of the target.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordDs">
+            <summary>
+                DS DNS Record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordDs.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordDs" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> of the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordDs.KeyTag">
+            <summary>
+                Gets the key tag.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordDs.Algorithm">
+            <summary>
+                Gets the algorithm.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordDs.DigestType">
+            <summary>
+                Gets the digest type.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordDs.Digest">
+            <summary>
+                Gets the digest.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordDs.ToString">
+            <summary>
+                String version of the record.
+            </summary>
+            <returns>String of the data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordHinfo">
+            <summary>
+                Hardware info DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordHinfo.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordHinfo" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordHinfo.Cpu">
+            <summary>
+                Gets the CPU.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordHinfo.Os">
+            <summary>
+                Gets the OS.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordHinfo.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>String version of the record.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordIsdn">
+            <summary>
+                ISDN DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordIsdn.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordIsdn" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordIsdn.IsdnAddress">
+            <summary>
+                Gets or sets the ISDN address.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordIsdn.SA">
+            <summary>
+                Gets or sets SA.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordIsdn.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>String version of the data.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordKey">
+            <summary>
+                Key DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKey.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordKey" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordKey.Flags">
+            <summary>
+                Gets or sets the flags.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordKey.Protocol">
+            <summary>
+                Gets or sets the protocol.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordKey.Algorithm">
+            <summary>
+                Gets or sets the algorithm.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordKey.PublicKey">
+            <summary>
+                Gets or sets the public key.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKey.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>String version of the record.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordKx">
+            <summary>
+                Key exchange record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordKx" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordKx.Preference">
+            <summary>
+                Gets the preference.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordKx.Exchanger">
+            <summary>
+                Gets the exchanger.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.op_LessThan(Ubiety.Dns.Core.Records.RecordKx,Ubiety.Dns.Core.Records.RecordKx)">
+            <summary>
+            Is the left less than the right.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.op_GreaterThan(Ubiety.Dns.Core.Records.RecordKx,Ubiety.Dns.Core.Records.RecordKx)">
+            <summary>
+            Is the left greater than the right.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.op_LessThanOrEqual(Ubiety.Dns.Core.Records.RecordKx,Ubiety.Dns.Core.Records.RecordKx)">
+            <summary>
+            Is the left less than or equal to the right.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.op_GreaterThanOrEqual(Ubiety.Dns.Core.Records.RecordKx,Ubiety.Dns.Core.Records.RecordKx)">
+            <summary>
+            Is the left greater than or equal to the right.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.op_Equality(Ubiety.Dns.Core.Records.RecordKx,Ubiety.Dns.Core.Records.RecordKx)">
+            <summary>
+            Do the objects equal each other.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.op_Inequality(Ubiety.Dns.Core.Records.RecordKx,Ubiety.Dns.Core.Records.RecordKx)">
+            <summary>
+            Do the objects not equal each other.
+            </summary>
+            <param name="x">Left comparison object.</param>
+            <param name="y">Right comparison object.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.CompareTo(System.Object)">
+            <summary>
+                Compares instance to an object.
+            </summary>
+            <param name="obj">Object to compare to.</param>
+            <returns>Integer representing the comparison.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.Equals(Ubiety.Dns.Core.Records.RecordKx)">
+            <summary>
+                Are two instances of <see cref="T:Ubiety.Dns.Core.Records.RecordKx" /> equal.
+            </summary>
+            <param name="other"><see cref="T:Ubiety.Dns.Core.Records.RecordKx" /> to compare to.</param>
+            <returns>Boolean indicating whether the two instances are equal.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.Equals(System.Object)">
+            <summary>
+                Overrides equals.
+            </summary>
+            <param name="obj">Object to compare to.</param>
+            <returns>Boolean indicating whether the instances are equal.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>String version of the record.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordKx.GetHashCode">
+            <summary>
+                Gets the hash code.
+            </summary>
+            <returns>Integer value of the hash.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordLoc">
+            <summary>
+                DNS location recod.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordLoc.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordLoc" /> class.
+            </summary>
+            <param name="rr">Record reader of the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordLoc.Version">
+            <summary>
+                Gets the version of the representation.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordLoc.Size">
+            <summary>
+                Gets the diameter of the sphere enclosing the entity.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordLoc.HorizontalPrecision">
+            <summary>
+                Gets the horizontal precision of the data.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordLoc.VerticalPrecision">
+            <summary>
+                Gets the vertical precision or the data.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordLoc.Latitude">
+            <summary>
+                Gets the latitude of the location.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordLoc.Longitude">
+            <summary>
+                Gets the longitude of the location.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordLoc.Altitude">
+            <summary>
+                Gets the altitude of the location.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordLoc.ToString">
+            <summary>
+                Gets a string of the location.
+            </summary>
+            <returns>String of the location.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordNaptr">
+            <summary>
+                NAPTR DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNaptr.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordNaptr" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNaptr.Order">
+            <summary>
+                Gets or sets the order.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNaptr.Preference">
+            <summary>
+                Gets or sets the preference.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNaptr.Flags">
+            <summary>
+                Gets or sets the flags.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNaptr.Services">
+            <summary>
+                Gets or sets the services.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNaptr.Regexp">
+            <summary>
+                Gets or sets the regexp.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNaptr.Replacement">
+            <summary>
+                Gets or sets the replacement.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNaptr.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Data as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordNs">
+            <summary>
+                Nameserver DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNs.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordNs" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNs.NameserverDomain">
+            <summary>
+                Gets or sets the nameserver domain.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNs.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Nameserver domain as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordNsap">
+            <summary>
+                Network service access point DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNsap.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordNsap" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNsap.Length">
+            <summary>
+                Gets or sets the length.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNsap.NsapAddress">
+            <summary>
+                Gets the address as a byte collection.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNsap.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>NSAP address as a string.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNsap.ToGOSIPV2">
+            <summary>
+                Converts the address to a readable string.
+            </summary>
+            <returns>String of the address in IPv2 format.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordNull">
+            <summary>
+                Null DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNull.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordNull" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordNull.Data">
+            <summary>
+                Gets the record data.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordNull.ToString">
+            <summary>
+                String representation of the data.
+            </summary>
+            <returns>Record data as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordPtr">
+            <summary>
+                Pointer DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordPtr.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordPtr" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordPtr.PointerDomain">
+            <summary>
+                Gets or sets the pointer domain.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordPtr.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Pointer domain as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordPx">
+            <summary>
+                PX DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordPx.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordPx" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordPx.Preference">
+            <summary>
+                Gets or sets the preference.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordPx.Map822">
+            <summary>
+                Gets or sets the map to 822.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordPx.MapX400">
+            <summary>
+                Gets or sets the map to X.400.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordPx.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Mappings as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordRp">
+            <summary>
+                Responsible person DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordRp.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordRp" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordRp.MailboxDomain">
+            <summary>
+                Gets or sets the mailbox domain.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordRp.TxtDomain">
+            <summary>
+                Gets or sets the text domain.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordRp.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Domains as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordRt">
+            <summary>
+                Route through DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordRt.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordRt" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordRt.Preference">
+            <summary>
+                Gets or sets the route preference.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordRt.IntermediateHost">
+            <summary>
+                Gets or sets the intermediate host.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordRt.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Preference and host as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordSig">
+            <summary>
+                DNS signature record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordSig.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordSig" /> class.
+            </summary>
+            <param name="rr">Record reader for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.TypeCovered">
+            <summary>
+                Gets or sets the type covered.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.Algorithm">
+            <summary>
+                Gets or sets the signature algorithm.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.Labels">
+            <summary>
+                Gets or sets the labels.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.OriginalTTL">
+            <summary>
+                Gets or sets the original TTL.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.SignatureExpiration">
+            <summary>
+                Gets or sets the signature expiration.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.SignatureInception">
+            <summary>
+                Gets or sets the signature inception.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.KeyTag">
+            <summary>
+                Gets or sets the key tag.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.SignersName">
+            <summary>
+                Gets or sets the signers name.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSig.Signature">
+            <summary>
+                Gets or sets the signature.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordSig.ToString">
+            <summary>
+                Get a string version of the record.
+            </summary>
+            <returns>String of the record.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordSoa">
+            <summary>
+                DNS Start of Authority record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordSoa.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordSoa" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSoa.PrimaryNameserver">
+            <summary>
+                Gets or sets the primary nameserver.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSoa.ResponsibleDomain">
+            <summary>
+                Gets or sets the responsible domain.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSoa.Serial">
+            <summary>
+                Gets or sets the serial.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSoa.Refresh">
+            <summary>
+                Gets or sets the refresh interval.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSoa.Retry">
+            <summary>
+                Gets or sets the retry interval.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSoa.Expire">
+            <summary>
+                Gets or sets the expiration time.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSoa.Minimum">
+            <summary>
+                Gets or sets the minimum TTL.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordSoa.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Record data as the string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordSrv">
+            <summary>
+                Service DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordSrv.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordSrv" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> of the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSrv.Priority">
+            <summary>
+                Gets or sets the record priority.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSrv.Weight">
+            <summary>
+                Gets or sets the record weight.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSrv.Port">
+            <summary>
+                Gets or sets the service port.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordSrv.Target">
+            <summary>
+                Gets or sets the target domain.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordSrv.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Record as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordTkey">
+            <summary>
+                Transaction key DNS resource record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordTkey.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordTkey" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.Algorithm">
+            <summary>
+                Gets the key algorithm.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.Inception">
+            <summary>
+                Gets the inception time of the key.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.Expiration">
+            <summary>
+                Gets the expiration time of the key.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.Mode">
+            <summary>
+                Gets the key agreement mode.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.Error">
+            <summary>
+                Gets the error code of the record.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.KeySize">
+            <summary>
+                Gets the key size from the record.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.KeyData">
+            <summary>
+                Gets the key data.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.OtherSize">
+            <summary>
+                Gets the other size from the record (Future use).
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTkey.OtherData">
+            <summary>
+                Gets the other data from the record (Future use).
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordTkey.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Key data as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordTsig">
+            <summary>
+                Transaction signature DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordTsig.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordTsig" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.AlgorithmName">
+            <summary>
+                Gets or sets the algorithm name.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.TimeSigned">
+            <summary>
+                Gets or sets the time signed.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.Fudge">
+            <summary>
+                Gets or sets the number of seconds of error.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.MacSize">
+            <summary>
+                Gets or sets the MAC size.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.Mac">
+            <summary>
+                Gets the MAC.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.OriginalId">
+            <summary>
+                Gets or sets the original id.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.Error">
+            <summary>
+                Gets or sets the record error.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.OtherLength">
+            <summary>
+                Gets or sets the length of other data.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTsig.OtherData">
+            <summary>
+                Gets the other record data.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordTsig.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Signature as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordTxt">
+            <summary>
+                Text DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordTxt.#ctor(Ubiety.Dns.Core.RecordReader,System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordTxt" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+            <param name="length">Record length.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordTxt.Text">
+            <summary>
+                Gets the text.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordTxt.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>Text as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordWks">
+            <summary>
+                DNS well known services record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordWks.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordWks" /> class.
+            </summary>
+            <param name="rr">Record reader for record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordWks.Address">
+            <summary>
+                Gets or sets the address of the server.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordWks.Protocol">
+            <summary>
+                Gets or sets the protocol of the service.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordWks.Bitmap">
+            <summary>
+                Gets the service bitmap.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordWks.ToString">
+            <summary>
+                Return a string of the well known service record.
+            </summary>
+            <returns>String of the record.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Records.RecordX25">
+            <summary>
+                X25 DNS record.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordX25.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Records.RecordX25" /> class.
+            </summary>
+            <param name="rr"><see cref="T:Ubiety.Dns.Core.RecordReader" /> for the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Records.RecordX25.PSDNAdress">
+            <summary>
+                Gets or sets the PSDN address.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Records.RecordX25.ToString">
+            <summary>
+                String representation of the record data.
+            </summary>
+            <returns>PSDN address as a string.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Request">
+            <summary>
+                DNS request.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Request.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Request" /> class.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Request.Header">
+            <summary>
+                Gets the DNS record header.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Request.GetData">
+            <summary>
+                Gets the request as a byte array.
+            </summary>
+            <returns>Byte array of the data.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Request.AddQuestion(Ubiety.Dns.Core.Question)">
+            <summary>
+                Add a question to the request.
+            </summary>
+            <param name="question">Question to add to the request.</param>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Resolver">
+            <summary>
+                DNS resolver runs queries against a server.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.#ctor(System.Collections.Generic.IEnumerable{System.Net.IPEndPoint})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Resolver" /> class.
+            </summary>
+            <param name="dnsServers">Set of DNS servers to use for resolution.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.#ctor(System.Net.IPEndPoint)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Resolver" /> class.
+            </summary>
+            <param name="dnsServer">DNS server to use.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.#ctor(System.Net.IPAddress,System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Resolver" /> class.
+            </summary>
+            <param name="serverIpAddress">DNS server to use.</param>
+            <param name="serverPortNumber">DNS port to use.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.#ctor(System.String,System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Resolver" /> class.
+            </summary>
+            <param name="serverIpAddress">DNS server address to use.</param>
+            <param name="serverPortNumber">DNS port to use.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.#ctor(System.String)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Resolver" /> class.
+            </summary>
+            <param name="serverIpAddress">DNS server address to use.</param>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Resolver" /> class.
+            </summary>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Resolver.VerboseEventHandler">
+            <summary>
+                Verbose event handler.
+            </summary>
+            <param name="sender">Object sending the event.</param>
+            <param name="e">Event arguments.</param>
+        </member>
+        <member name="E:Ubiety.Dns.Core.Resolver.OnVerbose">
+            <summary>
+                Verbose messages from internal operations
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.Version">
+            <summary>
+                Gets the current version of the library.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.DefaultDnsServers">
+            <summary>
+                Gets the default DNS server addresses for OpenDNS.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.DefaultPort">
+            <summary>
+                Gets the default DNS port.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.Timeout">
+            <summary>
+                Gets or sets resolution timeout in milliseconds.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.Retries">
+            <summary>
+                Gets or sets the number of retries before giving up.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.Recursion">
+            <summary>
+                Gets or sets a value indicating whether recursion is enabled for doing queries.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.TransportType">
+            <summary>
+                Gets or sets protocol to use.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.DnsServers">
+            <summary>
+                Gets a list of DNS servers to use.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.DnsServer">
+            <summary>
+                Gets or sets the first DNS server address.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Resolver.UseCache">
+            <summary>
+                Gets or sets a value indicating whether to use the cache.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.GetSystemDnsServers">
+            <summary>
+                Gets a list of default DNS servers.
+            </summary>
+            <returns>Array of DNS servers.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.GetArpaFromIp(System.Net.IPAddress)">
+            <summary>
+                Translates the IPV4 or IPV6 address into an arpa address.
+            </summary>
+            <param name="ip">IP address to get the arpa address form.</param>
+            <returns>The 'mirrored' IPV4 or IPV6 arpa address.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.GetArpaFromEnum(System.String)">
+            <summary>
+                Get ARPA address from enum.
+            </summary>
+            <param name="enumerator">Enum for the address.</param>
+            <returns>String of the ARPA address.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.ClearCache">
+            <summary>
+                Clear the resolver cache.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.Query(System.String,Ubiety.Dns.Core.Common.QuestionType,Ubiety.Dns.Core.Common.QuestionClass)">
+            <summary>
+                Do Query on specified DNS servers.
+            </summary>
+            <param name="name">Name to query.</param>
+            <param name="questionType">Question type.</param>
+            <param name="questionClass">Class type.</param>
+            <returns>Response of the query.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Resolver.Query(System.String,Ubiety.Dns.Core.Common.QuestionType)">
+            <summary>
+                Do an QClass=IN Query on specified DNS servers.
+            </summary>
+            <param name="name">Name to query.</param>
+            <param name="questionType">Question type.</param>
+            <returns>Response of the query.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.ResolverBuilder">
+            <summary>
+                Builds a resolver instance.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.ResolverBuilder.Begin">
+            <summary>
+                Begin building a DNS resolver.
+            </summary>
+            <returns>A <see cref="T:Ubiety.Dns.Core.ResolverBuilder"/> instance.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.ResolverBuilder.EnableLogging(Ubiety.Logging.Core.IUbietyLogManager)">
+            <summary>
+                Enable logging for the resolver.
+            </summary>
+            <param name="logManager"><see cref="T:Ubiety.Logging.Core.IUbietyLogManager"/> instance to use for logging.</param>
+            <returns>The current <see cref="T:Ubiety.Dns.Core.ResolverBuilder"/> instance.</returns>
+        </member>
+        <member name="M:Ubiety.Dns.Core.ResolverBuilder.Build">
+            <summary>
+                Build the resolver instance with options provided.
+            </summary>
+            <returns>A <see cref="T:Ubiety.Dns.Core.Resolver"/> instance.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.ResourceRecord">
+            <summary>
+                Resource Record (rfc1034 3.6.)
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.ResourceRecord.#ctor(Ubiety.Dns.Core.RecordReader)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.ResourceRecord" /> class.
+            </summary>
+            <param name="rr">Record reader of the record data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.ResourceRecord.Name">
+            <summary>
+                Gets the name of the node to which this resource record pertains.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.ResourceRecord.Type">
+            <summary>
+                Gets the type of resource record.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.ResourceRecord.Class">
+            <summary>
+                Gets the type class of resource record, mostly IN but can be CS, CH or HS.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.ResourceRecord.Ttl">
+            <summary>
+                Gets the time to live, the time interval that the resource record may be cached.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.ResourceRecord.RecordLength">
+            <summary>
+                Gets the record length.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.ResourceRecord.Record">
+            <summary>
+                Gets one of the Record* classes.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.ResourceRecord.TimeLived">
+            <summary>
+                Gets or sets the time lived.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.ResourceRecord.ToString">
+            <summary>
+                String version of the resource record.
+            </summary>
+            <returns>String of the resource.</returns>
+        </member>
+        <member name="T:Ubiety.Dns.Core.Response">
+            <summary>
+                DNS response.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Response.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Response" /> class.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Response.#ctor(System.Net.IPEndPoint,System.Byte[])">
+            <summary>
+                Initializes a new instance of the <see cref="T:Ubiety.Dns.Core.Response" /> class.
+            </summary>
+            <param name="iPEndPoint">Address of the response.</param>
+            <param name="data">Response data.</param>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.Questions">
+            <summary>
+                Gets the list of question records.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.Answers">
+            <summary>
+                Gets the list of answer resource records.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.Authorities">
+            <summary>
+                Gets the list of authority resource records.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.Additional">
+            <summary>
+                Gets the list of additional resource records.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.Header">
+            <summary>
+                Gets the response header.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.Error">
+            <summary>
+                Gets or sets the error message, empty when no error.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.MessageSize">
+            <summary>
+                Gets or sets the size of the message.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.TimeStamp">
+            <summary>
+                Gets the timestamp when cached.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.Server">
+            <summary>
+                Gets the server which delivered this response.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordMx">
+            <summary>
+                Gets a list of MX records in the answers.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordTxt">
+            <summary>
+                Gets a list of TXT records in the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordA">
+            <summary>
+                Gets a list of A records in the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordPtr">
+            <summary>
+                Gets a list of PTR records from the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordCname">
+            <summary>
+                Gets a list of CNAME records from the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordAaaa">
+            <summary>
+                Gets a list of AAAA records in the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordNs">
+            <summary>
+                Gets a list of NS records in the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordSoa">
+            <summary>
+                Gets a list of SOA records in the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordCert">
+            <summary>
+                Gets a list of CERT records in the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.RecordSrv">
+            <summary>
+                Gets a list of SRV records in the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="P:Ubiety.Dns.Core.Response.ResourceRecords">
+            <summary>
+                Gets a list of resource records in the <see cref="T:Ubiety.Dns.Core.Response" />.
+            </summary>
+        </member>
+        <member name="M:Ubiety.Dns.Core.Response.GetRecords``1">
+            <summary>
+                Get a set of records from the answer.
+            </summary>
+            <typeparam name="T">Type of record to find.</typeparam>
+            <returns>List of records.</returns>
+        </member>
+    </members>
+</doc>

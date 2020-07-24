@@ -71,6 +71,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Dist
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.DynamicRoute.Consul.UnitTest", "test\Hummingbird.Extensions.DynamicRoute.Consul.UnitTest\Hummingbird.Extensions.DynamicRoute.Consul.UnitTest.csproj", "{327B1F7D-1DCF-42C5-92BA-C36A8BCCDDB8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Metrics", "src\Hummingbird.Extensions.Metrics\Hummingbird.Extensions.Metrics.csproj", "{B3897F54-1935-4DE9-94B5-50733E50551F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -197,6 +199,10 @@ Global
 		{327B1F7D-1DCF-42C5-92BA-C36A8BCCDDB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{327B1F7D-1DCF-42C5-92BA-C36A8BCCDDB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{327B1F7D-1DCF-42C5-92BA-C36A8BCCDDB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3897F54-1935-4DE9-94B5-50733E50551F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3897F54-1935-4DE9-94B5-50733E50551F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3897F54-1935-4DE9-94B5-50733E50551F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3897F54-1935-4DE9-94B5-50733E50551F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -233,6 +239,7 @@ Global
 		{F7EA3E32-4389-4AFA-89A9-56A25A60F530} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{B56F893C-3E54-4FC9-B6A2-96BE2647E0CD} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{327B1F7D-1DCF-42C5-92BA-C36A8BCCDDB8} = {28015912-782A-4B96-9F86-D54081CD7A97}
+		{B3897F54-1935-4DE9-94B5-50733E50551F} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
