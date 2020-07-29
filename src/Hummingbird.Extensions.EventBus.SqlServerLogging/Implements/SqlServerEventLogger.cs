@@ -123,8 +123,13 @@ namespace Hummingbird.Extensions.EventBus.SqlServerLogging
             var sqlParamtersList = new List<DynamicParameters>();
             foreach (var eventLogEntry in LogEntrys)
             {
+                if (eventLogEntry.EventId <= 0)
+                {
+                    eventLogEntry.EventId = _uniqueIdGenerator.NewId();
+                }
+
                 var sqlParamters = new DynamicParameters();
-                sqlParamters.Add("EventId", eventLogEntry.EventId > 0 ? eventLogEntry.EventId : _uniqueIdGenerator.NewId(), System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
+                sqlParamters.Add("EventId", eventLogEntry.EventId, System.Data.DbType.Int64, System.Data.ParameterDirection.Input, 6);
                 sqlParamters.Add("MessageId", eventLogEntry.MessageId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
                 sqlParamters.Add("TraceId", eventLogEntry.TraceId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
                 sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
