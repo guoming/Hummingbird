@@ -34,7 +34,7 @@
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.Redis\Hummingbird.Extensions.HealthChecks.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.SqlServer\Hummingbird.Extensions.HealthChecks.SqlServer.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks\Hummingbird.Extensions.HealthChecks.csproj" />
-    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Metrics\Hummingbird.Extensions.Metrics.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Metrics\Hummingbird.AspNetCore.Metrics.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.OpenTracking.Jaeger\Hummingbird.Extensions.OpenTracking.Jaeger.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Cacheing\Hummingbird.Extensions.Cacheing.csproj" />

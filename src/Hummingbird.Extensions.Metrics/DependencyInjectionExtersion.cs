@@ -27,23 +27,10 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-
-        public static IWebHostBuilder UseMetrics(this IWebHostBuilder hostBuilder)
+        
+        public static IWebHostBuilder UseMetrics(this IWebHostBuilder hostBuilder, Action<WebHostBuilderContext, IMetricsBuilder> configureMetrics)
         {
-            hostBuilder.ConfigureMetrics((hostingContext, metricsBuilder) =>
-            {
-                metricsBuilder.OutputMetrics.AsPrometheusPlainText();
-                metricsBuilder.OutputMetrics.AsPrometheusProtobuf();
-                metricsBuilder.Configuration.Configure(options =>
-                {
-                    options.AddEnvTag();
-                    options.AddAppTag();
-                    options.AddServerTag();
-                    options.Enabled = true;
-                });
-                
-                metricsBuilder.ToInfluxDb(hostingContext.Configuration.GetSection("Metrics:Influxdb"));
-            });
+            hostBuilder.ConfigureMetrics(configureMetrics);
 
             return hostBuilder.UseMetrics(options =>
             {
@@ -56,6 +43,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 };
             });
         }
+
+        public static IMetricsBuilder ToPrometheus(this IMetricsBuilder metricsBuilder)
+        {
+            metricsBuilder.OutputMetrics.AsPrometheusPlainText();
+            metricsBuilder.OutputMetrics.AsPrometheusProtobuf();
+            return metricsBuilder;
+        }
+
         #region Metrics
 
         public static IMetricsBuilder ToInfluxDb(this IMetricsBuilder metricsBuilder, IConfigurationSection configurationSection)
@@ -68,7 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     metricsBuilder.Report.ToInfluxDb(options =>
                     {
-                       
+
                         var appMetrics_influxdb_address = configurationSection["Address"];
                         var appMetrics_influxdb_database = configurationSection["Database"];
                         var appMetrics_influxdb_username = configurationSection["UserName"];

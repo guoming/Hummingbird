@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Hummingbird.AspNetCore.Metrics</PackageId>
   </PropertyGroup>
   <ItemGroup>    
     <PackageReference Include="App.Metrics.AspNetCore" Version="4.1.0" />

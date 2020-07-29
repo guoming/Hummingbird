@@ -18,7 +18,10 @@ namespace Hummingbird.WebApi
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
                 .UseHealthChecks("/healthcheck")
-                .UseMetrics()
+                .UseMetrics((builderContext, metricsBuilder) => {
+                    metricsBuilder.ToPrometheus();
+                    metricsBuilder.ToInfluxDb(builderContext.Configuration.GetSection("AppMetrics:Influxdb"));
+                })
                 .ConfigureAppConfiguration((builderContext, config) =>
                   {
                       config.SetBasePath(Directory.GetCurrentDirectory());
