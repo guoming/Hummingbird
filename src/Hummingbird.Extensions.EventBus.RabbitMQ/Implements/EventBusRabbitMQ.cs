@@ -443,6 +443,12 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
                                     {
                                         var handlerSuccess = false;
                                         var handlerException = default(Exception);
+                                        
+                                        tracerExecuteAsync.SetComponent(_compomentName);
+                                        tracerExecuteAsync.SetTag("queueName", queueName);
+                                        tracerExecuteAsync.SetTag("x-messageId", MessageId);
+                                        tracerExecuteAsync.SetTag("x-traceId", TraceId);
+                                        tracerExecuteAsync.SetTag("x-eventId", EventId);
 
                                         try
                                         {
@@ -470,14 +476,14 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
                                         }
                                         catch (Exception ex)
                                         {
-                                            _logger.LogError(ex, ex.Message);
-                                            tracerExecuteAsync.SetError();
+                                            tracerExecuteAsync.SetError();                                            
                                             handlerException = ex;
+                                            _logger.LogError(ex, ex.Message);
                                         }
                                         finally
                                         {
                                             if (!handlerSuccess)
-                                            {
+                                            {                      
                                                 //重新入队，默认：是
                                                 var requeue = true;
 
@@ -496,6 +502,8 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
 
                                                 //确认消息
                                                 _channel.BasicReject(ea.DeliveryTag, requeue);
+
+                                                
                                             }
                                         }
                                     }
@@ -736,6 +744,7 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
                                                 using (var executeTracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
                                                 {
                                                     executeTracer.SetComponent(_compomentName);
+                                                    executeTracer.SetTag("queueName", queueName);
 
                                                     handlerSuccess = await _receiverPolicy.ExecuteAsync(async (handlerCancellationToken) =>
                                                    {

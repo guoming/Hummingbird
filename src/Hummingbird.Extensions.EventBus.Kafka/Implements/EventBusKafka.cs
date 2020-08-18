@@ -336,10 +336,16 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     }
 
                                     #region AMQP ExecuteAsync
-                                    using (var tracerExecuteAsync = new Hummingbird.Extensions.Tracing.Tracer("AMQP ExecuteAsync"))
+                                    using (var tracerExecuteAsync = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
                                     {
                                         var handlerSuccess = false;
                                         var handlerException = default(Exception);
+
+                                        tracerExecuteAsync.SetComponent(_compomentName);
+                                        tracerExecuteAsync.SetTag("queueName", queueName);
+                                        tracerExecuteAsync.SetTag("x-messageId", MessageId);
+                                        tracerExecuteAsync.SetTag("x-eventId", EventId);
+                                        tracerExecuteAsync.SetTag("x-traceId", TraceId);
 
                                         try
                                         {
@@ -356,7 +362,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                                     _subscribeAckHandler(new EventResponse[] { eventResponse });
                                                 }
                                                 consumer.Commit(ea);
-
                                             }
                                             else
                                             {
@@ -367,6 +372,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         {
                                             tracerExecuteAsync.SetError();
                                             handlerException = ex;
+                                            _logger.LogError(ex, ex.Message);
                                         }
                                         finally
                                         {
@@ -550,6 +556,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     using (var executeTracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
                                     {
                                         executeTracer.SetComponent(_compomentName);
+                                        executeTracer.SetTag("queueName", queueName);
 
                                         handlerSuccess = await _receiverPolicy.ExecuteAsync(async (handlerCancellationToken) =>
                                         {
@@ -578,8 +585,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                             }
                             catch(Exception ex)
                             {
+                                handlerException = ex;
                                 _logger.LogError(ex, ex.Message);
-
                             }
                             finally
                             {
