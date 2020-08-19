@@ -43,6 +43,7 @@ namespace Hummingbird.WebApi
             
             services.AddHummingbird(hummingbird =>
             {
+                hummingbird.AddCanal(Configuration.GetSection("Canal"));
                 hummingbird.AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");

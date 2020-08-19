@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\src\Hummingbird.AspNetCore.Metrics\Hummingbird.AspNetCore.Metrics.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Canal\Hummingbird.Extensions.Canal.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
@@ -58,7 +59,7 @@
     </Content>
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties config_4appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 
 </Project>
