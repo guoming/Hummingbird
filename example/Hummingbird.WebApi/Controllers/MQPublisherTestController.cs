@@ -37,13 +37,21 @@ namespace Hummingbird.Example.Controllers
         [Route("Test1")]
         public async Task<string> Test1()
         {
+            var item1 = new EventLogEntry("TestEventHandler", new Events.TestEvent()
+            {
+                EventType = "Test1"
+            });
+            item1.EventId = 1;
+
+            var item2 = new EventLogEntry("TestEventHandler2", new
+            {
+
+                EventType = "Test1"
+            });
+
+
             var events = new List<EventLogEntry>() {
-                   new EventLogEntry("fip_logistics_temp",new Events.TestEvent() {
-                      EventType="Test1"
-                   }),
-                   new EventLogEntry("fip_logistics_temp",new {
-                        EventType="Test1"
-                   }),
+                   item1,item2
             };
 
             var ret=  await  eventBus.PublishAsync(events);
