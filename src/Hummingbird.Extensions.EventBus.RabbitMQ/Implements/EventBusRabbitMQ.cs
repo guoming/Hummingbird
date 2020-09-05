@@ -371,11 +371,18 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
                                     {
                                         try
                                         {
-                                            long.TryParse(System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-eventId"] as byte[]), out EventId);
+                                            long.TryParse(ea.BasicProperties.Headers["x-eventId"].ToString(), out EventId);
                                         }
                                         catch (Exception ex)
                                         {
-                                            _logger.LogError(ex, ex.Message);
+                                            try
+                                            {
+                                                long.TryParse(System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-eventId"] as byte[]), out EventId);
+                                            }
+                                            catch
+                                            {
+
+                                            }
                                         }
                                     }
                                     #endregion
@@ -663,14 +670,18 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
                                                     {
                                                         try
                                                         {
-                                                            if (!long.TryParse(System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-eventId"] as byte[]), out EventId))
-                                                            {
-                                                               //
-                                                            }
+                                                            long.TryParse(ea.BasicProperties.Headers["x-eventId"].ToString(), out EventId);
                                                         }
                                                         catch (Exception ex)
                                                         {
-                                                            _logger.LogError(ex, ex.Message);
+                                                            try
+                                                            {
+                                                                long.TryParse(System.Text.Encoding.UTF8.GetString(ea.BasicProperties.Headers["x-eventId"] as byte[]), out EventId);
+                                                            }
+                                                            catch
+                                                            {
+
+                                                            }
                                                         }
                                                     }
                                                     #endregion

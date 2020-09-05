@@ -98,7 +98,8 @@ namespace Hummingbird.WebApi
                 {
                     workIdBuilder.CenterId = 0;
                     //workIdBuilder.AddStaticWorkIdCreateStrategy(1);
-                    var WorkId = workIdBuilder.AddConsulWorkIdCreateStrategy(Configuration["SERVICE_NAME"]);
+                    workIdBuilder.AddConsulWorkIdCreateStrategy(Configuration["SERVICE_NAME"]);
+                    
                 })
                 .AddOpenTracing(builder => {
 

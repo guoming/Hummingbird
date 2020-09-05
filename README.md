@@ -29,15 +29,21 @@
 * 服务动态路由
   * 基于Consul服务注册和发现
 * 服务调用
-  * 基于HTTP 弹性客户端
-  * 基于HTTP非弹性客户端
+  * 基于HTTP弹性客户端(支持：服务发现、负载均衡、超时、重试、熔断)
+  * 基于HTTP非弹性客户端（支持：服务发现、负载均衡）
+* Canal 数据集成
+  * 输出到控制台
+  * 输出到Rabbitmq(待实现)
+  * 输出到Kafka(待实现)
   
 ## 3. 如何使用
 ### 3.1 分布式锁
-``` SHELL
+
+步骤1：安装Nuget包
+``` SHELL 
 Install-Package Hummingbird.Extensions.DistributedLock -Version 1.15.0
 ```
-
+步骤2：配置连接信息
 ``` C#
   public class Startup
   {
@@ -57,7 +63,7 @@ Install-Package Hummingbird.Extensions.DistributedLock -Version 1.15.0
         }
     }
 ```
-
+步骤3：测试分布式锁
 ``` C#
     using Microsoft.AspNetCore.Mvc;
     using System;
@@ -99,10 +105,13 @@ Install-Package Hummingbird.Extensions.DistributedLock -Version 1.15.0
 
 ```
 ### 3.2 分布式缓存
+
+步骤1：安装Nuget包
 ``` SHELL
 Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
 ```
 
+步骤2：设置缓存连接信息
 ```C#
     public class Startup
     {
@@ -126,6 +135,8 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
         }
     }
 ```
+
+步骤3：测试Redis缓存
 ```c#
     using Hummingbird.Extensions.Cacheing;
     using Microsoft.AspNetCore.Mvc;
@@ -155,10 +166,14 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
         }
 ```
 ### 3.3 分布式Id
+
+步骤1： 安装Nuget包
 ``` SHELL
-  Install-Package Hummingbird.Extensions.UidGenerator -Version 1.15.0
+  Install-Package Hummingbird.Extensions.UidGenerator -Version 1.15.5
+  Install-Package Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy -Version 1.15.7
 ```
 
+步骤2：配置使用Snowfake算法生产唯一Id
 ```c#
   public class Startup
     {
@@ -166,16 +181,16 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
         {          
             services.AddHummingbird(hb =>
             {
-                hb.AddSnowflakeUniqueIdGenerator(IdGenerator =>
+                hb.AddSnowflakeUniqueIdGenerator(workIdBuilder =>
                 {
-                    IdGenerator.CenterId = 0;
-                    IdGenerator.UseStaticWorkIdCreateStrategy(0);
+                    workIdBuilder.CenterId = 0; // 设置CenterId
+                    workIdBuilder.AddConsulWorkIdCreateStrategy("Example"); //设置使用Consul创建WorkId
                 })
             });
         }
     }
 ```
-
+步骤3：测试Id生成
 ```c#
     using Hummingbird.Extensions.UidGenerator;
     using Microsoft.AspNetCore.Mvc;
@@ -200,6 +215,57 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
     }
 ```
 ### 3.4 分布式追踪
+
+步骤1：安装Nuget包
+``` SHELL
+Install-Package Hummingbird.Extensions.OpenTracing -Version 1.15.0
+Install-Package Hummingbird.Extensions.OpenTracking.Jaeger -Version 1.15.0
+```
+步骤2： 创建tracing.json 配置
+```JSON
+ {
+  "Tracing": {
+    "Open": false,
+    "SerivceName": "SERVICE_EXAMPLE",
+    "FlushIntervalSeconds": 15,
+    "SamplerType": "const",
+    "LogSpans": true,
+    "AgentPort": "5775", //代理端口
+    "AgentHost": "dev.jaeger-agent.service.consul", //代理地址
+    "EndPoint": "http://dev.jaeger-collector.service.consul:14268/api/traces"
+  }
+}
+```
+
+步骤3：添加tracing.json 配置依赖
+``` C#
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            BuildWebHost(args).Run();
+        }
+
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()                
+                .ConfigureAppConfiguration((builderContext, config) =>
+                  {
+                      config.SetBasePath(Directory.GetCurrentDirectory());
+                      config.AddJsonFile("tracing.json");
+                      config.AddEnvironmentVariables();
+                  })
+           .ConfigureLogging((hostingContext, logging) =>
+           {
+               logging.ClearProviders();
+        
+           })
+           .Build();
+    }
+```
+
+步骤3： 配置OpenTracing基于Jaeger实现
 ```c#
    public class Startup
     {
@@ -214,6 +280,8 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
         }
     }
 ```
+
+步骤4：测试手动埋点日志
 ```c#
     using Microsoft.AspNetCore.Mvc;
     using System.Threading.Tasks;
@@ -237,6 +305,14 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
 ```
 ### 3.5 消息总线
 
+步骤1：安装Nuget包
+``` SHELL
+Install-Package Hummingbird.Extensions.EventBus -Version 1.15.0
+Install-Package Hummingbird.Extensions.EventBus.RabbitMQ -Version 1.15.3
+Install-Package Hummingbird.Extensions.EventBus.MySqlLogging -Version 1.15.3
+```
+
+步骤2：创建消息消费端，消息处理程序
 ```c#
 
   using Hummingbird.Extensions.EventBus.Abstractions;
@@ -268,6 +344,7 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
     }
 ```
 
+步骤2：创建消息生产端，消息发送程序
 ```c# 
     using Hummingbird.Extensions.EventBus.Abstractions;
     using Hummingbird.Extensions.EventBus.Models;
@@ -292,7 +369,9 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
             this.eventBus = eventBus;
         }
 
-
+        /// <summary>
+        ///  无本地事务发布消息，消息直接写入队列
+        /// </summary>
         [HttpGet]
         [Route("Test1")]
         public async Task<string> Test1()
@@ -312,7 +391,7 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
         }
 
         /// <summary>
-        /// 
+        /// 有本地事务发布消息，消息落盘到数据库确保事务完整性
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -345,6 +424,10 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
             }
         }
 
+        /// <summary>
+        /// 有本地事务发布消息，消息落盘到数据库，从数据库重新取出消息发送到队列
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Route("Test3")]
         public async Task Test3()
@@ -366,6 +449,7 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
     }
 ```
 
+步骤3： 配置使用Rabbitmq消息队列和使用Mysql消息持久化
 ```c#
    public class Startup
     {
@@ -476,7 +560,18 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
     }
 ```
 
+
 ### 3.6 健康检查
+步骤1： 安装Nuget包
+``` SHELL
+Install-Package Hummingbird.Extensions.HealthChecks -Version 1.15.0
+Install-Package Hummingbird.Extensions.HealthChecks.Redis -Version 1.15.0
+Install-Package Hummingbird.Extensions.HealthChecks.Rabbitmq -Version 1.15.0
+Install-Package Hummingbird.Extensions.HealthChecks.MySql -Version 1.15.0
+Install-Package Hummingbird.Extensions.HealthChecks.SqlServer -Version 1.15.0
+```
+
+步骤2： 配置健康检查Endpoint
 ```c#
     public class Program
     {
@@ -503,6 +598,7 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
     }
 ```
 
+步骤3： 配置监控检查项
 ```c#   
     public class Startup
     {
@@ -530,7 +626,16 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
 
 
 ### 3.8 服务注册 + 服务发现 + 服务HTTP调用
-appsettings.json
+
+步骤1： 安装Nuget包
+``` SHELL
+Install-Package Hummingbird.DynamicRoute -Version 1.15.1
+Install-Package Hummingbird.LoadBalancers -Version 1.15.0
+Install-Package Hummingbird.Extensions.DynamicRoute.Consul -Version 1.15.5
+Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.15.0
+```
+
+步骤2：配置 appsettings.json
 ```JSON
 {
   "SERVICE_REGISTRY_ADDRESS": "localhost", // 注册中心地址
@@ -552,6 +657,7 @@ appsettings.json
 }
 ```
 
+步骤3：添加appsettings.json 配置依赖
 
 ``` C#
 
@@ -564,8 +670,7 @@ appsettings.json
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .UseHealthChecks("/healthcheck")
+                .UseStartup<Startup>()                
                 .ConfigureAppConfiguration((builderContext, config) =>
                   {
                       config.SetBasePath(Directory.GetCurrentDirectory());
@@ -581,6 +686,7 @@ appsettings.json
     }
 ```
 
+步骤4：服务注册到Consul并配置弹性HTTP客户端
 ```c#   
     public class Startup
     {
@@ -591,7 +697,12 @@ appsettings.json
             services.AddHummingbird(hummingbird =>
             {
                 hummingbird                
-
+                // 服务注册到Consul
+                .AddConsulDynamicRoute(Configuration, s =>
+                 {
+                     s.AddTags("version=v1");
+                 })
+                 // 设置弹性HTTP客户端（服务发现、超时、重试、熔断）
                 .AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");
@@ -610,17 +721,14 @@ appsettings.json
                      option.RetryCount = int.Parse(setting["RetryCount"]);
                      option.TimeoutMillseconds = int.Parse(setting["TimeoutMillseconds"]);
 
-                 })
-                .AddConsulDynamicRoute(Configuration, s =>
-                 {
-                     s.AddTags("version=v1");
                  });
-
+               
             });
         }
     }
 ```
 
+步骤5：测试HTTP Client
 ```c#   
     using Hummingbird.Extensions.Resilience.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -657,7 +765,75 @@ appsettings.json
         }
 
     }
-```  
+```
+
+
+### 3.8 Canal 数据集成
+
+步骤1： 安装Nuget包
+``` SHELL
+Install-Package Hummingbird.Extensions.Canal -Version 1.0.0
+```
+
+步骤2：配置 canal.json, binlog日志输出到控制台
+```JSON
+{
+    "Canal": {
+        "Subscribes": [{
+                "Filter": ".*\\..*",
+                "BatchSize": 1024,
+                "Type": "Hummingbird.Extensions.Canal.Subscripters.ConsoleSubscripter,Hummingbird.Extensions.Canal",
+                "ConnectionInfo": {
+                "Address": "192.168.109.222",
+                "Port": 11111,
+                "Destination": "example",
+                "UserName": "",
+                "Passsword": ""
+                }
+            }]
+  }
+}
+```
+
+步骤3：添加appsettings.json 配置依赖
+``` C#
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            BuildWebHost(args).Run();
+        }
+
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()                
+                .ConfigureAppConfiguration((builderContext, config) =>
+                  {
+                      config.SetBasePath(Directory.GetCurrentDirectory());
+                      config.AddJsonFile("canal.json");
+                      config.AddEnvironmentVariables();
+                  })
+           .Build();
+    }
+```
+
+步骤4： 实现自己的binlog处理
+``` C#
+    public class ConsoleSubscripter : ISubscripter
+    {
+        public bool Process(CanalEventEntry[] entrys)
+        {
+            foreach(var entry in entrys)
+            {
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(entry));
+            }
+
+            //ack
+            return true;
+        }
+    }
+```
 
 ## 4. 更新日志
 
