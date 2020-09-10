@@ -24,9 +24,7 @@ namespace Hummingbird.Extensions.Resilience.Http
             IHttpContextAccessor httpContextAccessor,
             IHttpUrlResolver httpUrlResolver)
         {
-            HttpClientHandler clientHandler = new HttpClientHandler();
-            clientHandler.AllowAutoRedirect = false;
-            _client = new HttpClient(clientHandler);
+            _client = new HttpClient();
             _httpUrlResolver = httpUrlResolver;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
