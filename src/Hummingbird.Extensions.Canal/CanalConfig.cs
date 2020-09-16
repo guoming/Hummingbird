@@ -23,7 +23,9 @@ namespace Hummingbird.Extensions.Canal
 
             public int BatchSize { get; set; } = 1024;
 
-            public string Type { get; set; } = "";
+            public string Connector { get; set; } = "";
+
+            public string Format { get; set; } = "CanalJsonFormatter";
 
             public CancalConnectionInfo ConnectionInfo { get; set; }
 

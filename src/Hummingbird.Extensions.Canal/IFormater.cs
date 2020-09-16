@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Hummingbird.Extensions.Canal
 {
-    public interface ISubscripter
+    public interface IFormater
     {
-        bool Process(CanalEventEntry[] entrys);
+        object Format(Com.Alibaba.Otter.Canal.Protocol.Entry entry);
     }
 }

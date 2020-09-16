@@ -1,12 +1,10 @@
 ﻿using CanalSharp.Client;
 using CanalSharp.Client.Impl;
-using Hummingbird.Extensions.Canal.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,10 +34,23 @@ namespace Hummingbird.Extensions.Canal
             {
                 foreach (var subscribeInfo in _cannalConfig.Subscribes)
                 {
-                    var subscripter = System.Activator.CreateInstance(Type.GetType(subscribeInfo.Type)) as ISubscripter;                    
+
+                    if (string.IsNullOrEmpty(subscribeInfo.Connector))
+                    {
+                        subscribeInfo.Format = typeof(Connectors.ConsoleConnector).FullName;
+                    }
+
+                    if (string.IsNullOrEmpty(subscribeInfo.Format))
+                    {
+                        subscribeInfo.Format = typeof(Formatters.MaxwellJson.Formatter).FullName;
+                    }
+
+                    var connector = System.Activator.CreateInstance(Type.GetType(subscribeInfo.Connector)) as IConnector;                 
+                    
+                    var formater = System.Activator.CreateInstance(Type.GetType(subscribeInfo.Format)) as IFormater;
 
                     //创建一个简单 CanalClient 连接对象（此对象不支持集群）传入参数分别为 canal 地址、端口、destination、用户名、密码
-                    var connector = CanalConnectors.NewSingleConnector(
+                    var canalConnector = CanalConnectors.NewSingleConnector(
                         subscribeInfo.ConnectionInfo.Address,
                         subscribeInfo.ConnectionInfo.Port,
                         subscribeInfo.ConnectionInfo.Destination,
@@ -47,16 +58,16 @@ namespace Hummingbird.Extensions.Canal
                         subscribeInfo.ConnectionInfo.Passsword);
 
                     //连接 Canal
-                    connector.Connect();
-                 
-                    connector.Subscribe(subscribeInfo.Filter);
+                    canalConnector.Connect();
 
-                    _canalConnectors.Add(connector);
+                    canalConnector.Subscribe(subscribeInfo.Filter);
+
+                    _canalConnectors.Add(canalConnector);
 
                     while (true)
                     {
                         //获取数据 1024表示数据大小 单位为字节
-                        var message = connector.GetWithoutAck(subscribeInfo.BatchSize);
+                        var message = canalConnector.GetWithoutAck(subscribeInfo.BatchSize);
                         //批次id 可用于回滚
                         var batchId = message.Id;
 
@@ -67,11 +78,11 @@ namespace Hummingbird.Extensions.Canal
                         }
                         else
                         {
-                            var ret = subscripter.Process(message.Entries.Where(entry=>entry.EntryType == Com.Alibaba.Otter.Canal.Protocol.EntryType.Rowdata).Select(a => a.ToCanalEventEntry()).ToArray());
+                            var ret = connector.Process(message.Entries,formater);
 
                             if (ret)
                             {
-                                connector.Ack(batchId);
+                                canalConnector.Ack(batchId);
                             }
                         }
                     }
@@ -80,8 +91,10 @@ namespace Hummingbird.Extensions.Canal
 
               
             }
-            catch
-            { }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

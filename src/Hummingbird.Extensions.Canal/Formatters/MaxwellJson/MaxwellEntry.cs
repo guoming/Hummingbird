@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Hummingbird.Extensions.Canal
+namespace Hummingbird.Extensions.Canal.Formatters.MaxwellJson
 {
-    public class CanalEventEntry
+    public class MaxwellEntry
     {
         public string database { get; set; }
 
@@ -24,7 +24,5 @@ namespace Hummingbird.Extensions.Canal
         public long xoffset { get; set; }
 
         public string position { get; set; }
-
-
     }
 }

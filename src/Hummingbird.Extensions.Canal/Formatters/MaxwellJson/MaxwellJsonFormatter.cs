@@ -1,16 +1,16 @@
 ﻿using Com.Alibaba.Otter.Canal.Protocol;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
-namespace Hummingbird.Extensions.Canal.Extensions
+namespace Hummingbird.Extensions.Canal.Formatters.MaxwellJson
 {
-    internal static class CanalEventEntryExtension
+    public class Formatter : IFormater
     {
-        public static CanalEventEntry ToCanalEventEntry(this Entry entry)
+        public object Format(Com.Alibaba.Otter.Canal.Protocol.Entry entry)
         {
-            var cdc = new CanalEventEntry();
+            var cdc = new MaxwellEntry();
             cdc.position = entry.Header.LogfileName;
             cdc.xoffset = entry.Header.LogfileOffset;
             cdc.database = entry.Header.SchemaName;
@@ -21,7 +21,7 @@ namespace Hummingbird.Extensions.Canal.Extensions
             var rowChange = RowChange.Parser.ParseFrom(entry.StoreValue);
 
             if (rowChange != null)
-            {              
+            {
                 cdc.type = rowChange.EventType.ToString().ToLower();
                 //输出 insert/update/delete 变更类型列数据
                 foreach (var rowData in rowChange.RowDatas)
@@ -61,11 +61,10 @@ namespace Hummingbird.Extensions.Canal.Extensions
                     }
                 }
 
-              
+
             }
 
             return cdc;
         }
-
     }
 }
