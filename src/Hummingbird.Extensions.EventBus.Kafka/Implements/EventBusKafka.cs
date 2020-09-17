@@ -328,6 +328,26 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         }
 
                                         eventResponse.Body = JsonConvert.DeserializeObject<TD>(eventResponse.BodySource);
+
+                                        #region 设置header
+                                        if (!eventResponse.Headers.ContainsKey("x-topic"))
+                                        {
+                                            eventResponse.Headers.Add("x-topic", routeKey);
+                                        }
+                                        if (!eventResponse.Headers.ContainsKey("x-messageId"))
+                                        {
+                                            eventResponse.Headers.Add("x-messageId", MessageId);
+                                        }
+                                        if (!eventResponse.Headers.ContainsKey("x-eventId"))
+                                        {
+                                            eventResponse.Headers.Add("x-eventId", EventId);
+                                        }
+                                        if (!eventResponse.Headers.ContainsKey("x-traceId"))
+                                        {
+                                            eventResponse.Headers.Add("x-traceId", TraceId);
+                                        }
+                                        #endregion
+
                                         _logger.LogInformation(eventResponse.BodySource);
                                     }
                                     catch (Exception ex)
@@ -533,6 +553,27 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                                 }
 
                                                 eventResponse.Body = JsonConvert.DeserializeObject<TD>(eventResponse.BodySource);
+
+
+                                                #region 设置header
+                                                if (!eventResponse.Headers.ContainsKey("x-topic"))
+                                                {
+                                                    eventResponse.Headers.Add("x-topic", routeKey);
+                                                }
+                                                if (!eventResponse.Headers.ContainsKey("x-messageId"))
+                                                {
+                                                    eventResponse.Headers.Add("x-messageId", MessageId);
+                                                }
+                                                if (!eventResponse.Headers.ContainsKey("x-eventId"))
+                                                {
+                                                    eventResponse.Headers.Add("x-eventId", EventId);
+                                                }
+                                                if (!eventResponse.Headers.ContainsKey("x-traceId"))
+                                                {
+                                                    eventResponse.Headers.Add("x-traceId", TraceId);
+                                                }
+                                                #endregion
+
                                                 _logger.LogInformation(eventResponse.BodySource);
                                             }
                                             catch (Exception ex)
