@@ -68,8 +68,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka
             int receiverAcquireRetryAttempts = 0,
             int receiverHandlerTimeoutMillseconds = 0,
             int senderRetryCount = 3,
-            int senderConfirmTimeoutMillseconds=1000,
-            int senderConfirmFlushTimeoutMillseconds=50)
+            int senderConfirmTimeoutMillseconds = 1000,
+            int senderConfirmFlushTimeoutMillseconds = 50)
         {
 
             this._reveiverMaxDegreeOfParallelism = reveiverMaxDegreeOfParallelism;
@@ -215,7 +215,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                     }
                 }
 
-                channel.ProduceBatch(topic, messages,TimeSpan.FromMilliseconds(_senderConfirmTimeoutMillseconds),TimeSpan.FromMilliseconds(_senderConfirmFlushTimeoutMillseconds), cancellationToken);
+                channel.ProduceBatch(topic, messages, TimeSpan.FromMilliseconds(_senderConfirmTimeoutMillseconds), TimeSpan.FromMilliseconds(_senderConfirmFlushTimeoutMillseconds), cancellationToken);
             }
             catch (Exception ex)
             {
@@ -276,7 +276,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                             var TraceId = MessageId;
 
                             using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received", TraceId))
-                            { 
+                            {
                                 #region 获取EventId 和 TracerId
                                 if (ea.Headers != null)
                                 {
@@ -298,15 +298,14 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 }
                                 #endregion
 
-                                #region AMQP Received
+                                tracer.SetComponent(_compomentName);
+                                tracer.SetTag("queueName", queueName);
+                                tracer.SetTag("x-messageId", MessageId);
+                                tracer.SetTag("x-eventId", EventId);
+                                tracer.SetTag("x-traceId", TraceId);
+                               
                                 try
                                 {
-                                    tracer.SetComponent(_compomentName);
-                                    tracer.SetTag("queueName", queueName);
-                                    tracer.SetTag("x-messageId", MessageId);
-                                    tracer.SetTag("x-eventId", EventId);
-                                    tracer.SetTag("x-traceId", TraceId);
-
                                     var eventResponse = new EventResponse()
                                     {
                                         EventId = EventId,
@@ -319,17 +318,20 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         BodySource = ea.Value
                                     };
 
-                                 
+
+                                    #region 格式化消息
                                     try
                                     {
+                                        #region 设置body
+                                        eventResponse.Body = JsonConvert.DeserializeObject<TD>(eventResponse.BodySource);
+                                        #endregion
+
+                                        #region 设置header
                                         foreach (var key in ea.Headers)
                                         {
                                             eventResponse.Headers.Add(key.Key, Encoding.UTF8.GetString(key.GetValueBytes()));
                                         }
 
-                                        eventResponse.Body = JsonConvert.DeserializeObject<TD>(eventResponse.BodySource);
-
-                                        #region 设置header
                                         if (!eventResponse.Headers.ContainsKey("x-topic"))
                                         {
                                             eventResponse.Headers.Add("x-topic", routeKey);
@@ -348,14 +350,15 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         }
                                         #endregion
 
-                                        _logger.LogInformation(eventResponse.BodySource);
+                                        _logger.LogDebug(eventResponse.BodySource);
                                     }
                                     catch (Exception ex)
                                     {
                                         _logger.LogError(ex, ex.Message);
                                     }
+                                    #endregion
 
-                                    #region AMQP ExecuteAsync
+                                    #region 处理消息
                                     using (var tracerExecuteAsync = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
                                     {
                                         var handlerSuccess = false;
@@ -427,12 +430,11 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 {
                                     tracer.SetError();
                                     _logger.LogError(ex.Message, ex);
-                                }
-                                #endregion
+                                }                              
                             }
 
                         }
-                      
+
                     }
                     catch (Exception ex)
                     {
@@ -481,13 +483,16 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                         {
                             var handlerSuccess = false;
                             var handlerException = default(Exception);
-                            var eas = consumer.ConsumeBatch(TimeSpan.FromSeconds(5), BatchSize, cancellationToken);
+                            var eas = consumer.ConsumeBatch(TimeSpan.FromSeconds(5), BatchSize, cancellationToken).ToArray();
                             var Messages = new EventResponse[eas.Count()];
 
                             try
                             {
-                                foreach (var ea in eas)
+                                #region 批量格式化消息
+                                for (int j = 0; j < eas.Length; j++)
                                 {
+                                    var ea = eas[j];
+
                                     // 消息队列空
                                     if (ea.IsPartitionEOF)
                                     {
@@ -502,7 +507,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
                                     using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received", TraceId))
                                     {
-                                        #region 消息Header处理
+                                        #region 获取EventId & TraceId
                                         if (ea.Headers != null)
                                         {
                                             try
@@ -523,74 +528,66 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         }
                                         #endregion
 
-                                        #region AMQP Received
+                                        tracer.SetComponent(_compomentName);
+                                        tracer.SetTag("queueName", queueName);
+                                        tracer.SetTag("x-messageId", MessageId);
+                                        tracer.SetTag("x-eventId", EventId);
+                                        tracer.SetTag("x-traceId", TraceId);
+
+                                        Messages[j] = new EventResponse()
+                                        {
+                                            EventId = EventId,
+                                            MessageId = MessageId,
+                                            TraceId = TraceId,
+                                            Headers = new Dictionary<string, object>(),
+                                            Body = default(TD),
+                                            QueueName = queueName,
+                                            RouteKey = routeKey,
+                                            BodySource = ea.Value
+                                        };
+
                                         try
                                         {
-                                            tracer.SetComponent(_compomentName);
-                                            tracer.SetTag("queueName", queueName);
-                                            tracer.SetTag("x-messageId", MessageId);
-                                            tracer.SetTag("x-eventId", EventId);
-                                            tracer.SetTag("x-traceId", TraceId);
+                                            #region 设置Body
+                                            Messages[j].Body = JsonConvert.DeserializeObject<TD>(Messages[j].BodySource);
+                                            #endregion
 
-                                            var eventResponse = new EventResponse()
+                                            #region 设置header
+                                            foreach (var key in ea.Headers)
                                             {
-                                                EventId = EventId,
-                                                MessageId = MessageId,
-                                                TraceId = TraceId,
-                                                Headers = new Dictionary<string, object>(),
-                                                Body = default(TD),
-                                                QueueName = queueName,
-                                                RouteKey = routeKey,
-                                                BodySource = ea.Value
-                                            };
-
-
-                                            try
-                                            {
-                                                foreach (var key in ea.Headers)
-                                                {
-                                                    eventResponse.Headers.Add(key.Key, Encoding.UTF8.GetString(key.GetValueBytes()));
-                                                }
-
-                                                eventResponse.Body = JsonConvert.DeserializeObject<TD>(eventResponse.BodySource);
-
-
-                                                #region 设置header
-                                                if (!eventResponse.Headers.ContainsKey("x-topic"))
-                                                {
-                                                    eventResponse.Headers.Add("x-topic", routeKey);
-                                                }
-                                                if (!eventResponse.Headers.ContainsKey("x-messageId"))
-                                                {
-                                                    eventResponse.Headers.Add("x-messageId", MessageId);
-                                                }
-                                                if (!eventResponse.Headers.ContainsKey("x-eventId"))
-                                                {
-                                                    eventResponse.Headers.Add("x-eventId", EventId);
-                                                }
-                                                if (!eventResponse.Headers.ContainsKey("x-traceId"))
-                                                {
-                                                    eventResponse.Headers.Add("x-traceId", TraceId);
-                                                }
-                                                #endregion
-
-                                                _logger.LogInformation(eventResponse.BodySource);
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                _logger.LogError(ex, ex.Message);
+                                                Messages[j].Headers.Add(key.Key, Encoding.UTF8.GetString(key.GetValueBytes()));
                                             }
 
+                                            if (!Messages[j].Headers.ContainsKey("x-topic"))
+                                            {
+                                                Messages[j].Headers.Add("x-topic", routeKey);
+                                            }
+                                            if (!Messages[j].Headers.ContainsKey("x-messageId"))
+                                            {
+                                                Messages[j].Headers.Add("x-messageId", MessageId);
+                                            }
+                                            if (!Messages[j].Headers.ContainsKey("x-eventId"))
+                                            {
+                                                Messages[j].Headers.Add("x-eventId", EventId);
+                                            }
+                                            if (!Messages[j].Headers.ContainsKey("x-traceId"))
+                                            {
+                                                Messages[j].Headers.Add("x-traceId", TraceId);
+                                            }
+                                            #endregion
+
+                                            _logger.LogDebug(Messages[j].BodySource);
 
                                         }
                                         catch (Exception ex)
                                         {
-                                            tracer.SetError();
-                                            _logger.LogError(ex.Message, ex);
+                                            _logger.LogError(ex, ex.Message);
                                         }
-                                        #endregion
                                     }
                                 }
+                                #endregion
+
+                                #region 批量处理消息
 
                                 if (Messages != null && Messages.Any())
                                 {
@@ -623,8 +620,9 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         }
                                     }
                                 }
+                                #endregion
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 handlerException = ex;
                                 _logger.LogError(ex, ex.Message);
@@ -655,8 +653,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     }
                                 }
                             }
-                        
-                            
+
+
                         }
 
                     }
