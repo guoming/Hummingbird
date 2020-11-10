@@ -14,8 +14,8 @@ namespace Microsoft.Extensions.DependencyInjection
     public class KafkaOption
     {
 
-        internal Confluent.Kafka.ConsumerConfig ConsumerConfig { get; set; } = new Confluent.Kafka.ConsumerConfig() { BootstrapServers = "localhost:9092" };
-        internal Confluent.Kafka.ProducerConfig ProducerConfig { get; set; } = new Confluent.Kafka.ProducerConfig() { BootstrapServers = "localhost:9092" };
+        internal Confluent.Kafka.ConsumerConfig ConsumerConfig { get; set; }
+        internal Confluent.Kafka.ProducerConfig ProducerConfig { get; set; }
 
 
         public void WithReceiverConfig(Confluent.Kafka.ConsumerConfig config)
@@ -32,23 +32,17 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// 消费端设置
         /// </summary>
-        /// <param name="ReceiverMaxConnections">消费最大连接数</param>
         /// <param name="ReceiverAcquireRetryAttempts">最大重试次数</param>
         /// <param name="IdempotencyDurationSeconds">幂等持续时间（秒）</param>
         /// <param name="PreFetch">预取数量</param>
-        public void WithReceiver(
-            int ReceiverMaxConnections = 2, 
-            int ReveiverMaxDegreeOfParallelism = 10,
+        public void WithReceiver(            
             int ReceiverAcquireRetryAttempts = 0, 
             int ReceiverHandlerTimeoutMillseconds=10000,
-            string LoadBalancer= "RoundRobinLoadBalancer",
-            ushort PreFetch=1)
-        {
-            this.ReceiverMaxConnections = ReceiverMaxConnections;
-            this.ReveiverMaxDegreeOfParallelism = ReveiverMaxDegreeOfParallelism;
+            string LoadBalancer= "RoundRobinLoadBalancer")
+        {   
             this.ReceiverAcquireRetryAttempts = ReceiverAcquireRetryAttempts;
             this.ReceiverHandlerTimeoutMillseconds = ReceiverHandlerTimeoutMillseconds;
-            this.PreFetch = PreFetch;
+           
             this.ReceiverLoadBalancer = LoadBalancer;
             
         }
@@ -62,13 +56,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="SenderConfirmFlushTimeoutMillseconds">消息刷新等待间隔时间（毫秒）</param>
         /// <param name="AcquireRetryAttempts">最大重试次数</param>
         public void WithSender(
-            int SenderMaxConnections = 10, 
             int AcquireRetryAttempts = 3, 
             int SenderConfirmTimeoutMillseconds = 1000,
             int SenderConfirmFlushTimeoutMillseconds=50,
             string LoadBalancer = "RoundRobinLoadBalancer")
         {
-            this.SenderMaxConnections = SenderMaxConnections;
             this.SenderAcquireRetryAttempts = AcquireRetryAttempts;
             this.SenderLoadBalancer = LoadBalancer;
             this.SenderConfirmTimeoutMillseconds = SenderConfirmTimeoutMillseconds;
@@ -84,8 +76,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         internal int SenderAcquireRetryAttempts { get; set; } = 3;
 
-        internal int SenderMaxConnections { get; set; } = 10;
-
         internal string SenderLoadBalancer { get; set; }
 
         internal int SenderConfirmTimeoutMillseconds { get; set; }= 500;
@@ -97,10 +87,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         #region Receiver
 
-        /// <summary>
-        /// 消费者连接数量
-        /// </summary>
-        internal int ReceiverMaxConnections { get; set; } = 2;
+   
         /// <summary>
         /// 消费者负载均衡器
         /// </summary>
@@ -116,15 +103,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         internal int ReceiverHandlerTimeoutMillseconds { get; set; } = 1000 * 2;
    
-        /// <summary>
-        /// 消费单个连接最大Channel数量
-        /// </summary>
-        internal int ReveiverMaxDegreeOfParallelism { get; set; } = 10;
-
-        /// <summary>
-        /// 默认获取
-        /// </summary>
-        internal ushort PreFetch { get; set; } = 1;
+    
 
         #endregion
 
@@ -151,19 +130,16 @@ namespace Microsoft.Extensions.DependencyInjection
                 var senderConnections = new List<IKafkaPersistentConnection>();
                 var receiveConnections = new List<IKafkaPersistentConnection>();
 
-                //消费端连接池
-                for (int i = 0; i < option.ReceiverMaxConnections; i++)
+                if (option.ConsumerConfig != null)
                 {
-                    var connection = new DefaultKafkaPersistentConnection(loggerConnection, option.ConsumerConfig);
                     //消费端的连接池
-                    receiveConnections.Add(connection);
+                    receiveConnections.Add(new DefaultKafkaPersistentConnection(loggerConnection, option.ConsumerConfig));
                 }
 
-                //发送端连接池
-                for (int i = 0; i < option.SenderMaxConnections; i++)
+                if (option.ProducerConfig != null)
                 {
-                    var connection = new DefaultKafkaPersistentConnection(loggerConnection, option.ProducerConfig);
-                    senderConnections.Add(connection);
+                    //发送端连接池
+                    senderConnections.Add(new DefaultKafkaPersistentConnection(loggerConnection, option.ProducerConfig));
                 }
 
                 var receiveLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> receiveConnections, option.ReceiverLoadBalancer);
@@ -176,8 +152,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     sp,
                     senderRetryCount: option.SenderAcquireRetryAttempts,
                     senderConfirmTimeoutMillseconds: option.SenderConfirmTimeoutMillseconds,
-                    senderConfirmFlushTimeoutMillseconds: option.SenderConfirmFlushTimeoutMillseconds,
-                    reveiverMaxDegreeOfParallelism: option.ReveiverMaxDegreeOfParallelism,
+                    senderConfirmFlushTimeoutMillseconds: option.SenderConfirmFlushTimeoutMillseconds,              
                     receiverAcquireRetryAttempts: option.ReceiverAcquireRetryAttempts,
                     receiverHandlerTimeoutMillseconds: option.ReceiverHandlerTimeoutMillseconds
                    );

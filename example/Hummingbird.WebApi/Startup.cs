@@ -43,7 +43,7 @@ namespace Hummingbird.WebApi
             
             services.AddHummingbird(hummingbird =>
             {
-                hummingbird.AddCanal(Configuration.GetSection("Canal"));
+               // hummingbird.AddCanal(Configuration.GetSection("Canal"));
                 hummingbird.AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");
@@ -123,35 +123,34 @@ namespace Hummingbird.WebApi
                     //{
                     //    a.WithEndpoint(DatabaseConnectionString);
                     //})
-                    .AddRabbitmq(factory =>
-                    {
-                        factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                        factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                        factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                        factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
-                        factory.WithSender(10);
-                    });
-                    //builder.AddKafka(option =>
+                    //.AddRabbitmq(factory =>
                     //{
-                    //    option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
-                    //    {
-
-                    //        EnableDeliveryReports = true,
-                    //        //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
-                    //        BootstrapServers = "192.168.9.194:9092,192.168.9.195:9092,192.168.9.196:9092",
-                    //        //Debug = "msg" //  Debug = "broker,topic,msg"
-                    //    });
-
-                    //    option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
-                    //    {
-                    //        // Debug= "consumer,cgrp,topic,fetch",
-                    //        GroupId = "test-consumer-group",
-                    //        //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
-                    //        BootstrapServers = "192.168.9.194:9092,192.168.9.195:9092,192.168.9.196:9092"
-                    //    });
-                    //    option.WithReceiver(1, 1);
-                    //    option.WithSender(10, 3, 100, 50);
+                    //    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                    //    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                    //    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                    //    factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
+                    //    factory.WithSender(10);
                     //});
+                    .AddKafka(option =>
+                    {
+                        
+                        option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
+                        {
+                            AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
+                            Debug = Configuration["Kafka:Debug"],//"consumer,cgrp,topic,fetch",
+                            GroupId = Configuration["Kafka:Receiver:GroupId"],
+                            //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
+                            BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
+                        });
+                        option.WithReceiver(                            
+                            ReceiverAcquireRetryAttempts: 0,
+                            ReceiverHandlerTimeoutMillseconds: 10000);
+
+                        option.WithSender(
+                            AcquireRetryAttempts: 3,
+                            SenderConfirmTimeoutMillseconds: 1000,
+                            SenderConfirmFlushTimeoutMillseconds: 20);
+                    });
 
 
                 });
@@ -175,8 +174,8 @@ namespace Hummingbird.WebApi
                 {
                     sp.UseSubscriber(eventbus =>
                     {
-                        eventbus.Register<TestEvent, TestEventHandler1>("TestEventHandler", "TestEvent");
-                        eventbus.Register<TestEvent, TestEventHandler2>("TestEventHandler2", "TestEvent");
+                        eventbus.Register<TestEvent, TestEventHandler1>("TestEventHandler", "canal_hwb_test");
+                        eventbus.Register<TestEvent, TestEventHandler2>("TestEventHandler2", "canal_hwb_test");
 
                         //订阅消息
                         eventbus.Subscribe((Messages) =>

@@ -46,7 +46,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         }
         private readonly IServiceProvider _lifetimeScope;
         private readonly ILogger<IEventBus> _logger;
-        private readonly int _reveiverMaxDegreeOfParallelism;
         private readonly string _compomentName = typeof(EventBusKafka).FullName;
 
         private readonly ILoadBalancer<IKafkaPersistentConnection> _receiveLoadBlancer;
@@ -64,7 +63,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
            ILoadBalancer<IKafkaPersistentConnection> senderLoadBlancer,
            ILogger<IEventBus> logger,
            IServiceProvider lifetimeScope,
-            int reveiverMaxDegreeOfParallelism = 10,
             int receiverAcquireRetryAttempts = 0,
             int receiverHandlerTimeoutMillseconds = 0,
             int senderRetryCount = 3,
@@ -72,7 +70,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
             int senderConfirmFlushTimeoutMillseconds = 50)
         {
 
-            this._reveiverMaxDegreeOfParallelism = reveiverMaxDegreeOfParallelism;
             this._receiveLoadBlancer = receiveLoadBlancer;
             this._senderLoadBlancer = senderLoadBlancer;
             this._senderConfirmTimeoutMillseconds = senderConfirmTimeoutMillseconds;
@@ -188,34 +185,39 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
                 var channel = persistentConnection.GetProducer();
                 var messages = new List<Message<string, string>>();
-                var topic = Events.FirstOrDefault().RouteKey;
+                var groups = Events.GroupBy(a => a.RouteKey).Select(a => a.Key);
 
-                for (var eventIndex = 0; eventIndex < Events.Count; eventIndex++)
+                foreach (var group in groups)
                 {
-                    using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish"))
+                    var topic = group;
+
+                    for (var eventIndex = 0; eventIndex < Events.Where(a=>a.RouteKey== group).Count(); eventIndex++)
                     {
-                        tracer.SetComponent(_compomentName);
-                        tracer.SetTag("x-eventId", Events[eventIndex].EventId);
-                        tracer.SetTag("x-messageId", Events[eventIndex].MessageId);
-                        tracer.SetTag("x-traceId", Events[eventIndex].TraceId);
-                        _logger.LogInformation(Events[eventIndex].Body);
-
-                        var message = new Message<string, string>();
-                        message.Key = Events[eventIndex].MessageId;
-                        message.Timestamp = Events[eventIndex].Timestamp;
-                        message.Value = Events[eventIndex].Body;
-                        message.Headers = new Headers();
-
-                        foreach (var key in Events[eventIndex].Headers.Keys)
+                        using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish"))
                         {
-                            message.Headers.Add(new Header(key, UTF8Encoding.UTF8.GetBytes(Events[eventIndex].Headers[key] as string)));
+                            tracer.SetComponent(_compomentName);
+                            tracer.SetTag("x-eventId", Events[eventIndex].EventId);
+                            tracer.SetTag("x-messageId", Events[eventIndex].MessageId);
+                            tracer.SetTag("x-traceId", Events[eventIndex].TraceId);
+                            _logger.LogInformation(Events[eventIndex].Body);
+
+                            var message = new Message<string, string>();
+                            message.Key = Events[eventIndex].MessageId;
+                            message.Timestamp = Events[eventIndex].Timestamp;
+                            message.Value = Events[eventIndex].Body;
+                            message.Headers = new Headers();
+
+                            foreach (var key in Events[eventIndex].Headers.Keys)
+                            {
+                                message.Headers.Add(new Header(key, UTF8Encoding.UTF8.GetBytes(Events[eventIndex].Headers[key] as string)));
+                            }
+
+                            messages.Add(message);
                         }
-
-                        messages.Add(message);
                     }
-                }
 
-                channel.ProduceBatch(topic, messages, TimeSpan.FromMilliseconds(_senderConfirmTimeoutMillseconds), TimeSpan.FromMilliseconds(_senderConfirmFlushTimeoutMillseconds), cancellationToken);
+                    channel.ProduceBatch(topic, messages, TimeSpan.FromMilliseconds(_senderConfirmTimeoutMillseconds), TimeSpan.FromMilliseconds(_senderConfirmFlushTimeoutMillseconds), cancellationToken);
+                }
             }
             catch (Exception ex)
             {
@@ -250,8 +252,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 eventAction = System.Activator.CreateInstance(typeof(TH)) as IEventHandler<TD>;
             }
 
-            for (int i = 0; i < _reveiverMaxDegreeOfParallelism; i++)
-            {
+        
                 System.Threading.Tasks.Task.Run(async () =>
                 {
                     try
@@ -441,7 +442,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                         _logger.LogError(ex, ex.Message);
                     }
                 });
-            }
+            
 
             return this;
         }
@@ -470,8 +471,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 eventAction = System.Activator.CreateInstance(typeof(TH)) as IEventBatchHandler<TD>;
             }
 
-            for (int i = 0; i < _reveiverMaxDegreeOfParallelism; i++)
-            {
+          
                 System.Threading.Tasks.Task.Run(async () =>
                 {
                     try
@@ -663,7 +663,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                         _logger.LogError(ex, ex.Message);
                     }
                 });
-            }
+          
 
             return this;
         }

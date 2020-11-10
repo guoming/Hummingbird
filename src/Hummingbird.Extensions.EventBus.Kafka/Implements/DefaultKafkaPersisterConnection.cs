@@ -40,7 +40,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
             var customer= _consumerBuilder.Build();
             _consumers.Add(customer);
             return customer;
-
         }
 
         public DefaultKafkaPersistentConnection(
