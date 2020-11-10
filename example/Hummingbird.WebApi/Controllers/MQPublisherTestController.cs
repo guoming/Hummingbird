@@ -46,7 +46,7 @@ namespace Hummingbird.Example.Controllers
             var item2 = new EventLogEntry("TestEventHandler2", new
             {
 
-                EventType = "Test1"
+                EventType = "Test2"
             });
 
 

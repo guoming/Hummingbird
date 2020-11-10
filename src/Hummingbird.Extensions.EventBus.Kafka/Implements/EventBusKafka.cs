@@ -184,32 +184,31 @@ namespace Hummingbird.Extensions.EventBus.Kafka
             {
 
                 var channel = persistentConnection.GetProducer();
-                var messages = new List<Message<string, string>>();
                 var groups = Events.GroupBy(a => a.RouteKey).Select(a => a.Key);
 
-                foreach (var group in groups)
+                foreach (var topic in groups)
                 {
-                    var topic = group;
-
-                    for (var eventIndex = 0; eventIndex < Events.Where(a=>a.RouteKey== group).Count(); eventIndex++)
+                    var messages = new List<Message<string, string>>();
+                    var curEvents = Events.Where(a => a.RouteKey == topic).ToArray();
+                    for (var eventIndex = 0; eventIndex < curEvents.Count(); eventIndex++)
                     {
                         using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Publish"))
                         {
                             tracer.SetComponent(_compomentName);
-                            tracer.SetTag("x-eventId", Events[eventIndex].EventId);
-                            tracer.SetTag("x-messageId", Events[eventIndex].MessageId);
-                            tracer.SetTag("x-traceId", Events[eventIndex].TraceId);
-                            _logger.LogInformation(Events[eventIndex].Body);
+                            tracer.SetTag("x-eventId", curEvents[eventIndex].EventId);
+                            tracer.SetTag("x-messageId", curEvents[eventIndex].MessageId);
+                            tracer.SetTag("x-traceId", curEvents[eventIndex].TraceId);
+                            _logger.LogInformation(curEvents[eventIndex].Body);
 
                             var message = new Message<string, string>();
-                            message.Key = Events[eventIndex].MessageId;
-                            message.Timestamp = Events[eventIndex].Timestamp;
-                            message.Value = Events[eventIndex].Body;
+                            message.Key = curEvents[eventIndex].MessageId;
+                            message.Timestamp = curEvents[eventIndex].Timestamp;
+                            message.Value = curEvents[eventIndex].Body;
                             message.Headers = new Headers();
 
-                            foreach (var key in Events[eventIndex].Headers.Keys)
+                            foreach (var key in curEvents[eventIndex].Headers.Keys)
                             {
-                                message.Headers.Add(new Header(key, UTF8Encoding.UTF8.GetBytes(Events[eventIndex].Headers[key] as string)));
+                                message.Headers.Add(new Header(key, UTF8Encoding.UTF8.GetBytes(curEvents[eventIndex].Headers[key] as string)));
                             }
 
                             messages.Add(message);

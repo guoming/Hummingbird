@@ -133,11 +133,16 @@ namespace Hummingbird.WebApi
                     //});
                     .AddKafka(option =>
                     {
-                        
+                        option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
+                        {
+                            Debug = Configuration["Kafka:Sender:Debug"],//"consumer,cgrp,topic,fetch",                            
+                            //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
+                            BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
+                        });
                         option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
                         {
                             AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
-                            Debug = Configuration["Kafka:Debug"],//"consumer,cgrp,topic,fetch",
+                            Debug = Configuration["Kafka:Sender:Debug"],//"consumer,cgrp,topic,fetch",
                             GroupId = Configuration["Kafka:Receiver:GroupId"],
                             //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
                             BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
