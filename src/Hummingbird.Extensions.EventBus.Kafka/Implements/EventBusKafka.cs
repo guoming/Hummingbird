@@ -644,7 +644,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     try
                                     {
                                         //执行回调，等待业务层的处理结果
-                                        if (_subscribeNackHandler != null)
+                                        if (_subscribeNackHandler != null && Messages != null && Messages.Any())                                            
                                         {
                                             requeue = await _subscribeNackHandler((Messages, handlerException));
                                         }
