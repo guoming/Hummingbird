@@ -660,7 +660,10 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     }
                                     else
                                     {
-                                        consumer.Seek(eas.First().TopicPartitionOffset);
+                                        if (eas.Length > 0)
+                                        {
+                                            consumer.Seek(eas.FirstOrDefault().TopicPartitionOffset);
+                                        }
                                     }
                                 }
                             }
