@@ -135,12 +135,16 @@ namespace Hummingbird.WebApi
                     {
                         option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
                         {
+                            
                             Debug = Configuration["Kafka:Sender:Debug"],//"consumer,cgrp,topic,fetch",                            
+                            Acks = Confluent.Kafka.Acks.All,
                             //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
                             BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
                         });
                         option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
                         {
+                            EnableAutoCommit=false,
+                            Acks = Confluent.Kafka.Acks.All,
                             AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
                             Debug = Configuration["Kafka:Sender:Debug"],//"consumer,cgrp,topic,fetch",
                             GroupId = Configuration["Kafka:Receiver:GroupId"],
@@ -179,8 +183,8 @@ namespace Hummingbird.WebApi
                 {
                     sp.UseSubscriber(eventbus =>
                     {
-                        eventbus.Register<TestEvent, TestEventHandler1>("TestEventHandler", "canal_hwb_test");
-                        eventbus.Register<TestEvent, TestEventHandler2>("TestEventHandler2", "canal_hwb_test");
+                        eventbus.RegisterBatch<TestEvent, TestEventHandler1>("TestEventHandler", "canal_hwb_test");
+                     //   eventbus.Register<TestEvent, TestEventHandler2>("TestEventHandler2", "canal_hwb_test");
 
                         //订阅消息
                         eventbus.Subscribe((Messages) =>

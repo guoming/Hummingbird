@@ -281,7 +281,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 if (ea.Headers != null)
                                 {
                                     try
-                                    {
+                                    {   
                                         long.TryParse(System.Text.Encoding.UTF8.GetString(ea.Headers.GetLastBytes("x-eventId")), out EventId);
                                     }
                                     catch
@@ -421,6 +421,10 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                                 {
                                                     consumer.Commit(ea);
                                                 }
+                                                else
+                                                {
+                                                    consumer.Seek(ea.TopicPartitionOffset); //重新入队重试
+                                                }
                                             }
                                         }
                                     }
@@ -448,6 +452,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
 
 
+ 
         /// <summary>
         /// 订阅消息（同一类消息可以重复订阅）
         /// 作者：郭明
@@ -455,7 +460,10 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         /// </summary>
         /// <typeparam name="TD"></typeparam>
         /// <typeparam name="TH"></typeparam>
-        /// <param name="EventTypeName">消息类型名称</param>        
+        /// <param name="QueueName"></param>
+        /// <param name="EventTypeName"></param>
+        /// <param name="BatchSize"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public IEventBus RegisterBatch<TD, TH>(string QueueName, string EventTypeName = "", int BatchSize = 50, CancellationToken cancellationToken = default(CancellationToken))
                 where TD : class
@@ -649,6 +657,10 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     if (!requeue)
                                     {
                                         consumer.Commit();
+                                    }
+                                    else
+                                    {
+                                        consumer.Seek(eas.First().TopicPartitionOffset);
                                     }
                                 }
                             }
