@@ -118,39 +118,45 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                 {
                     if (!string.IsNullOrEmpty(urls) && urls.Contains("/") && urls.Contains(":"))
                     {
-                        string[] source = urls.Split('/').LastOrDefault().Split(':');
-                        string ip = source.FirstOrDefault();
-                        int port = Convert.ToInt32(source.LastOrDefault());
-                        List<string> ipList = new List<string>();
+                        var ipList = new List<string>();
+                        var endpoints = urls.Split(new string[] {";", ",", " " }, StringSplitOptions.RemoveEmptyEntries);
 
-                        if (ip == "0.0.0.0" || ip == "*")
+                        foreach(var url in endpoints)
                         {
-                            ipList.AddRange(getIps());
-                        }
-                        else if (!ipList.Contains(ip))
-                        {
-                            ipList.Add(ip);
-                        }
+                            var uri = new Uri(url);
 
-                        if (port > 0)
-                        {
-                            foreach (string item2 in ipList)
+                            if (uri.Host == "0.0.0.0" || uri.Host == "*")
                             {
-                                AgentServiceRegistration agentServiceRegistration = new AgentServiceRegistration();
-                                agentServiceRegistration.ID = string.IsNullOrEmpty(_serviceConfig.SERVICE_ID) ? $"{_serviceConfig.SERVICE_NAME}:{item2}:{port}" : $"{_serviceConfig.SERVICE_NAME}:{_serviceConfig.SERVICE_ID}";
-                                agentServiceRegistration.Name = _serviceConfig.SERVICE_NAME;
-                                agentServiceRegistration.Address = item2;
-                                agentServiceRegistration.Port = port;
-                                agentServiceRegistration.Tags = tags.ToArray();
-                                agentServiceRegistration.EnableTagOverride = true;
-                                agentServiceRegistration.Checks = GetChecks(item2, port, TimeSpan.FromDays(7)).ToArray();
-                                _registrations.Add(agentServiceRegistration);
+                                ipList.AddRange(getIps());
                             }
-                        }
-                        else
-                        {
-                            LogWarning("No registration service. port invalid");
-                        }
+                            else if (!ipList.Contains(uri.Host))
+                            {
+                                ipList.Add(uri.Host);
+                            }                                               
+
+                            if (uri.Port > 0)
+                            {
+                                foreach (string item2 in ipList)
+                                {
+                                    var checks = GetHTTPChecks(uri.Scheme,item2, uri.Port, TimeSpan.FromDays(7));
+                                    checks.AddRange(GetChecksWithoutHttp(item2, uri.Port, TimeSpan.FromDays(7)));
+
+                                    AgentServiceRegistration agentServiceRegistration = new AgentServiceRegistration();
+                                    agentServiceRegistration.ID = string.IsNullOrEmpty(_serviceConfig.SERVICE_ID) ? $"{_serviceConfig.SERVICE_NAME}:{item2}:{uri.Port}" : $"{_serviceConfig.SERVICE_NAME}:{_serviceConfig.SERVICE_ID}";
+                                    agentServiceRegistration.Name = _serviceConfig.SERVICE_NAME;
+                                    agentServiceRegistration.Address = item2;
+                                    agentServiceRegistration.Port = uri.Port;
+                                    agentServiceRegistration.Tags = tags.ToArray();
+                                    agentServiceRegistration.EnableTagOverride = true;
+                                    agentServiceRegistration.Checks = checks.ToArray();
+                                    _registrations.Add(agentServiceRegistration);
+                                }
+                            }
+                            else
+                            {
+                                LogWarning("No registration service. port invalid");
+                            }
+                        }                       
                     }
                     else
                     {
@@ -159,7 +165,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                         agentServiceRegistration.Name = _serviceConfig.SERVICE_NAME;
                         agentServiceRegistration.Tags = tags.ToArray();
                         agentServiceRegistration.EnableTagOverride = true;                        
-                        agentServiceRegistration.Checks = GetChecks("", 0, TimeSpan.FromSeconds(10 * double.Parse(_serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))).ToArray();
+                        agentServiceRegistration.Checks = GetChecksWithoutHttp("", 0, TimeSpan.FromSeconds(10 * double.Parse(_serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))).ToArray();
                         _registrations.Add(agentServiceRegistration);
 
                     }
@@ -177,7 +183,26 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             }
         }
 
-        private List<AgentServiceCheck> GetChecks(string ip, int port, TimeSpan DeregisterCriticalServiceAfter)
+        private List<AgentServiceCheck> GetHTTPChecks(string schema, string ip, int port, TimeSpan DeregisterCriticalServiceAfter)
+        {
+            List<AgentServiceCheck> agentServiceChecks = new List<AgentServiceCheck>();
+
+            if (!string.IsNullOrEmpty(_serviceConfig.SERVICE_80_CHECK_HTTP) && port > 0 && !string.IsNullOrEmpty(ip))
+            {
+                agentServiceChecks.Add(new AgentServiceCheck
+                {
+                    Status = HealthStatus.Critical,
+                    HTTP = $"{schema}://{ip}:{port}/{_serviceConfig.SERVICE_80_CHECK_HTTP.TrimStart('/')}",
+                    Interval = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(_serviceConfig.SERVICE_80_CHECK_INTERVAL.TrimEnd('s')))),
+                    Timeout = new TimeSpan?(TimeSpan.FromSeconds((double)int.Parse(_serviceConfig.SERVICE_80_CHECK_TIMEOUT.TrimEnd('s')))),
+                    DeregisterCriticalServiceAfter = DeregisterCriticalServiceAfter
+                });
+            }
+
+            return agentServiceChecks;
+        }
+
+        private List<AgentServiceCheck> GetChecksWithoutHttp(string ip, int port, TimeSpan DeregisterCriticalServiceAfter)
         {
             List<AgentServiceCheck> agentServiceChecks = new List<AgentServiceCheck>();
 
