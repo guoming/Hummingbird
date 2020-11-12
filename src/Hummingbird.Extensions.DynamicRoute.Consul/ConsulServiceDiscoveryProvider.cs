@@ -123,17 +123,14 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                         int port = Convert.ToInt32(source.LastOrDefault());
                         List<string> ipList = new List<string>();
 
-                        if (ip == "0.0.0.0")
+                        if (ip == "0.0.0.0" || ip == "*")
                         {
                             ipList.AddRange(getIps());
                         }
-
-                        if (!ipList.Contains(ip))
+                        else if (!ipList.Contains(ip))
                         {
                             ipList.Add(ip);
                         }
-
-
 
                         if (port > 0)
                         {
@@ -161,7 +158,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                         agentServiceRegistration.ID = string.IsNullOrEmpty(_serviceConfig.SERVICE_ID) ? $"{_serviceConfig.SERVICE_NAME}:{Guid.NewGuid().ToString()}" : $"{_serviceConfig.SERVICE_NAME}:{_serviceConfig.SERVICE_ID}";
                         agentServiceRegistration.Name = _serviceConfig.SERVICE_NAME;
                         agentServiceRegistration.Tags = tags.ToArray();
-                        agentServiceRegistration.EnableTagOverride = true;
+                        agentServiceRegistration.EnableTagOverride = true;                        
                         agentServiceRegistration.Checks = GetChecks("", 0, TimeSpan.FromSeconds(10 * double.Parse(_serviceConfig.SERVICE_CHECK_TIMEOUT.TrimEnd('s')))).ToArray();
                         _registrations.Add(agentServiceRegistration);
 
@@ -223,7 +220,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                 {
                     Status = HealthStatus.Critical,
                     TTL = new TimeSpan?(TimeSpan.FromSeconds((double)_serviceConfig.SERVICE_CHECK_TTL.Value)),
-                    DeregisterCriticalServiceAfter = DeregisterCriticalServiceAfter
+                    DeregisterCriticalServiceAfter = DeregisterCriticalServiceAfter                    
                 });
             }
 

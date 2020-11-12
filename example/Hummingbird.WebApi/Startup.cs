@@ -147,7 +147,7 @@ namespace Hummingbird.WebApi
                             Acks = Confluent.Kafka.Acks.All,
                             AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
                             Debug = Configuration["Kafka:Sender:Debug"],//"consumer,cgrp,topic,fetch",
-                            GroupId = Configuration["Kafka:Receiver:GroupId"],
+                            GroupId = Configuration["Kafka:Receiver:GroupId"],                         
                             //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
                             BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
                         });

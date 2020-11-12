@@ -251,24 +251,32 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 eventAction = System.Activator.CreateInstance(typeof(TH)) as IEventHandler<TD>;
             }
 
-        
-                System.Threading.Tasks.Task.Run(async () =>
-                {
-                    try
-                    {
-                        var consumer = persistentConnection.GetConsumer();
-                        consumer.Subscribe(routeKey);
 
-                        while (true)
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                IConsumer<string, string> consumer = null;
+
+                try
+                {
+                    consumer = persistentConnection.GetConsumer();
+                    consumer.Subscribe(routeKey);
+
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        try
                         {
                             var ea = consumer.Consume(cancellationToken);
 
                             // 消息队列空
-                            if (ea.IsPartitionEOF)
+                            if (ea != null && ea.IsPartitionEOF)
                             {
                                 _logger.LogDebug("Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
 
                                 continue;
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"Consumed message '{ea.Value}' at: '{ea.TopicPartitionOffset}'.");
                             }
 
                             var EventId = -1L;
@@ -281,7 +289,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 if (ea.Headers != null)
                                 {
                                     try
-                                    {   
+                                    {
                                         long.TryParse(System.Text.Encoding.UTF8.GetString(ea.Headers.GetLastBytes("x-eventId")), out EventId);
                                     }
                                     catch
@@ -303,7 +311,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 tracer.SetTag("x-messageId", MessageId);
                                 tracer.SetTag("x-eventId", EventId);
                                 tracer.SetTag("x-traceId", TraceId);
-                               
+
                                 try
                                 {
                                     var eventResponse = new EventResponse()
@@ -434,25 +442,37 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 {
                                     tracer.SetError();
                                     _logger.LogError(ex.Message, ex);
-                                }                              
+                                }
                             }
 
                         }
+                        catch (ConsumeException ex)
+                        {
+                            _logger.LogError(ex, ex.Message);
 
+                            consumer.Seek(ex.ConsumerRecord.TopicPartitionOffset); //重新入队重试                           
+                        }
                     }
-                    catch (Exception ex)
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+
+                    if (consumer != null)
                     {
-                        _logger.LogError(ex, ex.Message);
+                        consumer.Close();
                     }
-                });
-            
+                }
+
+            });
 
             return this;
         }
 
 
 
- 
+
         /// <summary>
         /// 订阅消息（同一类消息可以重复订阅）
         /// 作者：郭明
@@ -478,20 +498,32 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 eventAction = System.Activator.CreateInstance(typeof(TH)) as IEventBatchHandler<TD>;
             }
 
-          
-                System.Threading.Tasks.Task.Run(async () =>
-                {
-                    try
-                    {
-                        var consumer = persistentConnection.GetConsumer();
-                        consumer.Subscribe(routeKey);
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                IConsumer<string, string> consumer = null;
 
-                        while (true)
+                try
+                {
+                    consumer = persistentConnection.GetConsumer();
+                    consumer.Subscribe(routeKey);
+
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        try
                         {
                             var handlerSuccess = false;
                             var handlerException = default(Exception);
                             var eas = consumer.ConsumeBatch(TimeSpan.FromSeconds(5), BatchSize, cancellationToken).ToArray();
                             var Messages = new EventResponse[eas.Count()];
+
+                            if (Messages.Length > 0)
+                            {
+                                _logger.LogInformation($"Consumed message '{eas.LastOrDefault().Value}' at: '{eas.LastOrDefault().TopicPartitionOffset}'.");
+                            }
+                            else
+                            {
+                                continue;
+                            }
 
                             try
                             {
@@ -515,7 +547,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received", TraceId))
                                     {
                                         #region 获取EventId & TraceId
-                                        if (ea.Headers != null)
+                                        if (ea.Headers != null && ea.Headers.Count>0)
                                         {
                                             try
                                             {
@@ -523,7 +555,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                             }
                                             catch
                                             { }
-
 
                                             try
                                             {
@@ -644,7 +675,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     try
                                     {
                                         //执行回调，等待业务层的处理结果
-                                        if (_subscribeNackHandler != null && Messages != null && Messages.Any())                                            
+                                        if (_subscribeNackHandler != null && Messages != null && Messages.Any())
                                         {
                                             requeue = await _subscribeNackHandler((Messages, handlerException));
                                         }
@@ -667,17 +698,27 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     }
                                 }
                             }
-
-
                         }
+                        catch (ConsumeException ex)
+                        {
+                            _logger.LogError(ex, ex.Message);
 
+                            consumer.Seek(ex.ConsumerRecord.TopicPartitionOffset);
+                        }
                     }
-                    catch (Exception ex)
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+
+                    if (consumer != null)
                     {
-                        _logger.LogError(ex, ex.Message);
+                        consumer.Close();
                     }
-                });
-          
+                }
+            });
+
 
             return this;
         }
