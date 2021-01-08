@@ -1,7 +1,11 @@
 # Hummingbird
-## 1. 介绍
 
-## 2. 概要
+## 1.联系方式
+> ![avatar](dingding.jpg)
+> wechat：genius-ming
+> email：geniusming@qq.com
+
+## 2. 功能概要
 * 分布式锁
   * 基于Redis
 * 分布式缓存
@@ -835,10 +839,4 @@ Install-Package Hummingbird.Extensions.Canal -Version 1.0.0
     }
 ```
 
-## 4. 更新日志
 
-## 5. 常见问题
-
-## 6.联系方式
-> wechat：genius-ming
-> email：geniusming@qq.com
