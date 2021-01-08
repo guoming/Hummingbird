@@ -39,6 +39,12 @@ namespace Hummingbird.WebApi
                     factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
                     factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
                 });
+                checks.AddKafkaCheck("kafka", new Confluent.Kafka.ProducerConfig()
+                {
+                    Acks = Confluent.Kafka.Acks.All,
+                    //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
+                    BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
+                });
             });
             
             services.AddHummingbird(hummingbird =>

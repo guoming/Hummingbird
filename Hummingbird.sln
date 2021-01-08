@@ -73,7 +73,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Dyna
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.AspNetCore.Metrics", "src\Hummingbird.AspNetCore.Metrics\Hummingbird.AspNetCore.Metrics.csproj", "{CB3D9096-9226-47F1-9FB3-C91A46D413F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Canal", "src\Hummingbird.Extensions.Canal\Hummingbird.Extensions.Canal.csproj", "{B0C6CA9E-FF33-4E8D-B1A9-262FEA22543B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Canal", "src\Hummingbird.Extensions.Canal\Hummingbird.Extensions.Canal.csproj", "{B0C6CA9E-FF33-4E8D-B1A9-262FEA22543B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.HealthChecks.Kafka", "src\Hummingbird.Extensions.HealthChecks.Kafka\Hummingbird.Extensions.HealthChecks.Kafka.csproj", "{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -209,6 +211,10 @@ Global
 		{B0C6CA9E-FF33-4E8D-B1A9-262FEA22543B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0C6CA9E-FF33-4E8D-B1A9-262FEA22543B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0C6CA9E-FF33-4E8D-B1A9-262FEA22543B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -247,6 +253,7 @@ Global
 		{327B1F7D-1DCF-42C5-92BA-C36A8BCCDDB8} = {28015912-782A-4B96-9F86-D54081CD7A97}
 		{CB3D9096-9226-47F1-9FB3-C91A46D413F4} = {54CC6103-E558-4122-9147-B73F2265997E}
 		{B0C6CA9E-FF33-4E8D-B1A9-262FEA22543B} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
