@@ -141,7 +141,7 @@ namespace Hummingbird.Extensions.UidGenerator.Implements
                 var timestamp = TimeGen();
                 if (timestamp < _lastTimestamp)
                 {
-                    throw new Exception(string.Format("时间戳必须大于上一次生成ID的时间戳.  拒绝为{0}毫秒生成id", _lastTimestamp - timestamp));
+                    throw new Exception($"时间戳 {timestamp} 必须大于上一次生成ID的时间戳 {_lastTimestamp}.  拒绝为{ _lastTimestamp - timestamp}毫秒生成id");
                 }
 
                 //如果上次生成时间和当前时间相同,在同一毫秒内

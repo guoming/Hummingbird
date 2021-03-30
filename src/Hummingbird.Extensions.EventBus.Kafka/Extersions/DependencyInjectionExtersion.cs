@@ -117,7 +117,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var option = new KafkaOption();
             setupConnectionFactory(option);
-
+            
             hostBuilder.Services.AddSingleton<ILoadBalancerFactory<IKafkaPersistentConnection>>(sp =>
             {
                 return new DefaultLoadBalancerFactory<IKafkaPersistentConnection>();
