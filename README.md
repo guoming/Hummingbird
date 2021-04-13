@@ -782,21 +782,23 @@ Install-Package Hummingbird.Extensions.Canal -Version 1.0.0
 步骤2：配置 canal.json, binlog日志输出到控制台
 ```JSON
 {
-    "Canal": {
-        "Subscribes": [{
-                "Filter": ".*\\..*",
-                "BatchSize": 1024,
-                "Type": "Hummingbird.Extensions.Canal.Subscripters.ConsoleSubscripter,Hummingbird.Extensions.Canal",
-                "ConnectionInfo": {
-                "Address": "192.168.109.222",
-                "Port": 11111,
-                "Destination": "example",
-                "UserName": "",
-                "Passsword": ""
-                }
-            }]
+ "Canal": {
+    "Subscribes": [
+      {
+        "Filter": ".*\\..*",
+        "BatchSize": 1024,
+        "Format": "Hummingbird.Extensions.Canal.Formatters.CanalJson.Formatter,Hummingbird.Extensions.Canal", //MaxwellJsonFormatter,CanalJsonFormatter
+        "Connector": "Hummingbird.Extensions.Canal.Connectors.ConsoleConnector,Hummingbird.Extensions.Canal",
+        "ConnectionInfo": {
+          "Address": "192.168.87.125",
+          "Port": 11111,
+          "Destination": "test1",
+          "UserName": "",
+          "Passsword": ""
+        }
+      }
+    ]
   }
-}
 ```
 
 步骤3：添加appsettings.json 配置依赖
