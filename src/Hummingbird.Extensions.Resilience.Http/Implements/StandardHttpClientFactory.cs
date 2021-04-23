@@ -26,6 +26,10 @@ namespace Hummingbird.Extensions.Resilience.Http
 
         public IHttpClient CreateResilientHttpClient()
             => new StandardHttpClient(_logger, _httpContextAccessor, new HttpUrlResolver(_serviceLocator));
- 
+        public IHttpClient CreateResilientHttpClient(HttpMessageHandler httpMessageHandler)
+        => new StandardHttpClient(_logger, _httpContextAccessor, new HttpUrlResolver(_serviceLocator), httpMessageHandler);
+
+
+        
     }
 }

@@ -45,6 +45,22 @@ namespace Hummingbird.Extensions.Resilience.Http
             _httpContextAccessor = httpContextAccessor;
         }
 
+        public ResilientHttpClient(
+        Func<string, IEnumerable<IAsyncPolicy>> policyCreator,
+        ILogger<ResilientHttpClient> logger,
+        IHttpContextAccessor httpContextAccessor,
+        IHttpUrlResolver httpUrlResolver,
+        HttpMessageHandler httpMessageHandler)
+        {
+
+            _client = new HttpClient(httpMessageHandler);
+            _logger = logger;
+            _policyCreator = policyCreator;
+            _httpUrlResolver = httpUrlResolver;
+            _policyWrappers = new ConcurrentDictionary<string, AsyncPolicyWrap>();
+            _httpContextAccessor = httpContextAccessor;
+        }
+
 
         public Task<HttpResponseMessage> PostAsync<T>(string uri, T item, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null, CancellationToken cancellationToken = default(CancellationToken))
         {

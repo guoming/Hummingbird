@@ -33,6 +33,10 @@ namespace Hummingbird.Extensions.Resilience.Http
         public IHttpClient CreateResilientHttpClient()
             => new ResilientHttpClient((origin) => CreatePolicies(origin), _logger, _httpContextAccessor, new HttpUrlResolver(_serviceLocator));
 
+        public IHttpClient CreateResilientHttpClient(HttpMessageHandler httpMessageHandler)
+       => new ResilientHttpClient((origin) => CreatePolicies(origin), _logger, _httpContextAccessor, new HttpUrlResolver(_serviceLocator),httpMessageHandler);
+
+
         private IAsyncPolicy[] CreatePolicies(string origin)
         {
             var option = new ResilientHttpClientConfigOption()
