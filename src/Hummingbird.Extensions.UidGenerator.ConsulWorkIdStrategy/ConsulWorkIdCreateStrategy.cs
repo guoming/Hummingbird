@@ -108,14 +108,14 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
                             //存在可用的workId
                             if (workIdRange.Any())
                             {
-                                _workId = workIdRange.First();
-
-                                var ret = await _client.KV.Acquire(new KVPair($"{_resourceId}/{_workId}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) });
+                                var ret = await _client.KV.Acquire(new KVPair($"{_resourceId}/{workIdRange.First()}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) });
 
                                 if (ret.StatusCode == HttpStatusCode.OK && !ret.Response)
                                 {
-                                    throw new Exception($"Failed to allocate workid, failed to set workid");
+                                    throw new Exception($"Failed to allocate workid, failed to set workid #{workIdRange.First()}");
                                 }
+
+                                _workId = workIdRange.First();
                             }
                             else
                             {

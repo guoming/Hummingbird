@@ -18,7 +18,9 @@ namespace Hummingbird.Extensions.UidGenerator
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine($"WorkId: {await workIdCreateStrategy.NextId()}");
+          
+                Console.WriteLine($"WorkId: {await workIdCreateStrategy.NextId()}");
+          
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
