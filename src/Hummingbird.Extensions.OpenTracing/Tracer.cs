@@ -81,7 +81,7 @@ namespace Hummingbird.Extensions.Tracing
 
         public void Dispose()
         {
-            Scope.Span.Finish();
+           // Scope.Span.Finish();
             Scope.Dispose();
         }
 
