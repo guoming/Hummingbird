@@ -14,7 +14,16 @@ namespace Hummingbird.Extensions.EventBus.Models
             this.State = EventStateEnum.NotPublished;
             this.TimesSent = 0;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="EventTypeName">路由名称</param>
+        /// <param name="event">消息主体</param>
+        /// <param name="TTL">延期时间（秒）</param>
+        public EventLogEntry(string EventTypeName, object @event) : this(EventTypeName,0,@event)
+        {
+           
+        }
 
         /// <summary>
         /// 
@@ -22,7 +31,7 @@ namespace Hummingbird.Extensions.EventBus.Models
         /// <param name="EventTypeName">路由名称</param>
         /// <param name="event">消息主体</param>
         /// <param name="TTL">延期时间（秒）</param>
-        public EventLogEntry(string EventTypeName, object @event) : this()
+        public EventLogEntry(string EventTypeName, int Partation, object @event) : this()
         {
             this.Headers = new Dictionary<string, object>();
             this.EventTypeName = string.IsNullOrEmpty(EventTypeName) ? @event.GetType().FullName : EventTypeName;
@@ -31,6 +40,7 @@ namespace Hummingbird.Extensions.EventBus.Models
             this.MessageId = Guid.NewGuid().ToString("N");
             this.TraceId = this.MessageId;
             this.CreationTime = DateTime.UtcNow;
+            this.Partition = Partation;
         }
 
 
@@ -80,6 +90,11 @@ namespace Hummingbird.Extensions.EventBus.Models
         /// 内容
         /// </summary>
         public string Content { get; set; }
+
+        /// <summary>
+        /// 分区数量
+        /// </summary>
+        public int Partition { get; set; }
     }
 
     public class EventResponse

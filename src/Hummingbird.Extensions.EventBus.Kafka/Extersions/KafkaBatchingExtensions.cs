@@ -63,7 +63,13 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
 
             foreach (var message in messages)
             {
-                producer.Produce(topic, message, DeliveryHandler);
+                int partation = 0;
+
+                int.TryParse(System.Text.Encoding.UTF8.GetString(message.Headers.GetLastBytes("x-partition")), out partation);
+
+                producer.Produce(new TopicPartition(topic, new Partition(partation)), message, DeliveryHandler);
+
+                //producer.Produce(topic, message, DeliveryHandler);
                 reportsExpected++;
             }
             

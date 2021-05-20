@@ -39,6 +39,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
             public string RouteKey { get; set; }
 
+            public int Partition { get; set; }
+
             public Timestamp Timestamp { get; set; }
 
             public IDictionary<string, object> Headers { get; set; }
@@ -156,7 +158,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 EventId = a.EventId,
                 RouteKey = a.EventTypeName,
                 Timestamp = new Timestamp(a.CreationTime, TimestampType.CreateTime),
-                Headers = a.Headers ?? new Dictionary<string, object>()
+                Headers = a.Headers ?? new Dictionary<string, object>(),
+                Partition=a.Partition
             }).ToList();
 
             evtDicts.ForEach(message =>
@@ -171,6 +174,12 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 {
                     message.Headers.Add("x-traceId", message.TraceId.ToString());
                 }
+
+                if (!message.Headers.ContainsKey("x-partition"))
+                {
+                    message.Headers.Add("x-partition", message.Partition.ToString());
+                }
+
             });
 
             return evtDicts;
@@ -205,11 +214,12 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                             message.Timestamp = curEvents[eventIndex].Timestamp;
                             message.Value = curEvents[eventIndex].Body;
                             message.Headers = new Headers();
-
+                            
                             foreach (var key in curEvents[eventIndex].Headers.Keys)
                             {
                                 message.Headers.Add(new Header(key, UTF8Encoding.UTF8.GetBytes(curEvents[eventIndex].Headers[key] as string)));
                             }
+                           
 
                             messages.Add(message);
                         }

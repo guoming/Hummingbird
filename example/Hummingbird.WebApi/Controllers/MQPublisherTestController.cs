@@ -39,11 +39,19 @@ namespace Hummingbird.Example.Controllers
         {
             var item1 = new EventLogEntry("TestEventHandler", new Events.TestEvent()
             {
-                EventType = "Test1"
-            });
-            item1.EventId = 1;
+                EventType = "Test1",
 
-            var item2 = new EventLogEntry("TestEventHandler2", new
+
+            });
+            var item2 = new EventLogEntry("TestEventHandler",0, new Events.TestEvent()
+            {
+                EventType = "Test1",
+               
+                
+            });
+            item2.EventId = 1;
+
+            var item3 = new EventLogEntry("TestEventHandler", 1, new
             {
 
                 EventType = "Test2"
@@ -51,7 +59,7 @@ namespace Hummingbird.Example.Controllers
 
 
             var events = new List<EventLogEntry>() {
-                   item1,item2
+                   item1,item2,item3
             };
 
             var ret=  await  eventBus.PublishAsync(events);

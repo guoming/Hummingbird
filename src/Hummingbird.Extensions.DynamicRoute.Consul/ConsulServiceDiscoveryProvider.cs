@@ -260,6 +260,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                 {
                     var timer = new System.Timers.Timer((double)(int.Parse(_serviceConfig.SERVICE_CHECK_INTERVAL) * 1000));
                     timer.Elapsed += async delegate
+                    
                     {
                         try
                         {
