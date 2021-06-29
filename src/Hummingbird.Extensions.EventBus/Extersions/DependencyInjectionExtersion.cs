@@ -27,6 +27,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return hostBuilder;
         }
 
+
+        public static IHummingbirdHostBuilder AddEventBus(this IHummingbirdHostBuilder hostBuilder, Action<IHummingbirdEventBusHostBuilder> setup,Func<System.Reflection.Assembly[]> assemblies)
+        {
+            var types = assemblies()
+                       .SelectMany(a => a.GetTypes().Where(type => Array.Exists(type.GetInterfaces(), t => t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IEventHandler<>) || t.GetGenericTypeDefinition() == typeof(IEventBatchHandler<>)))))
+                       .ToArray();
+
+            foreach (var type in types)
+            {
+                hostBuilder.Services.AddSingleton(type);
+            }
+
+            var builder = new HummingbirdEventBusHostBuilder(hostBuilder.Services);
+            setup(builder);
+
+            return hostBuilder;
+        }
+
 #if NETCORE
         public static IHummingbirdApplicationBuilder UseEventBus(this IHummingbirdApplicationBuilder hummingbirdApplicationBuilder, Action<IServiceProvider> setupSubscriberHandler)
         {
