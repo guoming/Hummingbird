@@ -19,6 +19,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         private IProducer<string, string> _producer;
         private bool _disposed;
 
+      
         public IProducer<string, string> GetProducer()
         {
             if (_producer == null)
@@ -31,7 +32,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                     }
                 }
             }
-
+          
             return _producer;
         }
 

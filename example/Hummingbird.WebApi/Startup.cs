@@ -149,6 +149,7 @@ namespace Hummingbird.WebApi
                         });
                         option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
                         {
+                            EnableAutoOffsetStore=false,
                             EnableAutoCommit=false,
                             Acks = Confluent.Kafka.Acks.All,
                             AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
@@ -189,8 +190,9 @@ namespace Hummingbird.WebApi
                 {
                     sp.UseSubscriber(eventbus =>
                     {
-                        eventbus.RegisterBatch<TestEvent, TestEventHandler1>("TestEventHandler", "canal_hwb_test");
-                     //   eventbus.Register<TestEvent, TestEventHandler2>("TestEventHandler2", "canal_hwb_test");
+
+                        eventbus.RegisterBatch<TestEvent, TestEventHandler1>("TestEventHandler", "TestEventHandler");
+                        eventbus.RegisterBatch<Hummingbird.Example.Events.MongoShark.MongodbSharkEvent, Example.Events.MongoShark.MongodbSharkEventHandler>("", "mongodb_test.tmstracking.sync_order");
 
                         //订阅消息
                         eventbus.Subscribe((Messages) =>

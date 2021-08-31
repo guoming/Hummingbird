@@ -273,8 +273,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        try
-                        {
+                       
                             var ea = consumer.Consume(cancellationToken);
 
                             // 消息队列空
@@ -402,6 +401,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                                 {
                                                     _subscribeAckHandler(new EventResponse[] { eventResponse });
                                                 }
+                                                consumer.StoreOffset(ea);
                                                 consumer.Commit(ea);
                                             }
                                             else
@@ -437,6 +437,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
                                                 if (!requeue)
                                                 {
+                                                    consumer.StoreOffset(ea);
                                                     consumer.Commit(ea);
                                                 }
                                                 else
@@ -455,13 +456,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 }
                             }
 
-                        }
-                        catch (ConsumeException ex)
-                        {
-                            _logger.LogError(ex, ex.Message);
-
-                            consumer.Seek(ex.ConsumerRecord.TopicPartitionOffset); //重新入队重试                           
-                        }
+                      
                     }
 
                 }
@@ -499,6 +494,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 where TD : class
                 where TH : IEventBatchHandler<TD>
         {
+
             var persistentConnection = _receiveLoadBlancer.Lease();
             var queueName = string.IsNullOrEmpty(QueueName) ? typeof(TH).FullName : QueueName;
             var routeKey = string.IsNullOrEmpty(EventTypeName) ? typeof(TD).FullName : EventTypeName;
@@ -519,202 +515,205 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
                     while (!cancellationToken.IsCancellationRequested)
                     {
+                       
+                        var handlerSuccess = false;
+                        var handlerException = default(Exception);
+                        var eas = consumer.ConsumeBatch(TimeSpan.FromSeconds(5), BatchSize, cancellationToken).ToArray();
+                        var Messages = new EventResponse[eas.Count()];
+
+                        if (Messages.Length > 0)
+                        {
+                            _logger.LogInformation($"Consumed message '{eas.LastOrDefault().Value}' at: '{eas.LastOrDefault().TopicPartitionOffset}'.");
+                        }
+                        else
+                        {
+                            continue;
+                        }
+
                         try
                         {
-                            var handlerSuccess = false;
-                            var handlerException = default(Exception);
-                            var eas = consumer.ConsumeBatch(TimeSpan.FromSeconds(5), BatchSize, cancellationToken).ToArray();
-                            var Messages = new EventResponse[eas.Count()];
+                            #region 批量格式化消息
+                            for (int j = 0; j < eas.Length; j++)
+                            {
+                                var ea = eas[j];
 
-                            if (Messages.Length > 0)
-                            {
-                                _logger.LogInformation($"Consumed message '{eas.LastOrDefault().Value}' at: '{eas.LastOrDefault().TopicPartitionOffset}'.");
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            try
-                            {
-                                #region 批量格式化消息
-                                for (int j = 0; j < eas.Length; j++)
+                                // 消息队列空
+                                if (ea.IsPartitionEOF)
                                 {
-                                    var ea = eas[j];
+                                    _logger.LogDebug("Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
 
-                                    // 消息队列空
-                                    if (ea.IsPartitionEOF)
+                                    continue;
+                                }
+
+                                var EventId = -1L;
+                                var MessageId = ea.Key;
+                                var TraceId = MessageId;
+
+                                using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received", TraceId))
+                                {
+                                    #region 获取EventId & TraceId
+                                    if (ea.Headers != null && ea.Headers.Count>0)
                                     {
-                                        _logger.LogDebug("Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
-
-                                        continue;
-                                    }
-
-                                    var EventId = -1L;
-                                    var MessageId = ea.Key;
-                                    var TraceId = MessageId;
-
-                                    using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Received", TraceId))
-                                    {
-                                        #region 获取EventId & TraceId
-                                        if (ea.Headers != null && ea.Headers.Count>0)
+                                        try
                                         {
-                                            try
-                                            {
-                                                long.TryParse(System.Text.Encoding.UTF8.GetString(ea.Headers.GetLastBytes("x-eventId")), out EventId);
-                                            }
-                                            catch
-                                            { }
-
-                                            try
-                                            {
-                                                TraceId = System.Text.Encoding.UTF8.GetString(ea.Headers.GetLastBytes("x-traceId"));
-                                            }
-                                            catch
-                                            {
-                                            }
+                                            long.TryParse(System.Text.Encoding.UTF8.GetString(ea.Headers.GetLastBytes("x-eventId")), out EventId);
                                         }
-                                        #endregion
-
-                                        tracer.SetComponent(_compomentName);
-                                        tracer.SetTag("queueName", queueName);
-                                        tracer.SetTag("x-messageId", MessageId);
-                                        tracer.SetTag("x-eventId", EventId);
-                                        tracer.SetTag("x-traceId", TraceId);
-
-                                        Messages[j] = new EventResponse()
-                                        {
-                                            EventId = EventId,
-                                            MessageId = MessageId,
-                                            TraceId = TraceId,
-                                            Headers = new Dictionary<string, object>(),
-                                            Body = default(TD),
-                                            QueueName = queueName,
-                                            RouteKey = routeKey,
-                                            BodySource = ea.Value
-                                        };
+                                        catch
+                                        { }
 
                                         try
                                         {
-                                            #region 设置Body
-                                            Messages[j].Body = JsonConvert.DeserializeObject<TD>(Messages[j].BodySource);
-                                            #endregion
-
-                                            #region 设置header
-                                            foreach (var key in ea.Headers)
-                                            {
-                                                Messages[j].Headers.Add(key.Key, Encoding.UTF8.GetString(key.GetValueBytes()));
-                                            }
-
-                                            if (!Messages[j].Headers.ContainsKey("x-topic"))
-                                            {
-                                                Messages[j].Headers.Add("x-topic", routeKey);
-                                            }
-                                            if (!Messages[j].Headers.ContainsKey("x-messageId"))
-                                            {
-                                                Messages[j].Headers.Add("x-messageId", MessageId);
-                                            }
-                                            if (!Messages[j].Headers.ContainsKey("x-eventId"))
-                                            {
-                                                Messages[j].Headers.Add("x-eventId", EventId);
-                                            }
-                                            if (!Messages[j].Headers.ContainsKey("x-traceId"))
-                                            {
-                                                Messages[j].Headers.Add("x-traceId", TraceId);
-                                            }
-                                            #endregion
-
-                                            _logger.LogDebug(Messages[j].BodySource);
-
+                                            TraceId = System.Text.Encoding.UTF8.GetString(ea.Headers.GetLastBytes("x-traceId"));
                                         }
-                                        catch (Exception ex)
+                                        catch
                                         {
-                                            _logger.LogError(ex, ex.Message);
                                         }
                                     }
-                                }
-                                #endregion
+                                    #endregion
 
-                                #region 批量处理消息
+                                    tracer.SetComponent(_compomentName);
+                                    tracer.SetTag("queueName", queueName);
+                                    tracer.SetTag("x-messageId", MessageId);
+                                    tracer.SetTag("x-eventId", EventId);
+                                    tracer.SetTag("x-traceId", TraceId);
 
-                                if (Messages != null && Messages.Any())
-                                {
-                                    using (var executeTracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
+                                    Messages[j] = new EventResponse()
                                     {
-                                        executeTracer.SetComponent(_compomentName);
-                                        executeTracer.SetTag("queueName", queueName);
-
-                                        handlerSuccess = await _receiverPolicy.ExecuteAsync(async (handlerCancellationToken) =>
-                                        {
-                                            return await eventAction.Handle(Messages.Select(a => (TD)a.Body).ToArray(), Messages.Select(a => (Dictionary<string, object>)a.Headers).ToArray(), handlerCancellationToken);
-
-                                        }, cancellationToken);
-
-                                        if (handlerSuccess)
-                                        {
-                                            #region 消息处理成功
-                                            if (_subscribeAckHandler != null && Messages.Length > 0)
-                                            {
-                                                _subscribeAckHandler(Messages);
-                                            }
-
-                                            consumer.Commit();
-
-                                            #endregion
-                                        }
-                                        else
-                                        {
-                                            executeTracer.SetError();
-                                        }
-                                    }
-                                }
-                                #endregion
-                            }
-                            catch (Exception ex)
-                            {
-                                handlerException = ex;
-                                _logger.LogError(ex, ex.Message);
-                            }
-                            finally
-                            {
-                                if (!handlerSuccess)
-                                {
-                                    //重新入队，默认：是
-                                    var requeue = true;
+                                        EventId = EventId,
+                                        MessageId = MessageId,
+                                        TraceId = TraceId,
+                                        Headers = new Dictionary<string, object>(),
+                                        Body = default(TD),
+                                        QueueName = queueName,
+                                        RouteKey = routeKey,
+                                        BodySource = ea.Value
+                                    };
 
                                     try
                                     {
-                                        //执行回调，等待业务层的处理结果
-                                        if (_subscribeNackHandler != null && Messages != null && Messages.Any())
-                                        {
-                                            requeue = await _subscribeNackHandler((Messages, handlerException));
-                                        }
-                                    }
-                                    catch (Exception innterEx)
-                                    {
-                                        _logger.LogError(innterEx, innterEx.Message);
-                                    }
+                                        #region 设置Body
+                                        Messages[j].Body = JsonConvert.DeserializeObject<TD>(Messages[j].BodySource);
+                                        #endregion
 
-                                    if (!requeue)
+                                        #region 设置header
+                                        foreach (var key in ea.Headers)
+                                        {
+                                            Messages[j].Headers.Add(key.Key, Encoding.UTF8.GetString(key.GetValueBytes()));
+                                        }
+
+                                        if (!Messages[j].Headers.ContainsKey("x-topic"))
+                                        {
+                                            Messages[j].Headers.Add("x-topic", routeKey);
+                                        }
+                                        if (!Messages[j].Headers.ContainsKey("x-messageId"))
+                                        {
+                                            Messages[j].Headers.Add("x-messageId", MessageId);
+                                        }
+                                        if (!Messages[j].Headers.ContainsKey("x-eventId"))
+                                        {
+                                            Messages[j].Headers.Add("x-eventId", EventId);
+                                        }
+                                        if (!Messages[j].Headers.ContainsKey("x-traceId"))
+                                        {
+                                            Messages[j].Headers.Add("x-traceId", TraceId);
+                                        }
+                                        #endregion
+
+                                        _logger.LogDebug(Messages[j].BodySource);
+
+                                    }
+                                    catch (Exception ex)
                                     {
+                                        _logger.LogError(ex, ex.Message);
+                                    }
+                                }
+                            }
+                            #endregion
+
+                            #region 批量处理消息
+
+                            if (Messages != null && Messages.Any())
+                            {
+                                using (var executeTracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP Execute"))
+                                {
+                                    executeTracer.SetComponent(_compomentName);
+                                    executeTracer.SetTag("queueName", queueName);
+
+                                    handlerSuccess = await _receiverPolicy.ExecuteAsync(async (handlerCancellationToken) =>
+                                    {
+                                        return await eventAction.Handle(Messages.Select(a => (TD)a.Body).ToArray(), Messages.Select(a => (Dictionary<string, object>)a.Headers).ToArray(), handlerCancellationToken);
+
+                                    }, cancellationToken);
+
+                                    if (handlerSuccess)
+                                    {
+                                        #region 消息处理成功
+                                        if (_subscribeAckHandler != null && Messages.Length > 0)
+                                        {
+                                            _subscribeAckHandler(Messages);
+                                        }
+
+                                        foreach(var offset in eas)
+                                        {
+                                            consumer.StoreOffset(offset);
+                                        }
+
                                         consumer.Commit();
+
+                                        #endregion
                                     }
                                     else
                                     {
-                                        if (eas.Length > 0)
-                                        {
-                                            consumer.Seek(eas.FirstOrDefault().TopicPartitionOffset);
-                                        }
+                                        executeTracer.SetError();
+                                    }
+                                }
+                            }
+                            #endregion
+                        }
+                        catch (Exception ex)
+                        {
+                            handlerException = ex;
+                            _logger.LogError(ex, ex.Message);
+                        }
+                        finally
+                        {
+                            if (!handlerSuccess)
+                            {
+                                //重新入队，默认：是
+                                var requeue = true;
+
+                                try
+                                {
+                                    //执行回调，等待业务层的处理结果
+                                    if (_subscribeNackHandler != null && Messages != null && Messages.Any())
+                                    {
+                                        requeue = await _subscribeNackHandler((Messages, handlerException));
+                                    }
+                                }
+                                catch (Exception innterEx)
+                                {
+                                    _logger.LogError(innterEx, innterEx.Message);
+                                }
+
+                                if (!requeue)
+                                {
+                                    foreach (var offset in eas)
+                                    {
+                                        consumer.StoreOffset(offset);
+                                    }
+
+                                    consumer.Commit();
+                                }
+                                else
+                                {
+                                    if (eas.Length > 0)
+                                    {
+                                        consumer.Seek(eas.FirstOrDefault().TopicPartitionOffset);
                                     }
                                 }
                             }
                         }
-                        catch (ConsumeException ex)
-                        {
-                            _logger.LogError(ex, ex.Message);
-
-                            consumer.Seek(ex.ConsumerRecord.TopicPartitionOffset);
-                        }
+                    
                     }
 
                 }
