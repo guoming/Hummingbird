@@ -10,5 +10,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         IProducer<string, string> GetProducer();
 
          IConsumer<string, string> GetConsumer();
+
     }
 }

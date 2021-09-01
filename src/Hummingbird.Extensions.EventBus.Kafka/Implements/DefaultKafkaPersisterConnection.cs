@@ -19,7 +19,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         private IProducer<string, string> _producer;
         private bool _disposed;
 
-      
         public IProducer<string, string> GetProducer()
         {
             if (_producer == null)
@@ -49,13 +48,15 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _producerBuilder = new ProducerBuilder<string, string>(producerConfig);
-
+           
         }
 
         public DefaultKafkaPersistentConnection(
             ILogger<IKafkaPersistentConnection> logger,
             ConsumerConfig consumerConfig)
         {
+            consumerConfig.EnableAutoOffsetStore = false;
+            consumerConfig.EnableAutoCommit = true;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _consumers = new List<IConsumer<string, string>>();
             _consumerBuilder = new ConsumerBuilder<string, string>(consumerConfig);
@@ -79,6 +80,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
                 if (_producer != null)
                 {
+                   
                     _producer.Dispose();
                 }
             }

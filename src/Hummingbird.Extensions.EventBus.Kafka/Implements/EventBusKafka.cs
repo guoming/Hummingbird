@@ -387,65 +387,78 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         tracerExecuteAsync.SetTag("x-eventId", EventId);
                                         tracerExecuteAsync.SetTag("x-traceId", TraceId);
 
-                                        try
+                                    try
+                                    {
+                                        handlerSuccess = await _receiverPolicy.ExecuteAsync(async (handlerCancellationToken) =>
                                         {
-                                            handlerSuccess = await _receiverPolicy.ExecuteAsync(async (handlerCancellationToken) =>
-                                            {
-                                                return await eventAction.Handle(eventResponse.Body, (Dictionary<string, object>)eventResponse.Headers, handlerCancellationToken);
+                                            return await eventAction.Handle(eventResponse.Body, (Dictionary<string, object>)eventResponse.Headers, handlerCancellationToken);
 
-                                            }, CancellationToken.None);
+                                        }, CancellationToken.None);
 
-                                            if (handlerSuccess)
+                                        if (handlerSuccess)
+                                        {
+                                            if (_subscribeAckHandler != null)
                                             {
-                                                if (_subscribeAckHandler != null)
+                                                _subscribeAckHandler(new EventResponse[] { eventResponse });
+                                            }
+                                      
+                                            consumer.StoreOffset(ea);
+                                            Console.WriteLine($"kafk offset store,topic={routeKey} partation={ea.TopicPartition.Partition}offset={ea.TopicPartitionOffset.Offset.Value}");
+
+                                           
+                                             //   consumer.Commit(ea);
+                                             //   Console.WriteLine($"kafk offset commit,topic={routeKey} partation={ea.TopicPartition.Partition}offset={ea.TopicPartitionOffset.Offset.Value}");
+                                            
+                                        }
+                                        else
+                                        {
+                                            tracerExecuteAsync.SetError();
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        tracerExecuteAsync.SetError();
+                                        handlerException = ex;
+                                        _logger.LogError(ex, ex.Message);
+                                    }
+                                    finally
+                                    {
+                                        if (!handlerSuccess)
+                                        {
+                                            //重新入队，默认：是
+                                            var requeue = true;
+
+                                            try
+                                            {
+                                                //执行回调，等待业务层的处理结果
+                                                if (_subscribeNackHandler != null)
                                                 {
-                                                    _subscribeAckHandler(new EventResponse[] { eventResponse });
+                                                    requeue = await _subscribeNackHandler((new EventResponse[] { eventResponse }, handlerException));
                                                 }
+                                            }
+                                            catch (Exception innterEx)
+                                            {
+                                                _logger.LogError(innterEx, innterEx.Message);
+                                            }
+
+                                            if (!requeue)
+                                            {
+                                            
                                                 consumer.StoreOffset(ea);
-                                                consumer.Commit(ea);
+                                                Console.WriteLine($"kafk offset store,topic={routeKey} partation={ea.TopicPartition.Partition}offset={ea.TopicPartitionOffset.Offset.Value}");
+
+                                            
+                                                 //   consumer.Commit(ea);
+                                                //    Console.WriteLine($"kafk offset commit,topic={routeKey} partation={ea.TopicPartition.Partition}offset={ea.TopicPartitionOffset.Offset.Value}");
+                                                
                                             }
                                             else
                                             {
-                                                tracerExecuteAsync.SetError();
+                                                consumer.Seek(ea.TopicPartitionOffset); //重新入队重试
+                                                Console.WriteLine($"kafk offset seek,topic={routeKey} partation={ea.TopicPartition.Partition}offset={ea.TopicPartitionOffset.Offset.Value}");
                                             }
                                         }
-                                        catch (Exception ex)
-                                        {
-                                            tracerExecuteAsync.SetError();
-                                            handlerException = ex;
-                                            _logger.LogError(ex, ex.Message);
-                                        }
-                                        finally
-                                        {
-                                            if (!handlerSuccess)
-                                            {
-                                                //重新入队，默认：是
-                                                var requeue = true;
-
-                                                try
-                                                {
-                                                    //执行回调，等待业务层的处理结果
-                                                    if (_subscribeNackHandler != null)
-                                                    {
-                                                        requeue = await _subscribeNackHandler((new EventResponse[] { eventResponse }, handlerException));
-                                                    }
-                                                }
-                                                catch (Exception innterEx)
-                                                {
-                                                    _logger.LogError(innterEx, innterEx.Message);
-                                                }
-
-                                                if (!requeue)
-                                                {
-                                                    consumer.StoreOffset(ea);
-                                                    consumer.Commit(ea);
-                                                }
-                                                else
-                                                {
-                                                    consumer.Seek(ea.TopicPartitionOffset); //重新入队重试
-                                                }
-                                            }
-                                        }
+                                    }
                                     }
                                     #endregion
                                 }
@@ -653,13 +666,17 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                             _subscribeAckHandler(Messages);
                                         }
 
-                                        foreach(var offset in eas)
+                                        foreach (var offset in eas)
                                         {
                                             consumer.StoreOffset(offset);
+                                            Console.WriteLine($"kafk offset store,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
+
+                                          
+                                               // consumer.Commit(offset);
+                                                //Console.WriteLine($"kafk offset commit,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
+                                            
                                         }
-
-                                        consumer.Commit();
-
+                                       
                                         #endregion
                                     }
                                     else
@@ -700,15 +717,21 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     foreach (var offset in eas)
                                     {
                                         consumer.StoreOffset(offset);
+                                        Console.WriteLine($"kafk offset store,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
+
+                                     
+                                        //    consumer.Commit(offset);
+                                       //     Console.WriteLine($"kafk offset commit,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
+                                        
                                     }
 
-                                    consumer.Commit();
                                 }
                                 else
                                 {
                                     if (eas.Length > 0)
                                     {
                                         consumer.Seek(eas.FirstOrDefault().TopicPartitionOffset);
+                                        Console.WriteLine($"kafk offset seek,topic={routeKey} partation={eas.FirstOrDefault().TopicPartition.Partition}offset={eas.FirstOrDefault().TopicPartitionOffset.Offset.Value}");
                                     }
                                 }
                             }

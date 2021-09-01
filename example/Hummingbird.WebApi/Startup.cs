@@ -1,4 +1,5 @@
 ﻿using Hummingbird.Example.Events;
+using Hummingbird.Example.Events.CanalEvent;
 using Hummingbird.Extensions.EventBus.Abstractions;
 using Hummingbird.Extensions.EventBus.RabbitMQ;
 using Hummingbird.Extensions.HealthChecks;
@@ -141,10 +142,7 @@ namespace Hummingbird.WebApi
                     {
                         option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
                         {
-                            
-                            Debug = Configuration["Kafka:Sender:Debug"],//"consumer,cgrp,topic,fetch",                            
                             Acks = Confluent.Kafka.Acks.All,
-                            //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
                             BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
                         });
                         option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
@@ -153,9 +151,7 @@ namespace Hummingbird.WebApi
                             EnableAutoCommit=false,
                             Acks = Confluent.Kafka.Acks.All,
                             AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
-                            Debug = Configuration["Kafka:Sender:Debug"],//"consumer,cgrp,topic,fetch",
-                            GroupId = Configuration["Kafka:Receiver:GroupId"],                         
-                            //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
+                            GroupId = "test19",//Configuration["Kafka:Receiver:GroupId"],                         
                             BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
                         });
                         option.WithReceiver(                            
@@ -190,7 +186,7 @@ namespace Hummingbird.WebApi
                 {
                     sp.UseSubscriber(eventbus =>
                     {
-
+                        eventbus.RegisterBatch<CanalEntryEvent, CanalEntryEventHandler > ("", "canal_dwh_test2");
                         eventbus.RegisterBatch<TestEvent, TestEventHandler1>("TestEventHandler", "TestEventHandler");
                         eventbus.RegisterBatch<Hummingbird.Example.Events.MongoShark.MongodbSharkEvent, Example.Events.MongoShark.MongodbSharkEventHandler>("", "mongodb_test.tmstracking.sync_order");
 

@@ -22,7 +22,7 @@ namespace Hummingbird.Example.Events.CanalEvent
         public Task<bool> Handle(CanalEntryEvent[] @events, Dictionary<string, object>[] Headers, CancellationToken cancellationToken)
         {
 
-            return Task.FromResult(false);
+            return Task.FromResult(true);
         }
     }
 }

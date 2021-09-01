@@ -14,11 +14,13 @@ namespace Hummingbird.Example.Events
         {
             //执行业务操作并返回操作结果
             return Task.FromResult(true);
+
         }
 
         public Task<bool> Handle(TestEvent[] @event, Dictionary<string, object>[] Headers, CancellationToken cancellationToken)
         {
             return Task.FromResult(true);
+
         }
     }
 }
