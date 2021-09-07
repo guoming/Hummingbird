@@ -151,7 +151,7 @@ namespace Hummingbird.WebApi
                             EnableAutoCommit=false,
                             Acks = Confluent.Kafka.Acks.All,
                             AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
-                            GroupId = "test19",//Configuration["Kafka:Receiver:GroupId"],                         
+                            GroupId = "test20",//Configuration["Kafka:Receiver:GroupId"],                         
                             BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
                         });
                         option.WithReceiver(                            

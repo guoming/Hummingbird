@@ -19,7 +19,7 @@ namespace Hummingbird.Example.Events
 
         public Task<bool> Handle(TestEvent[] @event, Dictionary<string, object>[] Headers, CancellationToken cancellationToken)
         {
-            return Task.FromResult(true);
+            return Task.FromResult(false);
 
         }
     }

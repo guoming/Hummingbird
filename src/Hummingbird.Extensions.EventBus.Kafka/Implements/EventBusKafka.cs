@@ -669,7 +669,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         foreach (var offset in eas)
                                         {
                                             consumer.StoreOffset(offset);
-                                            Console.WriteLine($"kafk offset store,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
+                                         //   Console.WriteLine($"kafk offset store,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
 
                                           
                                                // consumer.Commit(offset);
@@ -717,7 +717,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                     foreach (var offset in eas)
                                     {
                                         consumer.StoreOffset(offset);
-                                        Console.WriteLine($"kafk offset store,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
+                                       // Console.WriteLine($"kafk offset store,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
 
                                      
                                         //    consumer.Commit(offset);
@@ -730,8 +730,13 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 {
                                     if (eas.Length > 0)
                                     {
-                                        consumer.Seek(eas.FirstOrDefault().TopicPartitionOffset);
-                                        Console.WriteLine($"kafk offset seek,topic={routeKey} partation={eas.FirstOrDefault().TopicPartition.Partition}offset={eas.FirstOrDefault().TopicPartitionOffset.Offset.Value}");
+                                        foreach (var group in eas.GroupBy(a => a.Partition))
+                                        {
+                                            consumer.Seek(group.FirstOrDefault().TopicPartitionOffset);
+                                            Console.WriteLine($"kafk offset seek,topic={routeKey}                       partation={group.FirstOrDefault().TopicPartition.Partition}offset={group.FirstOrDefault().TopicPartitionOffset.Offset.Value}");
+
+                                        }
+                                      
                                     }
                                 }
                             }
