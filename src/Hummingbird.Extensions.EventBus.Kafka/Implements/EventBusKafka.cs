@@ -666,15 +666,9 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                             _subscribeAckHandler(Messages);
                                         }
 
-                                        foreach (var offset in eas)
+                                        foreach (var group in eas.GroupBy(a => a.Partition))
                                         {
-                                            consumer.StoreOffset(offset);
-                                         //   Console.WriteLine($"kafk offset store,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
-
-                                          
-                                               // consumer.Commit(offset);
-                                                //Console.WriteLine($"kafk offset commit,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
-                                            
+                                            consumer.StoreOffset(group.LastOrDefault());
                                         }
                                        
                                         #endregion
@@ -714,15 +708,9 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
                                 if (!requeue)
                                 {
-                                    foreach (var offset in eas)
+                                    foreach (var group in eas.GroupBy(a => a.Partition))
                                     {
-                                        consumer.StoreOffset(offset);
-                                       // Console.WriteLine($"kafk offset store,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
-
-                                     
-                                        //    consumer.Commit(offset);
-                                       //     Console.WriteLine($"kafk offset commit,topic={routeKey} partation={offset.TopicPartition.Partition}offset={offset.TopicPartitionOffset.Offset.Value}");
-                                        
+                                        consumer.StoreOffset(group.LastOrDefault());
                                     }
 
                                 }
@@ -733,6 +721,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                         foreach (var group in eas.GroupBy(a => a.Partition))
                                         {
                                             consumer.Seek(group.FirstOrDefault().TopicPartitionOffset);
+
                                             Console.WriteLine($"kafk offset seek,topic={routeKey}                       partation={group.FirstOrDefault().TopicPartition.Partition}offset={group.FirstOrDefault().TopicPartitionOffset.Offset.Value}");
 
                                         }
