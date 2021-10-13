@@ -77,6 +77,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Cana
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.HealthChecks.Kafka", "src\Hummingbird.Extensions.HealthChecks.Kafka\Hummingbird.Extensions.HealthChecks.Kafka.csproj", "{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Quartz", "src\Hummingbird.Extensions.Quartz\Hummingbird.Extensions.Quartz.csproj", "{80621194-B8F8-4156-BF0E-1233A4230F0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -215,6 +217,10 @@ Global
 		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80621194-B8F8-4156-BF0E-1233A4230F0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80621194-B8F8-4156-BF0E-1233A4230F0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80621194-B8F8-4156-BF0E-1233A4230F0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80621194-B8F8-4156-BF0E-1233A4230F0A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -254,6 +260,7 @@ Global
 		{CB3D9096-9226-47F1-9FB3-C91A46D413F4} = {54CC6103-E558-4122-9147-B73F2265997E}
 		{B0C6CA9E-FF33-4E8D-B1A9-262FEA22543B} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{80621194-B8F8-4156-BF0E-1233A4230F0A} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
