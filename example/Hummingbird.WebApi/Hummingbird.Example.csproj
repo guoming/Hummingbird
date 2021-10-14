@@ -10,6 +10,7 @@
     <Content Remove="wwwroot\**" />
     <EmbeddedResource Remove="wwwroot\**" />
     <None Remove="wwwroot\**" />
+    <None Remove="Jobs\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Hummingbird.AspNetCore.HealthChecks\Hummingbird.AspNetCore.HealthChecks.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.AspNetCore.Metrics\Hummingbird.AspNetCore.Metrics.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
@@ -52,6 +52,13 @@
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy\Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.UidGenerator\Hummingbird.Extensions.UidGenerator.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj" />
+
+    <ProjectReference Include="..\..\src\Hummingbird.AspNetCore.HealthChecks\Hummingbird.AspNetCore.HealthChecks.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Quartz\Hummingbird.Extensions.Quartz.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -62,6 +69,7 @@
 
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="Jobs\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties config_4appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>

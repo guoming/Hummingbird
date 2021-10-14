@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <PackOnBuild>true</PackOnBuild>
+    <PackageVersion>1.15.3</PackageVersion>
+    <Authors>郭明</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseUrl>https://github.com/guoming/Hummingbird</PackageLicenseUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Extersions\" />
+    <Folder Include="Configurations\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Quartz" Version="3.3.3" />
+    <PackageReference Include="Quartz.Plugins" Version="3.3.3" />
+    <PackageReference Include="Quartz.OpenTracing" Version="3.3.3" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.3.3" />
+    <PackageReference Include="Quartz.Plugins.TimeZoneConverter" Version="3.3.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.0" />
+    <PackageReference Include="Quartz.Jobs" Version="3.3.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Microsoft.Extensions.Configuration.Binder" />
+    <None Remove="Quartz.Jobs" />
+    <None Remove="Microsoft.Extensions.Primitives" />
+  </ItemGroup>
+</Project>

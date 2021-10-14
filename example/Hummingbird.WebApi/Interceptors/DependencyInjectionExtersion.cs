@@ -1,10 +1,10 @@
 ﻿using Autofac;
 using Autofac.Extras.DynamicProxy;
-using Hummingbird.NetCoreWebApi.Interceptors;
+using Hummingbird.Example.Interceptors;
 using System;
 using System.Linq;
 
-namespace Hummingbird.NetCoreWebApi
+namespace Hummingbird.Example
 {
     public static partial class DependencyInjectionExtersion
     {

@@ -1,9 +1,8 @@
-﻿using Hummingbird.Core;
+﻿using System;
 using Hummingbird.Extensions.OpenTracking.Jaeger;
 using Hummingbird.Extensions.Tracing;
 using Microsoft.Extensions.Configuration;
 using OpenTracing;
-using System;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

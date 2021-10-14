@@ -29,7 +29,7 @@ namespace Hummingbird.Example.Controllers
         [Route("Empty")]
         public async Task<string> Empty()
         {
-            return "";
+            return await Task.FromResult("");
         }
 
 

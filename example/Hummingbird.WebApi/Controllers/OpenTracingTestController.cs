@@ -19,6 +19,8 @@ namespace Hummingbird.Example.Controllers
                 tracer.Log("key1", "value1");
 
             }
+
+
         }
 
     }
