@@ -1,6 +1,6 @@
 ﻿using Castle.DynamicProxy;
 
-namespace Hummingbird.NetCoreWebApi.Interceptors
+namespace Hummingbird.Example.Interceptors
 {
     /// <summary>
     /// 拦截器 需要实现 IInterceptor接口 Intercept方法

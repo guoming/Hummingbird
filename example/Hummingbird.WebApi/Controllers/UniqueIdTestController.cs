@@ -22,7 +22,7 @@ namespace Hummingbird.Example.Controllers
         [Route("Test")]
         public async Task<long> Test()
         {
-            return uniqueIdGenerator.NewId();
+            return await Task.FromResult(uniqueIdGenerator.NewId());
         }
     }
 

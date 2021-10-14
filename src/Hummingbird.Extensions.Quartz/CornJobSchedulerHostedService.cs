@@ -55,6 +55,7 @@ namespace Hummingbird.Extensions.Quartz
                                     }
 
 
+
                                     var jobType = Type.GetType(trigger.JobType);
                                     if (jobType != null)
                                     {
@@ -68,6 +69,10 @@ namespace Hummingbird.Extensions.Quartz
                                             .Build();
 
                                         await _scheduler.ScheduleJob(job, cronTrigger, cancellationToken);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning("Quartz create job "+trigger.JobType + " error");
                                     }
                                 }
                             }

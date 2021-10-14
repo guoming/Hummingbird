@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using Quartz.Impl;
+using Hummingbird.Extensions.Quartz;
+using Hummingbird.Core;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -15,11 +17,12 @@ namespace Microsoft.Extensions.DependencyInjection
         /// 配置后台运行程序
         /// </summary>
         /// <param name="builder"></param>
-        public static IServiceCollection AddQuartz(this IServiceCollection services, IConfigurationSection configurationSection)
+        public static IHummingbirdHostBuilder AddQuartz(this IHummingbirdHostBuilder builder, IConfigurationSection configurationSection)
         {
-            services.AddHostedService<CornJobSchedulerHostedService>();
 
-            services.AddTransient<CornJobConfiguration>(sp =>
+            builder.Services.AddHostedService<CornJobSchedulerHostedService>();
+
+            builder.Services.AddTransient<CornJobConfiguration>(sp =>
             {
                 var logger = sp.GetService<ILogger<IConfiguration>>();
                 var config = configurationSection.Get<CornJobConfiguration>();
@@ -30,19 +33,20 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
 
                 return config;
-            })
-            .AddQuartz(q => {
+            });
+
+            builder.Services.AddQuartz(q => {
                 // handy when part of cluster or you want to otherwise identify multiple schedulers
                 q.SchedulerId = "Scheduler-Core";
 
                 // we take this from appsettings.json, just show it's possible
-                // q.SchedulerName = "Quartz ASP.NET Core Sample Scheduler";
+                q.SchedulerName = "Quartz ASP.NET Core Scheduler";
 
                 // as of 3.3.2 this also injects scoped services (like EF DbContext) without problems
                 q.UseMicrosoftDependencyInjectionJobFactory();
                 // or for scoped service support like EF Core DbContext
                 //q.UseMicrosoftDependencyInjectionScopedJobFactory();
-
+                
                 // these are the defaults
                 q.UseSimpleTypeLoader();
                 q.UseInMemoryStore();
@@ -61,22 +65,24 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
 
                 // convert time zones using converter that can handle Windows/Linux differences
-                //q.UseTimeZoneConverter();
+                q.UseTimeZoneConverter();
 
                 // auto-interrupt long-running job
                 q.UseJobAutoInterrupt(options =>
                 {
+                   
                     // this is the default
-                    options.DefaultMaxRunTime = TimeSpan.FromMinutes(5);
+                    options.DefaultMaxRunTime = TimeSpan.FromMinutes(60);
                 });
 
             })
+            .AddQuartzOpenTracing()
             .AddSingleton<Quartz.IScheduler>((sp) => {
 
                 var scheduler = StdSchedulerFactory.GetDefaultScheduler().Result;
                 return scheduler;
             });
-            return services;
+            return builder;
         }
     }
 }

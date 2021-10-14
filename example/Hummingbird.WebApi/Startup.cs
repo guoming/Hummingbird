@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 
-namespace Hummingbird.WebApi
+namespace Hummingbird.Example
 {
     public class Startup
     {
@@ -50,7 +50,7 @@ namespace Hummingbird.WebApi
             
             services.AddHummingbird(hummingbird =>
             {
-               // hummingbird.AddCanal(Configuration.GetSection("Canal"));
+                // hummingbird.AddCanal(Configuration.GetSection("Canal"));
                 hummingbird.AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");
@@ -58,7 +58,7 @@ namespace Hummingbird.WebApi
                      if (!string.IsNullOrEmpty(orign))
                      {
                          var orginSetting = Configuration.GetSection($"HttpClient:{orign.ToUpper()}");
-                         if(orginSetting.Exists())
+                         if (orginSetting.Exists())
                          {
                              setting = orginSetting;
                          }
@@ -97,7 +97,7 @@ namespace Hummingbird.WebApi
                     option.Druation = TimeSpan.FromMinutes(5);
                     option.CacheRegion = "Idempotency";
                 })
-                 .AddConsulDynamicRoute(Configuration, s =>
+                .AddConsulDynamicRoute(Configuration, s =>
                  {
                      s.AddTags("22");
                  })
@@ -106,9 +106,10 @@ namespace Hummingbird.WebApi
                     workIdBuilder.CenterId = 0;
                     //workIdBuilder.AddStaticWorkIdCreateStrategy(1);
                     workIdBuilder.AddConsulWorkIdCreateStrategy(Configuration["SERVICE_NAME"]);
-                    
+
                 })
-                .AddOpenTracing(builder => {
+                .AddOpenTracing(builder =>
+                {
 
                     builder.AddJaeger(Configuration.GetSection("Tracing"));
                 })
@@ -147,14 +148,14 @@ namespace Hummingbird.WebApi
                         });
                         option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
                         {
-                            EnableAutoOffsetStore=false,
-                            EnableAutoCommit=false,
+                            EnableAutoOffsetStore = false,
+                            EnableAutoCommit = false,
                             Acks = Confluent.Kafka.Acks.All,
                             AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
                             GroupId = "test20",//Configuration["Kafka:Receiver:GroupId"],                         
                             BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
                         });
-                        option.WithReceiver(                            
+                        option.WithReceiver(
                             ReceiverAcquireRetryAttempts: 0,
                             ReceiverHandlerTimeoutMillseconds: 10000);
 
@@ -166,7 +167,11 @@ namespace Hummingbird.WebApi
 
 
                 });
+
+                hummingbird.AddQuartz(Configuration.GetSection("Quartz"));
+
             });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
