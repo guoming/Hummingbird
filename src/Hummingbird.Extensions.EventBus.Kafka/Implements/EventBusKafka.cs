@@ -270,7 +270,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 {
                     consumer = persistentConnection.GetConsumer();
                     consumer.Subscribe(routeKey);
-
                     while (!cancellationToken.IsCancellationRequested)
                     {
                        
@@ -469,7 +468,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                 }
                             }
 
-                      
                     }
 
                 }
