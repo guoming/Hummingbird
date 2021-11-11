@@ -272,7 +272,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                     consumer.Subscribe(routeKey);
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                       
                             var ea = consumer.Consume(cancellationToken);
 
                             // 消息队列空
@@ -529,7 +528,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                        
                         var handlerSuccess = false;
                         var handlerException = default(Exception);
-                        var eas = consumer.ConsumeBatch(TimeSpan.FromSeconds(5), BatchSize, cancellationToken).ToArray();
+                        var eas = consumer.ConsumeBatch(TimeSpan.FromMilliseconds(500), BatchSize, cancellationToken).ToArray();
                         var Messages = new EventResponse[eas.Count()];
 
                         if (Messages.Length > 0)

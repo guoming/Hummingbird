@@ -24,6 +24,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
             while (waitBudgetRemaining > TimeSpan.Zero && DateTime.UtcNow < deadline && resSize < maxBatchSize)
             {
                 cts.ThrowIfCancellationRequested();
+              
                 var msg = consumer.Consume(waitBudgetRemaining);
 
                 if (msg != null && !msg.IsPartitionEOF)
