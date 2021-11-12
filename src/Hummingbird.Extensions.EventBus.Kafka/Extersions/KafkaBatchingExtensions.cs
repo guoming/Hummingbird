@@ -70,9 +70,10 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
 
                 producer.Produce(new TopicPartition(topic, new Partition(partation)), message, DeliveryHandler);
 
-                //producer.Produce(topic, message, DeliveryHandler);
                 reportsExpected++;
             }
+
+            producer.Flush(cts);
             
             var deadline = DateTime.UtcNow + flushTimeout;
 
@@ -81,7 +82,6 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                 reportsReceived < reportsExpected)
             {
                 cts.ThrowIfCancellationRequested();
-                producer.Flush(flushWait);
             }
 
             if (!errorReports.IsEmpty)
