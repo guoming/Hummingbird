@@ -528,7 +528,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                        
                         var handlerSuccess = false;
                         var handlerException = default(Exception);
-                        var eas = consumer.ConsumeBatch(TimeSpan.FromMilliseconds(500), BatchSize, cancellationToken).ToArray();
+                        var eas = consumer.ConsumeBatch(TimeSpan.FromMilliseconds(100), BatchSize, cancellationToken).ToArray();
                         var Messages = new EventResponse[eas.Count()];
 
                         if (Messages.Length > 0)

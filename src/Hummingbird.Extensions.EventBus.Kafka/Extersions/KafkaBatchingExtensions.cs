@@ -64,17 +64,15 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
 
             foreach (var message in messages)
             {
-                int partation = 0;
-
-                int.TryParse(System.Text.Encoding.UTF8.GetString(message.Headers.GetLastBytes("x-partition")), out partation);
-
+                int partation = GetPartation(message.Headers);
+               
                 producer.Produce(new TopicPartition(topic, new Partition(partation)), message, DeliveryHandler);
 
                 reportsExpected++;
             }
 
-            producer.Flush(cts);
-            
+            producer.Flush(flushTimeout);
+
             var deadline = DateTime.UtcNow + flushTimeout;
 
             while (
@@ -88,7 +86,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
             {
                 throw new AggregateException($"{errorReports.Count} Kafka produce(s) failed. Up to 10 inner exceptions follow.",
                     errorReports.Take(10).Select(i => new Exception(
-                        $"A Kafka produce error occurred. Topic: {topic}, Message key: {i.Message.Key}, Code: {i.Error.Code}, Reason: " +
+                        $"A Kafka produce error occurred. Topic: {topic}, Partation:{GetPartation(i.Headers)}, Message key: {i.Message.Key}, Code: {i.Error.Code}, Reason: " +
                         $"{i.Error.Reason}, IsBroker: {i.Error.IsBrokerError}, IsLocal: {i.Error.IsLocalError}, IsFatal: {i.Error.IsFatal}"
                     ))
                 );
@@ -101,5 +99,16 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                 throw new Exception(msg);
             }
         }
+
+        static int GetPartation(Headers headers)
+        {
+            int partation = 0;
+
+            int.TryParse(System.Text.Encoding.UTF8.GetString(headers.GetLastBytes("x-partition")), out partation);
+            return partation;
+
+        }
     }
+
+   
 }
