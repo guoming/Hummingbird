@@ -33,6 +33,8 @@ namespace Hummingbird.Example
                .ConfigureLogging((hostingContext, logging) =>
                {
                    logging.ClearProviders();
+                   logging.AddConsole();
+                   
 
                })
                .Build();
