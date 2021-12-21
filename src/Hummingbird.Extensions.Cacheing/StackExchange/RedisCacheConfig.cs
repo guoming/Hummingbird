@@ -103,5 +103,7 @@ namespace Hummingbird.Extensions.Cacheing.StackExchange
 
         internal int NumberOfConnections { get; private set; } = 10;
 
+
+
     }
 }

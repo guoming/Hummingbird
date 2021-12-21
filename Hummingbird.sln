@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Example", "exam
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.EventBus.MySqlLogging", "src\Hummingbird.Extensions.EventBus.MySqlLogging\Hummingbird.Extensions.EventBus.MySqlLogging.csproj", "{3D3F5653-D615-4BAE-975F-AE85353A93DD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Cacheing", "src\Hummingbird.Extensions.Cacheing\Hummingbird.Extensions.Cacheing.csproj", "{91E88120-CB43-4E54-A3A9-F98C6A89F61A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Cacheing", "src\Hummingbird.Extensions.Cacheing\Hummingbird.Extensions.Cacheing.csproj", "{91E88120-CB43-4E54-A3A9-F98C6A89F61A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Configuration.Json", "src\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj", "{3D87352D-910D-48B6-9F46-220A7D8758DE}"
 EndProject
@@ -55,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.Heal
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.OpenTracing", "src\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj", "{E9B8F632-6362-4714-862F-011CCD951FBD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.LoadBalancers", "src\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj", "{72C564F8-D678-47F3-A9CE-A6AEF327D7F3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.LoadBalancers", "src\Hummingbird.LoadBalancers\Hummingbird.LoadBalancers.csproj", "{72C564F8-D678-47F3-A9CE-A6AEF327D7F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.DynamicRoute.Consul", "src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj", "{56C47698-75B0-425C-82A5-986AB4AA9F27}"
 EndProject
@@ -78,6 +78,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Extensions.HealthChecks.Kafka", "src\Hummingbird.Extensions.HealthChecks.Kafka\Hummingbird.Extensions.HealthChecks.Kafka.csproj", "{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Quartz", "src\Hummingbird.Extensions.Quartz\Hummingbird.Extensions.Quartz.csproj", "{80621194-B8F8-4156-BF0E-1233A4230F0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Cacheing.UnitTest", "test\Hummingbird.Extensions.Cacheing.UnitTest\Hummingbird.Extensions.Cacheing.UnitTest.csproj", "{B5C2B30B-428A-4FC8-84A2-D9A89B601028}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -221,6 +223,10 @@ Global
 		{80621194-B8F8-4156-BF0E-1233A4230F0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80621194-B8F8-4156-BF0E-1233A4230F0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80621194-B8F8-4156-BF0E-1233A4230F0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5C2B30B-428A-4FC8-84A2-D9A89B601028}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5C2B30B-428A-4FC8-84A2-D9A89B601028}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5C2B30B-428A-4FC8-84A2-D9A89B601028}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5C2B30B-428A-4FC8-84A2-D9A89B601028}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -261,6 +267,7 @@ Global
 		{B0C6CA9E-FF33-4E8D-B1A9-262FEA22543B} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{02C16BEC-CBCF-4B07-BA2B-CAFBC53A9ACB} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{80621194-B8F8-4156-BF0E-1233A4230F0A} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{B5C2B30B-428A-4FC8-84A2-D9A89B601028} = {28015912-782A-4B96-9F86-D54081CD7A97}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

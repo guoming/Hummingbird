@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting.Internal;
+
 namespace Hummingbird.Example
 {
     public class Program
@@ -12,6 +14,10 @@ namespace Hummingbird.Example
         public static void Main(string[] args)
         {
             BuildWebHost(args).Run();
+
+            
+
+
         }
 
         public static IWebHost BuildWebHost(string[] args) =>

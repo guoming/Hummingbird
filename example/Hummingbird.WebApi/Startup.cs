@@ -180,10 +180,7 @@ namespace Hummingbird.Example
             var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
             var logger = app.ApplicationServices.GetRequiredService<ILogger<IEventLogger>>();
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+          
 
             app.UseHummingbird(humming =>
             {

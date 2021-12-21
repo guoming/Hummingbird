@@ -53,8 +53,9 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         /// </summary>
         public static ICacheManager Create(StackExchange.RedisCacheConfig config)
         {
-            ThreadPool.SetMinThreads(200, 200);
-
+           
+            ThreadPool.SetMaxThreads(10000, 10000);
+            ThreadPool.SetMinThreads(10000, 10000);
             if (string.IsNullOrEmpty(config.KeyPrefix))
             { 
                 _KeyPrefix =string.Empty;
@@ -243,50 +244,58 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         /// <returns></returns>
         private RedisClientHelper GetPooledClientManager(string cacheKey)
         {
-            var nodeName = _Locator.GetPrimary(_KeyPrefix + cacheKey);
+          
 
-            if (_nodeClients.ContainsKey(nodeName))
-            {
-                var dbs = _nodeClients[nodeName];
+                var nodeName = _Locator.GetPrimary(_KeyPrefix + cacheKey);
 
-                if (dbs.ContainsKey(_DbNum))
+                if (_nodeClients.ContainsKey(nodeName))
                 {
-                    return dbs[_DbNum].Lease();
+
+                    var dbs = _nodeClients[nodeName];
+
+                    if (dbs.ContainsKey(_DbNum))
+                    {
+                        return dbs[_DbNum].Lease();
+                    }
+                    else
+                    {
+                        return GetClientHelper(nodeName);
+                    }
                 }
                 else
                 {
+
                     return GetClientHelper(nodeName);
                 }
-            }
-            else
-            {
-                return GetClientHelper(nodeName);
-            }
+         
+
         }
 
 
         private RedisClientHelper GetClientHelper(string nodeName)
         {
-            lock (_syncCreateClient)
-            {
-                if (_nodeClients.ContainsKey(nodeName))
+           
+                lock (_syncCreateClient)
                 {
-                    var dbs = _nodeClients[nodeName];
-
-                    if (!dbs.ContainsKey(_DbNum))
+                    if (_nodeClients.ContainsKey(nodeName))
                     {
-                        dbs[_DbNum] = GetConnectionLoadBalancer(nodeName);
-                    }
-                }
-                else
-                {
-                    var node = new Dictionary<int, LoadBalancers.ILoadBalancer<RedisClientHelper>>();
-                    node[_DbNum] = GetConnectionLoadBalancer(nodeName);
-                    _nodeClients[nodeName] = node;
-                }
+                        var dbs = _nodeClients[nodeName];
 
-                return _nodeClients[nodeName][_DbNum].Lease();
-            }
+                        if (!dbs.ContainsKey(_DbNum))
+                        {
+                            dbs[_DbNum] = GetConnectionLoadBalancer(nodeName);
+                        }
+                    }
+                    else
+                    {
+                        var node = new Dictionary<int, LoadBalancers.ILoadBalancer<RedisClientHelper>>();
+                        node[_DbNum] = GetConnectionLoadBalancer(nodeName);
+                        _nodeClients[nodeName] = node;
+                    }
+
+                    return _nodeClients[nodeName][_DbNum].Lease();
+                }
+            
         }
 
         private LoadBalancers.ILoadBalancer<RedisClientHelper> GetConnectionLoadBalancer(string nodeName)
