@@ -19,7 +19,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
         private readonly IApplicationLifetime _lifetime;
         private readonly IServiceProvider _serviceProvider;
         private readonly IServiceDiscoveryProvider _serviceDiscoveryProvider;
-
+        private readonly System.Timers.Timer _timer;
         public ConsulServiceRegisterHostedService(
             IApplicationLifetime lifetime,
             IServiceProvider serviceProvider,
@@ -31,6 +31,8 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             _cancellationTokenSource = new CancellationTokenSource();            
             _serviceConfig = serviceConfig;
             _serviceDiscoveryProvider = serviceDiscoveryProvider;
+            _timer = new System.Timers.Timer((double)(int.Parse(_serviceConfig.SERVICE_CHECK_INTERVAL) * 1000));
+
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -40,10 +42,17 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             {
                 _serviceDiscoveryProvider.Register();
 
+                _timer.Elapsed +=  delegate
+                {
+                    _serviceDiscoveryProvider.Heartbeat();
+                };
+                _timer.Start();
             });
             _lifetime.ApplicationStopping.Register(delegate
             {
+                _timer.Stop();
                 _serviceDiscoveryProvider.Deregister();
+
             });
         }
 

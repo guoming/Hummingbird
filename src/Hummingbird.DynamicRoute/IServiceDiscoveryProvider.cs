@@ -10,6 +10,8 @@ namespace Hummingbird.DynamicRoute
 
         void Deregister();
 
+        void Heartbeat();
+
         string ServiceId { get;  }
     }
 }

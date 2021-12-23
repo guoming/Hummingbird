@@ -20,7 +20,7 @@ namespace Hummingbird.Example.Controllers
 
         [HttpGet]
         [Route("Test")]
-        public async Task<string> Test()
+        public  string Test()
         {
             var cacheKey = "cacheKey";
             var cacheValue = cacheManager.StringGet<string>(cacheKey);

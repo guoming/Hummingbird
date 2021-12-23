@@ -27,25 +27,30 @@ namespace Hummingbird.Example
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddCors()
+             .AddMvc(a => a.EnableEndpointRouting = false)
+             .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0)
+             .AddControllersAsServices();  //全局配置Json序列化处理
+
+
+
             services.AddHealthChecks(checks =>
             {
                 checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
-                checks.AddMySqlCheck("mysql", "Server=dev.mysql.service.consul;Port=63307;Database=lms_openapi_cn_dev; User=lms-dev;Password=97bL8AtWmlfxQtK10Afg;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180;SslMode=None");
-                checks.AddSqlCheck("sqlserver", "Data Source=test.sqlserver.service.consul,63341;Initial Catalog=ZT_ConfigCenter_TEST;User Id=tms-test;Password=qtvf12Croexy4cXH7lZB");
+                checks.AddMySqlCheck("mysql", "Server=localhost;Port=3306;Database=example; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180;SslMode=None");
                 checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);
-                checks.AddRabbitMQCheck("rabbitmq", factory =>
-                {
-                    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                });
-                checks.AddKafkaCheck("kafka", new Confluent.Kafka.ProducerConfig()
-                {
-                    Acks = Confluent.Kafka.Acks.All,
-                    //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
-                    BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
-                });
+                //checks.AddRabbitMQCheck("rabbitmq", factory =>
+                //{
+                //    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                //    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                //    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                //});
+                //checks.AddKafkaCheck("kafka", new Confluent.Kafka.ProducerConfig()
+                //{
+                //    Acks = Confluent.Kafka.Acks.All,
+                //    //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
+                //    BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
+                //});
             });
             
             services.AddHummingbird(hummingbird =>
@@ -175,7 +180,7 @@ namespace Hummingbird.Example
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
             var logger = app.ApplicationServices.GetRequiredService<ILogger<IEventLogger>>();
@@ -188,10 +193,8 @@ namespace Hummingbird.Example
                 {
                     sp.UseSubscriber(eventbus =>
                     {
-                        eventbus.RegisterBatch<CanalEntryEvent, CanalEntryEventHandler > ("", "canal_dwh_test2");
                         eventbus.RegisterBatch<TestEvent, TestEventHandler1>("TestEventHandler", "TestEventHandler");
-                        eventbus.RegisterBatch<Hummingbird.Example.Events.MongoShark.MongodbSharkEvent, Example.Events.MongoShark.MongodbSharkEventHandler>("", "mongodb_test.tmstracking.sync_order");
-
+                   
                         //订阅消息
                         eventbus.Subscribe((Messages) =>
                         {
@@ -223,9 +226,7 @@ namespace Hummingbird.Example
                 });
                 
             });
-            app.UseMvc();
-
-
+            
         }
     }
 }

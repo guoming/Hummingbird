@@ -1,11 +1,10 @@
-﻿using Hummingbird.AspNetCore.HealthChecks;
+﻿using System.IO;
+using Hummingbird.AspNetCore.HealthChecks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System.IO;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting.Internal;
+using Microsoft.Extensions.Logging;
 
 namespace Hummingbird.Example
 {
@@ -14,10 +13,6 @@ namespace Hummingbird.Example
         public static void Main(string[] args)
         {
             BuildWebHost(args).Run();
-
-            
-
-
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
