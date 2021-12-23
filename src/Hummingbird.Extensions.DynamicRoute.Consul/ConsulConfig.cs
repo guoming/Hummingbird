@@ -50,27 +50,16 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
         /// <summary>
         /// Http健康检查地址(默认:/healthcheck)
         /// </summary>
-        public string SERVICE_80_CHECK_HTTP { get; set; } = "";
+        public string SERVICE_CHECK_HTTP { get; set; } = "/healthcheck";
 
         /// <summary>
         /// 服务监控检查周期(默认:15s)
         /// </summary>
-        public string SERVICE_80_CHECK_INTERVAL { get; set; } = "15s";
+        public string SERVICE_CHECK_INTERVAL { get; set; } = "15";
         /// <summary>
         /// 服务监控检查超时时间(默认:5s)
         /// </summary>
-        public string SERVICE_80_CHECK_TIMEOUT { get; set; } = "5s";
-
-
-
-        /// <summary>
-        /// 服务监控检查周期(默认:15s)
-        /// </summary>
-        public string SERVICE_CHECK_INTERVAL { get; set; } = "15s";
-        /// <summary>
-        /// 服务监控检查超时时间(默认:5s)
-        /// </summary>
-        public string SERVICE_CHECK_TIMEOUT { get; set; } = "5s";
+        public string SERVICE_CHECK_TIMEOUT { get; set; } = "5";
 
         /// <summary>
         /// TCP健康检查
@@ -94,9 +83,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             this.SERVICE_SELF_REGISTER =config.SERVICE_SELF_REGISTER;
             this.SERVICE_REGION = config.SERVICE_REGION;
             this.SERVICE_NAME = config.SERVICE_NAME;
-            this.SERVICE_80_CHECK_HTTP = config.SERVICE_80_CHECK_HTTP;
-            this.SERVICE_80_CHECK_INTERVAL = config.SERVICE_80_CHECK_INTERVAL;
-            this.SERVICE_80_CHECK_TIMEOUT =config.SERVICE_80_CHECK_TIMEOUT;
+            this.SERVICE_CHECK_HTTP = config.SERVICE_CHECK_HTTP;
             this.SERVICE_TAGS = config.SERVICE_TAGS;
             this.SERVICE_CHECK_SCRIPT = config.SERVICE_CHECK_SCRIPT;
             this.SERVICE_CHECK_TCP = config.SERVICE_CHECK_TCP;
