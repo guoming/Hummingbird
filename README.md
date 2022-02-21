@@ -1,9 +1,7 @@
 # Hummingbird
-
-## 1.联系方式
-> ![avatar](dingding.jpg =150x150)
-> wechat：genius-ming
-> email：geniusming@qq.com
+[toc]
+## 1. 项目简介
+项目开发常用脚手架
 ## 2. 功能概要
 * 分布式锁
   * 基于Redis
@@ -850,3 +848,9 @@ Install-Package Hummingbird.Extensions.Canal -Version 1.0.0
 
 ## 5. 相关项目
 ### 5.1 [项目模板](https://github.com/guoming/csharp-ddd-template)
+
+
+## 6.联系方式
+> ![avatar](dingding.jpg)
+> wechat：genius-ming
+> email：geniusming@qq.com
