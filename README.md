@@ -1,10 +1,9 @@
 # Hummingbird
 
 ## 1.联系方式
-> ![avatar](dingding.jpg)
+> ![avatar](dingding.jpg =150x150)
 > wechat：genius-ming
 > email：geniusming@qq.com
-
 ## 2. 功能概要
 * 分布式锁
   * 基于Redis
@@ -12,7 +11,7 @@
   * 基于Redis
 * 分布式Id
   * 基于Snowfake
-* 分布式追踪 OpenTrack
+* 分布式追踪 Opentracing
   * 基于Jaeger
 * 消息总线
     * 消息队列
@@ -24,9 +23,10 @@
 * 健康检查
   * Mongodb 健康检查
   * MySql 健康检查
-  * Rabbitmq 健康检查
-  * Redis 健康检查
   * SqlServer 健康检查
+  * Redis 健康检查
+  * Rabbitmq 健康检查
+  * Kafka 健康检查
 * 负载均衡
   * 随机负载均衡
   * 轮训负载均衡
@@ -40,7 +40,7 @@
   * 输出到Rabbitmq(待实现)
   * 输出到Kafka(待实现)
   
-## 3. 如何使用
+## 3. 项目中如何使用
 ### 3.1 分布式锁
 
 步骤1：安装Nuget包
@@ -563,8 +563,6 @@ Install-Package Hummingbird.Extensions.EventBus.MySqlLogging -Version 1.15.3
         }
     }
 ```
-
-
 ### 3.6 健康检查
 步骤1： 安装Nuget包
 ``` SHELL
@@ -627,9 +625,7 @@ Install-Package Hummingbird.Extensions.HealthChecks.SqlServer -Version 1.15.0
         }
     }
 ```
-
-
-### 3.8 服务注册 + 服务发现 + 服务HTTP调用
+### 3.7 服务注册 + 服务发现 + 服务HTTP调用
 
 步骤1： 安装Nuget包
 ``` SHELL
@@ -770,8 +766,6 @@ Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.15.0
 
     }
 ```
-
-
 ### 3.8 Canal 数据集成
 
 步骤1： 安装Nuget包
@@ -840,5 +834,19 @@ Install-Package Hummingbird.Extensions.Canal -Version 1.0.0
         }
     }
 ```
+## 4. 如何快速部署开发环境
+### 4.1 [Consul](https://github.com/guoming/docker-compose-consul)
+### 4.2 [Apollo](https://github.com/guoming/docker-compose-apollo)
+### 4.3 [Mysql](https://github.com/guoming/docker-compose-mysql)
+### 4.4 [Redis](https://github.com/guoming/docker-compose-redis)
+### 4.5 [Elasticsearch](https://github.com/guoming/docker-compose-elasticsearch)
+### 4.6 [Kafka](https://github.com/guoming/docker-compose-kafka)
+### 4.7 [Rabbitmq](https://github.com/guoming/docker-compose-rabbitmq)
+### 4.8 [Grafana](https://github.com/guoming/docker-compose-grafana)
+### 4.9 [Influxdb](https://github.com/guoming/docker-compose-influxdb)
+### 4.10 [Jaeger](https://github.com/guoming/docker-compose-jaeger)
+### 4.11 [Canal](https://github.com/guoming/docker-compose-canal)
+### 4.12 [Nacos](https://github.com/guoming/docker-compose-nacos)
 
-
+## 5. 相关项目
+### 5.1 [项目模板](https://github.com/guoming/csharp-ddd-template)

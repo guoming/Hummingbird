@@ -39,23 +39,22 @@ namespace Hummingbird.Example
                 checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
                 checks.AddMySqlCheck("mysql", "Server=localhost;Port=3306;Database=example; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180;SslMode=None");
                 checks.AddRedisCheck("redis", Configuration["redis:0:connectionString"]);
-                //checks.AddRabbitMQCheck("rabbitmq", factory =>
-                //{
-                //    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                //    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                //    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                //});
-                //checks.AddKafkaCheck("kafka", new Confluent.Kafka.ProducerConfig()
-                //{
-                //    Acks = Confluent.Kafka.Acks.All,
-                //    //BootstrapServers = "192.168.78.29:9092,192.168.78.30:9092,192.168.78.31:9092",
-                //    BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
-                //});
+                checks.AddRabbitMQCheck("rabbitmq", factory =>
+                {
+                   factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                   factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                   factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                });
+                checks.AddKafkaCheck("kafka", new Confluent.Kafka.ProducerConfig()
+                {
+                   Acks = Confluent.Kafka.Acks.All,
+                   BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
+                });
             });
             
             services.AddHummingbird(hummingbird =>
             {
-                // hummingbird.AddCanal(Configuration.GetSection("Canal"));
+                hummingbird.AddCanal(Configuration.GetSection("Canal"));
                 hummingbird.AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");
@@ -83,18 +82,18 @@ namespace Hummingbird.Example
                 {
                     option.WithDb(0);
                     option.WithKeyPrefix("");
-                    option.WithPassword("tY7cRu9HG_jyDw2r");
-                    option.WithServerList("192.168.109.114:63100");
+                    option.WithPassword(Configuration["Redis:Password"]);
+                    option.WithServerList(Configuration["Redis:Server"]);
                     option.WithSsl(false);
                 })
                 .AddCacheing(option =>
                 {
-
                     option.WithDb(0);
                     option.WithKeyPrefix("");
-                    option.WithPassword("tY7cRu9HG_jyDw2r");
-                    option.WithReadServerList("192.168.109.114:63100");
-                    option.WithWriteServerList("192.168.109.114:63100");
+                    option.WithPassword(Configuration["Redis:Password"]);
+                    option.WithReadServerList(Configuration["Redis:Server"]);
+                    option.WithWriteServerList(Configuration["Redis:Server"]);
+
                     option.WithSsl(false);
                 })
                 .AddIdempotency(option =>
@@ -104,7 +103,7 @@ namespace Hummingbird.Example
                 })
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
-                     s.AddTags("22");
+                     s.AddTags(Configuration["SERVICE_TAGS"]);
                  })
                 .AddSnowflakeUniqueIdGenerator((workIdBuilder) =>
                 {
@@ -115,7 +114,6 @@ namespace Hummingbird.Example
                 })
                 .AddOpenTracing(builder =>
                 {
-
                     builder.AddJaeger(Configuration.GetSection("Tracing"));
                 })
                 .AddEventBus((builder) =>
@@ -157,7 +155,7 @@ namespace Hummingbird.Example
                             EnableAutoCommit = false,
                             Acks = Confluent.Kafka.Acks.All,
                             AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
-                            GroupId = "test20",//Configuration["Kafka:Receiver:GroupId"],                         
+                            GroupId = Configuration["Kafka:Receiver:GroupId"],                         
                             BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
                         });
                         option.WithReceiver(
@@ -184,7 +182,7 @@ namespace Hummingbird.Example
         {
             var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
             var logger = app.ApplicationServices.GetRequiredService<ILogger<IEventLogger>>();
-
+           
           
 
             app.UseHummingbird(humming =>

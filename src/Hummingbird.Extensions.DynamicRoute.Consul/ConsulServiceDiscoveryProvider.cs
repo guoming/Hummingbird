@@ -129,7 +129,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
 
                             if (uri.Host == "0.0.0.0" || uri.Host == "*")
                             {
-                                ipList.AddRange(getIps());
+                                ipList.AddRange(getIps().Where(a=>a!="127.0.0.1"));
                             }
                             else if (!ipList.Contains(uri.Host))
                             {

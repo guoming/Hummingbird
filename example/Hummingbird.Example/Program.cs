@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Hummingbird.AspNetCore.HealthChecks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -17,6 +18,7 @@ namespace Hummingbird.Example
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseShutdownTimeout(TimeSpan.FromSeconds(30))
                 .UseStartup<Startup>()
                 .UseHealthChecks("/healthcheck")
                 .UseMetrics((builderContext, metricsBuilder) => {
