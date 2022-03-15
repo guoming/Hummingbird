@@ -31,7 +31,10 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             _cancellationTokenSource = new CancellationTokenSource();            
             _serviceConfig = serviceConfig;
             _serviceDiscoveryProvider = serviceDiscoveryProvider;
-            _timer = new System.Timers.Timer((double)(int.Parse(_serviceConfig.SERVICE_CHECK_INTERVAL) * 1000));
+            var interval = int.Parse(_serviceConfig.SERVICE_CHECK_INTERVAL.TrimEnd('s'));
+
+
+            _timer = new System.Timers.Timer((double)(interval * 1000));
 
         }
 
