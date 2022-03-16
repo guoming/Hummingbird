@@ -182,8 +182,8 @@ namespace Hummingbird.Example
         {
             var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
             var logger = app.ApplicationServices.GetRequiredService<ILogger<IEventLogger>>();
-           
-          
+
+            app.UseMvc();
 
             app.UseHummingbird(humming =>
             {
@@ -191,7 +191,7 @@ namespace Hummingbird.Example
                 {
                     sp.UseSubscriber(eventbus =>
                     {
-                        eventbus.RegisterBatch<TestEvent, TestEventHandler1>("TestEventHandler", "TestEventHandler");
+                        //eventbus.RegisterBatch<TestEvent, TestEventHandler1>("TestEventHandler", "TestEventHandler");
                    
                         //订阅消息
                         eventbus.Subscribe((Messages) =>

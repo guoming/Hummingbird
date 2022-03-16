@@ -27,7 +27,7 @@ namespace Hummingbird.Example.Controllers
         public async Task<string> Test2()
         {
             return await httpClient.GetStringAsync(
-                uri: "http://{SERVICE_EXAMPLE}/healthcheck",
+                uri: "http://{example}/healthcheck",
                 authorizationMethod: null,
                 authorizationToken: null,
                 dictionary: null);
