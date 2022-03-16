@@ -32,6 +32,7 @@ namespace Hummingbird.Example
                       config.AddJsonFile("Config/cache.json");
                       config.AddJsonFile("Config/tracing.json");
                       config.AddEnvironmentVariables();
+                      
                   })
                .ConfigureLogging((hostingContext, logging) =>
                {
