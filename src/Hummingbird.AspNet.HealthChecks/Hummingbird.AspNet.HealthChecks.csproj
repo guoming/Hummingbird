@@ -4,6 +4,7 @@
     <TargetFrameworks>net46;</TargetFrameworks>
     <Version>1.17.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackOnBuild>true</PackOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
