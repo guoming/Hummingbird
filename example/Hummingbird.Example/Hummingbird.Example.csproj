@@ -24,9 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Hummingbird.AspNetCore.Metrics\Hummingbird.AspNetCore.Metrics.csproj" />
-    <ProjectReference Include="..\..\src\Hummingbird.Core\Hummingbird.Core.csproj" />
-    <ProjectReference Include="..\..\src\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Canal\Hummingbird.Extensions.Canal.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />

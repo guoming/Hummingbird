@@ -170,7 +170,7 @@ namespace Hummingbird.Example
 
 
                 });
-
+                
                 hummingbird.AddQuartz(Configuration.GetSection("Quartz"));
 
             });
