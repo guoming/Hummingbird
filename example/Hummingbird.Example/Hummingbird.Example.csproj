@@ -24,8 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Canal\Hummingbird.Extensions.Canal.csproj" />
-    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.Kafka\Hummingbird.Extensions.HealthChecks.Kafka.csproj" />
@@ -36,7 +34,6 @@
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.SqlServer\Hummingbird.Extensions.HealthChecks.SqlServer.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks\Hummingbird.Extensions.HealthChecks.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj" />
-    <ProjectReference Include="..\..\src\Hummingbird.Extensions.OpenTracking.Jaeger\Hummingbird.Extensions.OpenTracking.Jaeger.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Cacheing\Hummingbird.Extensions.Cacheing.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Cache\Hummingbird.Extensions.Cache.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock\Hummingbird.Extensions.DistributedLock.csproj" />
@@ -55,6 +52,24 @@
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Quartz\Hummingbird.Extensions.Quartz.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.OpenTracing.Jaeger\Hummingbird.Extensions.OpenTracing.Jaeger.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Canal\Hummingbird.Extensions.Canal.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Json\Hummingbird.Extensions.Configuration.Json.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Hummingbird.Core\Hummingbird.Core.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Hummingbird.AspNetCore.Metrics\Hummingbird.AspNetCore.Metrics.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>

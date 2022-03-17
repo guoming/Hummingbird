@@ -1,7 +1,6 @@
-using Hummingbird.DynamicRoute;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using Hummingbird.DynamicRoute;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
 {

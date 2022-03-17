@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 namespace Hummingbird.Example.Events.CanalEvent
 {
-    [ProtoBuf.ProtoContract]
     public class CanalEntryEvent
     {
         public dynamic data { get; set; }

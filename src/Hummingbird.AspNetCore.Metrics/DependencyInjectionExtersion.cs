@@ -77,14 +77,26 @@ namespace Microsoft.Extensions.DependencyInjection
                             Password = appMetrics_influxdb_password,
                             CreateDataBaseIfNotExists = true,
                         };
-                        options.HttpPolicy = new App.Metrics.Reporting.InfluxDB.Client.HttpPolicy
+                        if (configurationSection.GetSection("Options").Exists())
                         {
-                            FailuresBeforeBackoff = int.Parse(configurationSection["Options:FailuresBeforeBackoff"] ?? "3"),
-                            BackoffPeriod = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:BackoffPeriod"] ?? "30")),
-                            Timeout = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:BackoffPeriod"] ?? "15"))
-                        };
-                        options.FlushInterval = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:FlushInterval"] ?? "5"));
-
+                            options.HttpPolicy = new App.Metrics.Reporting.InfluxDB.Client.HttpPolicy
+                            {
+                                FailuresBeforeBackoff = int.Parse(configurationSection["Options:FailuresBeforeBackoff"] ?? "3"),
+                                BackoffPeriod = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:BackoffPeriod"] ?? "30")),
+                                Timeout = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:BackoffPeriod"] ?? "15"))
+                            };
+                            options.FlushInterval = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:FlushInterval"] ?? "5"));
+                        }
+                        else
+                        {
+                            options.HttpPolicy = new App.Metrics.Reporting.InfluxDB.Client.HttpPolicy
+                            {
+                                FailuresBeforeBackoff = 3,
+                                BackoffPeriod = TimeSpan.FromSeconds(15),
+                                Timeout = TimeSpan.FromSeconds(15)
+                            };
+                            options.FlushInterval = TimeSpan.FromSeconds(5);
+                        }
                     });
                 }
             }
