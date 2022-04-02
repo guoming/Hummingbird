@@ -305,7 +305,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                                 }
                             }
                         }
-                        else if (registration.Checks.Length == 0)
+                        else if (registration.Checks.Length == 1)
                         {
                             if (registration.Checks[0].TTL.HasValue)
                             {
