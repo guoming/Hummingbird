@@ -335,8 +335,15 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
 
                         var _channel = persistentConnection.GetConsumer();
 
-                        //direct fanout topic  
-                        _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
+                        //direct fanout topic
+                        try
+                        {
+                            _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
+                        }
+                        catch(Exception ex)
+                        {
+                            _logger.LogError(ex.Message, ex);
+                        }
 
                         //在MQ上定义一个持久化队列，如果名称相同不会重复创建
                         _channel.QueueDeclare(queueName, true, false, false, null);
@@ -592,10 +599,18 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
                 try
                 {
                     var _channel = persistentConnection.GetConsumer();
-                  
 
-                    //direct fanout topic  
-                    _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
+
+                    //direct fanout topic
+                    try
+                    {
+                        _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.Message, ex);
+                    }
+
                     //在MQ上定义一个持久化队列，如果名称相同不会重复创建
                     _channel.QueueDeclare(queueName, true, false, false, null);
                     //绑定交换器和队列
