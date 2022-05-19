@@ -14,6 +14,8 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
     {
         private readonly ConsulClient _client;
         private readonly MemoryCache _memoryCache;
+        private readonly string _dataCenter = "";
+       
 
         public ConsulServiceLocator(
             string SERVICE_REGISTRY_ADDRESS, string SERVICE_REGISTRY_PORT, string SERVICE_REGION, string SERVICE_REGISTRY_TOKEN)
@@ -25,15 +27,53 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                 obj.Token = SERVICE_REGISTRY_TOKEN;
             });
             _memoryCache = new MemoryCache(new MemoryCacheOptions());
+            _dataCenter = SERVICE_REGION;
         }
 
-        public async Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name,string TagFilter, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name, string TagFilter, CancellationToken cancellationToken = default(CancellationToken))
+        {
+         
+            //获取所有数据中心列表
+            var centers = await GetDataCenters(cancellationToken);
+
+            //查询当前数据中心的
+            var allList = await GetAsync(Name, TagFilter, _dataCenter, cancellationToken);
+
+            //获取其他数据中心服务列表
+            foreach (var center in centers)
+            {
+                if(center!=_dataCenter)
+                {
+                   var list=  await GetAsync(Name, TagFilter, center, cancellationToken);
+
+                   allList= allList.Union(list);
+                }
+            }
+
+            return allList;
+        }
+
+
+        
+        /// <summary>
+        /// 获取所有数据中心列表
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        private  async Task<String[]> GetDataCenters(CancellationToken cancellationToken=default(CancellationToken))
+        {
+            var response = await _client.Catalog.Datacenters(cancellationToken);
+            var centers = new List<string>();
+            return response.Response.ToArray();
+        }
+
+        private async Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name,string TagFilter, string Datacenter, CancellationToken cancellationToken = default(CancellationToken))
         {
             var list = new List<ServiceEndPoint>();
-            var response = await _client.Health.Service(Name,string.Empty, cancellationToken);
+            var response = await _client.Health.Service(Name,string.Empty,false,new QueryOptions() {  Datacenter= Datacenter}, cancellationToken);
             var services = response.Response;
             var TagFilterList = TagFilter.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            
+ 
             foreach (var p in services)
             {  
                 if (p.Service.Service.ToUpper() == Name.ToUpper())
