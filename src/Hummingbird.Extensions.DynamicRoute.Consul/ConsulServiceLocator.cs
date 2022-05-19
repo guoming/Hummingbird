@@ -16,6 +16,13 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
         private readonly MemoryCache _memoryCache;
         private readonly string _dataCenter = "";
        
+        public string Datacenter
+        {
+            get
+            {
+                return _dataCenter;
+            }
+        }
 
         public ConsulServiceLocator(
             string SERVICE_REGISTRY_ADDRESS, string SERVICE_REGISTRY_PORT, string SERVICE_REGION, string SERVICE_REGISTRY_TOKEN)
@@ -89,6 +96,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                                     Address = p.Service.Address,
                                     Port = p.Service.Port,
                                     Tags = p.Service.Tags,
+                                    Datacenter=Datacenter,
                                 });
                             }
                         }
@@ -99,6 +107,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
                                 Address = p.Service.Address,
                                 Port = p.Service.Port,
                                 Tags = p.Service.Tags,
+                                Datacenter=Datacenter
                             });
                         }
                     }

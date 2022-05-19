@@ -14,10 +14,13 @@ namespace Hummingbird.DynamicRoute
 
         public string[] Tags { get; set; }
 
+        public string Datacenter { get; set; }
+
     }
 
     public interface IServiceLocator
     {
+        string Datacenter { get; }
 
         Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name, string TagFilter, CancellationToken cancellationToken = default(CancellationToken));
 

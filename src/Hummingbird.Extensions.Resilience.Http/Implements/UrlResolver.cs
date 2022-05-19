@@ -45,10 +45,23 @@ namespace Hummingbird.Extensions.Resilience.Http
 
                         if (endPoints.Any())
                         {
-                            //获取一个地址
-                            var targetEndPoint = _loadBalancer.Lease(endPoints.ToList());
+                            //优先调用本地数据中心的服务
+                            if (endPoints.Any(a => a.Datacenter == _serviceLocator.Datacenter))
+                            {
+                                //获取一个地址
+                                var targetEndPoint = _loadBalancer.Lease(endPoints.Where(a=>a.Datacenter==_serviceLocator.Datacenter).ToList());
 
-                            return value.Replace("{" + param + "}", $"{targetEndPoint.Address}:{targetEndPoint.Port}");
+                                return value.Replace("{" + param + "}", $"{targetEndPoint.Address}:{targetEndPoint.Port}");
+
+                            }
+                            else
+                            {
+
+                                //获取一个地址
+                                var targetEndPoint = _loadBalancer.Lease(endPoints.ToList());
+
+                                return value.Replace("{" + param + "}", $"{targetEndPoint.Address}:{targetEndPoint.Port}");
+                            }
                         }
                         else
                         {
