@@ -81,6 +81,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Example", "exam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.OpenTracing.Jaeger", "src\Hummingbird.Extensions.OpenTracing.Jaeger\Hummingbird.Extensions.OpenTracing.Jaeger.csproj", "{668AFF44-2C1B-49FC-85FA-8DA18C924277}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DynamicRoute.Nacos", "src\Hummingbird.Extensions.DynamicRoute.Nacos\Hummingbird.Extensions.DynamicRoute.Nacos.csproj", "{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -227,6 +229,10 @@ Global
 		{668AFF44-2C1B-49FC-85FA-8DA18C924277}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{668AFF44-2C1B-49FC-85FA-8DA18C924277}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{668AFF44-2C1B-49FC-85FA-8DA18C924277}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -268,6 +274,7 @@ Global
 		{B5C2B30B-428A-4FC8-84A2-D9A89B601028} = {28015912-782A-4B96-9F86-D54081CD7A97}
 		{59F71543-49F5-40C6-8397-868CACCF0D72} = {DE0F9CBC-8B94-4D7D-805F-FE652AC26BFD}
 		{668AFF44-2C1B-49FC-85FA-8DA18C924277} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
