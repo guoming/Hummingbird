@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+        <Version>1.17.6</Version>
+        <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Description>Nacos服务注册和发现</Description>
+        <Authors>GUOMING</Authors>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>   
+    </PropertyGroup>
+    <ItemGroup>
+      <PackageReference Include="nacos-sdk-csharp" Version="1.3.2" />
+      <PackageReference Include="nacos-sdk-csharp.AspNetCore" Version="1.3.2" />
+      <PackageReference Include="nacos-sdk-csharp.Extensions.Configuration" Version="1.3.2" />
+      <PackageReference Include="nacos-sdk-csharp.IniParser" Version="1.3.2" />
+      <PackageReference Include="nacos-sdk-csharp.YamlParser" Version="1.3.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
+      <ProjectReference Include="..\Hummingbird.DynamicRoute\Hummingbird.DynamicRoute.csproj" />
+    </ItemGroup>
+
+</Project>

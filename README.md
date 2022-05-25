@@ -30,6 +30,7 @@
   * 轮训负载均衡
 * 服务动态路由
   * 基于Consul服务注册和发现
+  * 基于Nacos服务注册和发现
 * 服务调用
   * 基于HTTP弹性客户端(支持：服务发现、负载均衡、超时、重试、熔断)
   * 基于HTTP非弹性客户端（支持：服务发现、负载均衡）
@@ -625,6 +626,7 @@ Install-Package Hummingbird.Extensions.HealthChecks.SqlServer -Version 1.15.0
 ```
 ### 3.7 服务注册 + 服务发现 + 服务HTTP调用
 
+#### 3.7.1 基于Consul
 步骤1： 安装Nuget包
 ``` SHELL
 Install-Package Hummingbird.DynamicRoute -Version 1.15.1
@@ -746,7 +748,7 @@ Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.15.0
         [Route("Test1")]
         public async Task<string> Test1()
         {
-            return await httpClient.GetStringAsync("http://baidu.com");
+            return await httpClient.GetStringAsync("http://localhost:5001/healthcheck");
         }
 
         [HttpGet]
@@ -754,7 +756,7 @@ Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.15.0
         public async Task<string> Test2()
         {
             return await (await httpClient.PostAsync(
-                uri: "http://{SERVICE_EXAMPLE}/healthcheck",
+                uri: "http://{example}/healthcheck",
                 item: new { },
                 authorizationMethod: null, 
                 authorizationToken: null,
@@ -764,11 +766,166 @@ Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.15.0
 
     }
 ```
+
+#### 3.7.2 基于Nacos
+步骤1： 安装Nuget包
+``` SHELL
+Install-Package Hummingbird.DynamicRoute -Version 1.17.3
+Install-Package Hummingbird.LoadBalancers -Version 1.17.3
+Install-Package Hummingbird.Extensions.DynamicRoute.Nacos -Version 1.17.6
+Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.17.3
+```
+
+步骤2：配置 appsettings.json
+```JSON
+{
+  "Nacos": {
+    "EndPoint": "",
+    "ServerAddresses": [ "http://localhost:8848" ],
+    "DefaultTimeOut": 15000,
+    "Namespace": "public",
+    "ListenInterval": 1000,
+    "ServiceName": "example",
+    "GroupName": "DEFAULT_GROUP",
+    "ClusterName": "DEFAULT",
+    "Ip": "",
+    "PreferredNetworks": "",
+    "Port": 0,
+    "Weight": 100,
+    "RegisterEnabled": true,
+    "InstanceEnabled": true,
+    "Ephemeral": true,
+    "Secure": false,
+    "AccessKey": "",
+    "SecretKey": "",
+    "UserName": "",
+    "Password": "",
+    "ConfigUseRpc": true,
+    "NamingUseRpc": true,
+    "NamingLoadCacheAtStart": "",
+    "LBStrategy": "WeightRandom", //WeightRandom WeightRoundRobin
+    "Metadata": {
+      "debug": "true",
+      "dev": ""
+    }
+  }
+}
+```
+
+步骤3：添加appsettings.json 配置依赖
+
+``` C#
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            BuildWebHost(args).Run();
+        }
+
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()                
+                .ConfigureAppConfiguration((builderContext, config) =>
+                  {
+                      config.SetBasePath(Directory.GetCurrentDirectory());
+                      config.AddJsonFile("appsettings.json");
+                      config.AddEnvironmentVariables();
+                  })
+           .ConfigureLogging((hostingContext, logging) =>
+           {
+               logging.ClearProviders();
+        
+           })
+           .Build();
+    }
+```
+步骤4：服务注册到Nacos并配置弹性HTTP客户端
+```c#   
+    public class Startup
+    {
+
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddHummingbird(hummingbird =>
+            {
+                hummingbird                
+                // 服务注册到Nacos
+                .AddNacosDynamicRoute(Configuration, s =>
+                 {
+                     s.AddTags("version=v1");
+                 })
+                 // 设置弹性HTTP客户端（服务发现、超时、重试、熔断）
+                .AddResilientHttpClient((orign, option) =>
+                 {
+                     var setting = Configuration.GetSection("HttpClient");
+
+                     if (!string.IsNullOrEmpty(orign))
+                     {
+                         var orginSetting = Configuration.GetSection($"HttpClient:{orign.ToUpper()}");
+                         if(orginSetting.Exists())
+                         {
+                             setting = orginSetting;
+                         }
+                     }
+
+                     option.DurationSecondsOfBreak = int.Parse(setting["DurationSecondsOfBreak"]);
+                     option.ExceptionsAllowedBeforeBreaking = int.Parse(setting["ExceptionsAllowedBeforeBreaking"]);
+                     option.RetryCount = int.Parse(setting["RetryCount"]);
+                     option.TimeoutMillseconds = int.Parse(setting["TimeoutMillseconds"]);
+
+                 });
+               
+            });
+        }
+    }
+```
+
+步骤5：测试HTTP Client
+```c#   
+    using Hummingbird.Extensions.Resilience.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Threading;
+    using System.Threading.Tasks;
+    [Route("api/[controller]")]
+    public class HttpClientTestController : Controller
+    {
+        private readonly IHttpClient httpClient;
+        public HttpClientTestController(IHttpClient httpClient)
+        {
+            this.httpClient = httpClient;
+        }
+      
+
+        [HttpGet]
+        [Route("Test1")]
+        public async Task<string> Test1()
+        {
+            return await httpClient.GetStringAsync("http://localhost:5001/healthcheck");
+        }
+
+        [HttpGet]
+        [Route("Test2")]
+        public async Task<string> Test2()
+        {
+            return await (await httpClient.PostAsync(
+                uri: "http://{example}/healthcheck",
+                item: new { },
+                authorizationMethod: null, 
+                authorizationToken: null,
+                dictionary: null,
+                cancellationToken: CancellationToken.None)).Content.ReadAsStringAsync();
+        }
+
+    }
+```
+
 ### 3.8 Canal 数据集成
 
 步骤1： 安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.Extensions.Canal -Version 1.0.0
+Install-Package Hummingbird.Extensions.Canal -Version 1.17.3
 ```
 
 步骤2：配置 canal.json, binlog日志输出到控制台
@@ -782,7 +939,7 @@ Install-Package Hummingbird.Extensions.Canal -Version 1.0.0
         "Format": "Hummingbird.Extensions.Canal.Formatters.CanalJson.Formatter,Hummingbird.Extensions.Canal", //MaxwellJsonFormatter,CanalJsonFormatter
         "Connector": "Hummingbird.Extensions.Canal.Connectors.ConsoleConnector,Hummingbird.Extensions.Canal",
         "ConnectionInfo": {
-          "Address": "192.168.87.125",
+          "Address": "localhost",
           "Port": 11111,
           "Destination": "test1",
           "UserName": "",

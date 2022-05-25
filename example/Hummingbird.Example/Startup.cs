@@ -101,6 +101,7 @@ namespace Hummingbird.Example
                     option.Druation = TimeSpan.FromMinutes(5);
                     option.CacheRegion = "Idempotency";
                 })
+                .AddNacosDynamicRoute(Configuration.GetSection("Nacos"))
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
                      s.AddTags(Configuration["SERVICE_TAGS"]);

@@ -24,8 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Hummingbird.AspNet.HealthChecks\Hummingbird.AspNet.HealthChecks.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Nacos\Hummingbird.Extensions.DynamicRoute.Nacos.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.Kafka\Hummingbird.Extensions.HealthChecks.Kafka.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.MySql\Hummingbird.Extensions.HealthChecks.MySql.csproj" />
@@ -72,6 +74,7 @@
     <ProjectReference Include="..\..\src\Hummingbird.AspNetCore.Metrics\Hummingbird.AspNetCore.Metrics.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
+    <ProjectReference Include="..\..\test\Hummingbird.Extensions.DynamicRoute.Consul.UnitTest\Hummingbird.Extensions.DynamicRoute.Consul.UnitTest.csproj" />
   </ItemGroup>
 
   <ItemGroup>
