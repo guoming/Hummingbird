@@ -12,12 +12,12 @@ namespace Hummingbird.Example.Controllers
     using System.Linq;
     using System.Threading;
     [Route("api/[controller]")]
-    public class MQPublisherTestController : Controller
+    public class MQController : Controller
     {
         private readonly IEventLogger eventLogger;
         private readonly IEventBus eventBus;
 
-        public MQPublisherTestController(
+        public MQController(
             IEventLogger eventLogger,
             IEventBus eventBus)
         {
@@ -25,17 +25,11 @@ namespace Hummingbird.Example.Controllers
             this.eventBus = eventBus;
         }
 
-        [HttpGet]
-        [Route("Empty")]
-        public async Task<string> Empty()
-        {
-            return await Task.FromResult("");
-        }
-
+   
 
         [HttpGet]
-        [Route("Test1")]
-        public async Task<string> Test1()
+        [Route("PublishEvents")]
+        public async Task<string> PublishAsync()
         {
             var item1 = new EventLogEntry("TestEventHandler", new Events.TestEvent()
             {
@@ -72,8 +66,8 @@ namespace Hummingbird.Example.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [Route("Test2")]
-        public async Task<string> Test2()
+        [Route("SaveEvents")]
+        public async Task<string> SaveEvents()
         {   
             var connectionString = "Server=localhost;Port=63307;Database=test; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180";
 
@@ -102,8 +96,8 @@ namespace Hummingbird.Example.Controllers
         }
 
         [HttpGet]
-        [Route("Test3")]
-        public async Task Test3()
+        [Route("PublishSavedEvents")]
+        public async Task PublishSavedEvents()
         {   
             //获取1000条没有发布的事件
             var unPublishedEventList = eventLogger.GetUnPublishedEventList(1000);

@@ -26,13 +26,14 @@ namespace Hummingbird.Example
                     metricsBuilder.ToInfluxDb(builderContext.Configuration.GetSection("AppMetrics:Influxdb"));
                 })
                 .ConfigureAppConfiguration((builderContext, config) =>
-                  {
+                {
                       config.SetBasePath(Directory.GetCurrentDirectory());
                       config.AddJsonFile("Config/appsettings.json");
                       config.AddJsonFile("Config/cache.json");
                       config.AddJsonFile("Config/tracing.json");
+                      config.AddNacosConfiguration(config.Build().GetSection("Nacos"));
+
                       config.AddEnvironmentVariables();
-                      
                   })
                .ConfigureLogging((hostingContext, logging) =>
                {

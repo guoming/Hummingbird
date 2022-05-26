@@ -6,11 +6,11 @@ namespace Hummingbird.Example.Controllers
     using System.Threading.Tasks;
 
     [Route("api/[controller]")]
-    public class CacheingTestController : Controller
+    public class CacheingController : Controller
     {
         private readonly ICacheManager cacheManager;
 
-        public CacheingTestController(
+        public CacheingController(
             ICacheManager cacheManager)
         {
             this.cacheManager = cacheManager;
@@ -19,10 +19,9 @@ namespace Hummingbird.Example.Controllers
    
 
         [HttpGet]
-        [Route("Test")]
-        public  string Test()
+        [Route("Test/{cacheKey}")]
+        public  string Test(string cacheKey="key1")
         {
-            var cacheKey = "cacheKey";
             var cacheValue = cacheManager.StringGet<string>(cacheKey);
             if(cacheValue == null)
             {

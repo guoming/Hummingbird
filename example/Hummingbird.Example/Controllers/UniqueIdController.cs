@@ -6,11 +6,11 @@ namespace Hummingbird.Example.Controllers
     using System.Threading.Tasks;
 
     [Route("api/[controller]")]
-    public class UniqueIdTestController : Controller
+    public class UniqueIdController : Controller
     {
         private readonly IUniqueIdGenerator uniqueIdGenerator;
 
-        public UniqueIdTestController(
+        public UniqueIdController(
             IUniqueIdGenerator uniqueIdGenerator)
         {
             this.uniqueIdGenerator = uniqueIdGenerator;
