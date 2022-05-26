@@ -12,6 +12,12 @@
     <None Remove="wwwroot\**" />
     <None Remove="Jobs\" />
     <None Remove="Microsoft.AspNetCore" />
+    <Content Update="Config\appsettings-local.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Config\bootstrap.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Hummingbird.AspNet.HealthChecks\Hummingbird.AspNet.HealthChecks.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Apollo\Hummingbird.Extensions.Configuration.Apollo.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Nacos\Hummingbird.Extensions.Configuration.Nacos.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
@@ -39,7 +46,6 @@
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks\Hummingbird.Extensions.HealthChecks.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.OpenTracing\Hummingbird.Extensions.OpenTracing.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Cacheing\Hummingbird.Extensions.Cacheing.csproj" />
-    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Cache\Hummingbird.Extensions.Cache.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock\Hummingbird.Extensions.DistributedLock.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.EventBus.Kafka\Hummingbird.Extensions.EventBus.Kafka.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.EventBus.MySqlLogging\Hummingbird.Extensions.EventBus.MySqlLogging.csproj" />
@@ -77,12 +83,6 @@
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
     <ProjectReference Include="..\..\test\Hummingbird.Extensions.DynamicRoute.Consul.UnitTest\Hummingbird.Extensions.DynamicRoute.Consul.UnitTest.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="Config\cache.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>

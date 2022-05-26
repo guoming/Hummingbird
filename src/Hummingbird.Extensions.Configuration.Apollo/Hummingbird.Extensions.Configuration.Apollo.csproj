@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+        <Version>1.17.6</Version>
+        <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Description>Apollo配置管理</Description>
+        <Authors>GUOMING</Authors>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Com.Ctrip.Framework.Apollo" Version="2.3.0" />
+        <PackageReference Include="Com.Ctrip.Framework.Apollo.Configuration" Version="2.3.0" />
+    </ItemGroup>
+</Project>

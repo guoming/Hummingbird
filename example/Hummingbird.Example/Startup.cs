@@ -115,7 +115,7 @@ namespace Hummingbird.Example
                 })
                 .AddOpenTracing(builder =>
                 {
-                    builder.AddJaeger(Configuration.GetSection("Tracing"));
+                    builder.AddJaeger(Configuration.GetSection("Jaeger"));
                 })
                 .AddEventBus((builder) =>
                 {
