@@ -20,11 +20,13 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.Extras.DynamicProxy" Version="4.5.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.5" />
 <!--    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.2.0" />-->
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Hummingbird.AspNet.HealthChecks\Hummingbird.AspNet.HealthChecks.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Nacos\Hummingbird.Extensions.Configuration.Nacos.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Nacos\Hummingbird.Extensions.DynamicRoute.Nacos.csproj" />

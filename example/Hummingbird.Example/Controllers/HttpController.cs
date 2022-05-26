@@ -6,25 +6,25 @@ namespace Hummingbird.Example.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     [Route("api/[controller]")]
-    public class HttpClientTestController : Controller
+    public class HttpController : Controller
     {
         private readonly IHttpClient httpClient;
-        public HttpClientTestController(IHttpClient httpClient)
+        public HttpController(IHttpClient httpClient)
         {
             this.httpClient = httpClient;
         }
       
 
         [HttpGet]
-        [Route("Test1")]
-        public async Task<string> Test1()
+        [Route("TestStaticRoute")]
+        public async Task<string> TestStaticRoute()
         {
-            return await httpClient.GetStringAsync("http://baidu.com");
+            return await httpClient.GetStringAsync("http://localhost:8080/healthcheck");
         }
 
         [HttpGet]
-        [Route("Test2")]
-        public async Task<string> Test2()
+        [Route("TestDynamicRoute")]
+        public async Task<string> TestDynamicRoute()
         {
             return await httpClient.GetStringAsync(
                 uri: "http://{example}/healthcheck",

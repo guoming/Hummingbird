@@ -83,6 +83,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Open
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DynamicRoute.Nacos", "src\Hummingbird.Extensions.DynamicRoute.Nacos\Hummingbird.Extensions.DynamicRoute.Nacos.csproj", "{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Configuration.Nacos", "src\Hummingbird.Extensions.Configuration.Nacos\Hummingbird.Extensions.Configuration.Nacos.csproj", "{5862C3E1-CF6F-4E89-8270-9F8FD008FA88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -233,6 +235,10 @@ Global
 		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5862C3E1-CF6F-4E89-8270-9F8FD008FA88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5862C3E1-CF6F-4E89-8270-9F8FD008FA88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5862C3E1-CF6F-4E89-8270-9F8FD008FA88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5862C3E1-CF6F-4E89-8270-9F8FD008FA88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -275,6 +281,7 @@ Global
 		{59F71543-49F5-40C6-8397-868CACCF0D72} = {DE0F9CBC-8B94-4D7D-805F-FE652AC26BFD}
 		{668AFF44-2C1B-49FC-85FA-8DA18C924277} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{5862C3E1-CF6F-4E89-8270-9F8FD008FA88} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

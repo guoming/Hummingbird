@@ -17,10 +17,9 @@ namespace Hummingbird.Example.Controllers
         private readonly Hummingbird.Extensions.DistributedLock.IDistributedLock distributedLock;
 
         [HttpGet]
-        [Route("Test")]
-        public async Task<string> Test()
+        [Route("Test/{lockName}")]
+        public async Task<string> Test(string lockName="key1")
         {
-            var lockName = "name";
             var lockToken = Guid.NewGuid().ToString("N");
             try
             {
