@@ -24,7 +24,7 @@
     <PackageReference Include="CacheManager.Microsoft.Extensions.Logging" Version="1.2.0" />
     <PackageReference Include="CacheManager.Serialization.Json" Version="1.2.0" />
     <PackageReference Include="CacheManager.StackExchange.Redis" Version="1.2.0" />    
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <Reference Include="System.Runtime">
@@ -40,6 +40,6 @@
     <PackageReference Include="CacheManager.SystemRuntimeCaching" Version="1.2.0" />
     <PackageReference Include="CacheManager.Serialization.Json" Version="1.2.0" />
     <PackageReference Include="CacheManager.StackExchange.Redis" Version="1.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 </Project>
