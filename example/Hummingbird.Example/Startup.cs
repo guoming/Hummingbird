@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Net.Http;
 
 namespace Hummingbird.Example
 {
@@ -18,8 +19,6 @@ namespace Hummingbird.Example
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-
         }
 
         public IConfiguration Configuration { get; }
@@ -54,7 +53,9 @@ namespace Hummingbird.Example
             
             services.AddHummingbird(hummingbird =>
             {
-                hummingbird.AddCanal(Configuration.GetSection("Canal"));
+                
+                HttpClientHandler clientHandler = new HttpClientHandler();
+                clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
                 hummingbird.AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");
@@ -72,13 +73,14 @@ namespace Hummingbird.Example
                      option.ExceptionsAllowedBeforeBreaking = int.Parse(setting["ExceptionsAllowedBeforeBreaking"]);
                      option.RetryCount = int.Parse(setting["RetryCount"]);
                      option.TimeoutMillseconds = int.Parse(setting["TimeoutMillseconds"]);
-                 })
+                 },clientHandler)
+                    .AddCanal(Configuration.GetSection("Canal"))
                 .AddCache(option =>
                 {
                     option.ConfigName = "HummingbirdCache";
                     option.CacheRegion = Configuration["SERVICE_NAME"];
                 })
-                .AddDistributedLock((option) =>
+                 .AddDistributedLock((option) =>
                 {
                     option.WithDb(0);
                     option.WithKeyPrefix("");
@@ -86,6 +88,7 @@ namespace Hummingbird.Example
                     option.WithServerList(Configuration["Redis:Server"]);
                     option.WithSsl(false);
                 })
+                //.AddConsulDistributedLock(Configuration,Configuration["SERVICE_NAME"])
                 .AddCacheing(option =>
                 {
                     option.WithDb(0);
@@ -101,7 +104,7 @@ namespace Hummingbird.Example
                     option.Druation = TimeSpan.FromMinutes(5);
                     option.CacheRegion = "Idempotency";
                 })
-                .AddNacosDynamicRoute(Configuration.GetSection("Nacos"))
+                //.AddNacosDynamicRoute(Configuration.GetSection("Nacos"))
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
                      s.AddTags(Configuration["SERVICE_TAGS"]);
