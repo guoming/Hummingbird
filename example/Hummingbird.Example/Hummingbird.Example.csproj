@@ -34,6 +34,7 @@
     <ProjectReference Include="..\..\src\Hummingbird.AspNet.HealthChecks\Hummingbird.AspNet.HealthChecks.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Apollo\Hummingbird.Extensions.Configuration.Apollo.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Configuration.Nacos\Hummingbird.Extensions.Configuration.Nacos.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Consul\Hummingbird.Extensions.DistributedLock.Consul.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Nacos\Hummingbird.Extensions.DynamicRoute.Nacos.csproj" />

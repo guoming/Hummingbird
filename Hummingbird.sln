@@ -87,6 +87,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Conf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Configuration.Apollo", "src\Hummingbird.Extensions.Configuration.Apollo\Hummingbird.Extensions.Configuration.Apollo.csproj", "{F1438E39-6D48-4A95-928D-42C5707CD7BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DistributedLock.Consul", "src\Hummingbird.Extensions.DistributedLock.Consul\Hummingbird.Extensions.DistributedLock.Consul.csproj", "{74E16769-AF86-4E35-993D-89975CAD540E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DistributedLock.Consul.UnitTest", "test\Hummingbird.Extensions.DistributedLock.Consul.UnitTest\Hummingbird.Extensions.DistributedLock.Consul.UnitTest.csproj", "{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -245,6 +249,14 @@ Global
 		{F1438E39-6D48-4A95-928D-42C5707CD7BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1438E39-6D48-4A95-928D-42C5707CD7BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1438E39-6D48-4A95-928D-42C5707CD7BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74E16769-AF86-4E35-993D-89975CAD540E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74E16769-AF86-4E35-993D-89975CAD540E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74E16769-AF86-4E35-993D-89975CAD540E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74E16769-AF86-4E35-993D-89975CAD540E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -289,6 +301,8 @@ Global
 		{CD4A1D35-F78A-4E0C-81FF-6C9EDC508646} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{5862C3E1-CF6F-4E89-8270-9F8FD008FA88} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{F1438E39-6D48-4A95-928D-42C5707CD7BB} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{74E16769-AF86-4E35-993D-89975CAD540E} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D} = {28015912-782A-4B96-9F86-D54081CD7A97}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
