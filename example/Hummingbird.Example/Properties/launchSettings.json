@@ -4,9 +4,9 @@
       "commandName": "Project",
       "launchBrowser": false,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "test"
+        "ASPNETCORE_ENVIRONMENT": "local"
       },
-      "applicationUrl": "http://127.0.0.1:5001/healthcheck"
+      "applicationUrl": "http://127.0.0.1:5001"
     }
   }
 }

@@ -6,11 +6,13 @@ using System.Text;
 
 namespace Hummingbird.Extensions.DistributedLock.Consul
 {
-    public class ConsulConfig
+    public class Config
     {
 
-        public ConsulConfig()
+        public Config()
         { }
+        
+        public bool? Enable { get; set; }
 
         /// <summary>
         /// 服务注册中心地址（默认:consul）
@@ -30,5 +32,9 @@ namespace Hummingbird.Extensions.DistributedLock.Consul
         /// </summary>
         public string SERVICE_REGION { get; set; } = "dc1";
 
+        /// <summary>
+        /// 服务名称
+        /// </summary>
+        public string SERVICE_NAME { get; set; } = "";
     }
 }

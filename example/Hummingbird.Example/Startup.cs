@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Net.Http;
+using Confluent.Kafka;
 
 namespace Hummingbird.Example
 {
@@ -30,9 +31,7 @@ namespace Hummingbird.Example
              .AddMvc(a => a.EnableEndpointRouting = false)
              .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0)
              .AddControllersAsServices();  //全局配置Json序列化处理
-
-
-
+            
             services.AddHealthChecks(checks =>
             {
                 checks.WithDefaultCacheDuration(TimeSpan.FromSeconds(5));
@@ -53,13 +52,13 @@ namespace Hummingbird.Example
             
             services.AddHummingbird(hummingbird =>
             {
-                
                 HttpClientHandler clientHandler = new HttpClientHandler();
                 clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
+                
                 hummingbird.AddResilientHttpClient((orign, option) =>
                  {
                      var setting = Configuration.GetSection("HttpClient");
-
+                
                      if (!string.IsNullOrEmpty(orign))
                      {
                          var orginSetting = Configuration.GetSection($"HttpClient:{orign.ToUpper()}");
@@ -68,27 +67,28 @@ namespace Hummingbird.Example
                              setting = orginSetting;
                          }
                      }
-
+                
                      option.DurationSecondsOfBreak = int.Parse(setting["DurationSecondsOfBreak"]);
                      option.ExceptionsAllowedBeforeBreaking = int.Parse(setting["ExceptionsAllowedBeforeBreaking"]);
                      option.RetryCount = int.Parse(setting["RetryCount"]);
                      option.TimeoutMillseconds = int.Parse(setting["TimeoutMillseconds"]);
-                 },clientHandler)
-                    .AddCanal(Configuration.GetSection("Canal"))
-                .AddCache(option =>
-                {
-                    option.ConfigName = "HummingbirdCache";
-                    option.CacheRegion = Configuration["SERVICE_NAME"];
-                })
-                 .AddDistributedLock((option) =>
-                {
-                    option.WithDb(0);
-                    option.WithKeyPrefix("");
-                    option.WithPassword(Configuration["Redis:Password"]);
-                    option.WithServerList(Configuration["Redis:Server"]);
-                    option.WithSsl(false);
-                })
-                //.AddConsulDistributedLock(Configuration,Configuration["SERVICE_NAME"])
+                     
+                 },clientHandler) 
+                   .AddCanal(Configuration.GetSection("Canal"))
+                // .AddCache(option =>
+                // {
+                //     option.ConfigName = "HummingbirdCache";
+                //     option.CacheRegion = Configuration["SERVICE_NAME"];
+                // })
+                // .AddDistributedLock((option) =>
+                // {
+                //     option.WithDb(0);
+                //     option.WithKeyPrefix("");
+                //     option.WithPassword(Configuration["Redis:Password"]);
+                //     option.WithServerList(Configuration["Redis:Server"]);
+                //     option.WithSsl(false);
+                // })
+                .AddConsulDistributedLock(Configuration)
                 .AddCacheing(option =>
                 {
                     option.WithDb(0);
@@ -96,7 +96,6 @@ namespace Hummingbird.Example
                     option.WithPassword(Configuration["Redis:Password"]);
                     option.WithReadServerList(Configuration["Redis:Server"]);
                     option.WithWriteServerList(Configuration["Redis:Server"]);
-
                     option.WithSsl(false);
                 })
                 .AddIdempotency(option =>
@@ -104,7 +103,7 @@ namespace Hummingbird.Example
                     option.Druation = TimeSpan.FromMinutes(5);
                     option.CacheRegion = "Idempotency";
                 })
-                //.AddNacosDynamicRoute(Configuration.GetSection("Nacos"))
+                .AddNacosDynamicRoute(Configuration.GetSection("Nacos"))
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
                      s.AddTags(Configuration["SERVICE_TAGS"]);
@@ -114,7 +113,7 @@ namespace Hummingbird.Example
                     workIdBuilder.CenterId = 0;
                     //workIdBuilder.AddStaticWorkIdCreateStrategy(1);
                     workIdBuilder.AddConsulWorkIdCreateStrategy(Configuration["SERVICE_NAME"]);
-
+                
                 })
                 .AddOpenTracing(builder =>
                 {
@@ -129,7 +128,7 @@ namespace Hummingbird.Example
                     var DatabaseConnectionString = $"Server={Database_Server};Database={Database_Database};User Id={Database_UserId};Password={Database_Password};MultipleActiveResultSets=true";
 
                     builder
-
+                    
                     .AddMySqlEventLogging(o =>
                     {
                         o.WithEndpoint("Server=localhost;Port=63307;Database=test; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180");
@@ -138,39 +137,39 @@ namespace Hummingbird.Example
                     //{
                     //    a.WithEndpoint(DatabaseConnectionString);
                     //})
-                    //.AddRabbitmq(factory =>
-                    //{
-                    //    factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                    //    factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                    //    factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                    //    factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
-                    //    factory.WithSender(10);
-                    //});
-                    .AddKafka(option =>
+                    .AddRabbitmq(factory =>
                     {
-                        option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
-                        {
-                            Acks = Confluent.Kafka.Acks.All,
-                            BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
-                        });
-                        option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
-                        {
-                            EnableAutoOffsetStore = false,
-                            EnableAutoCommit = false,
-                            Acks = Confluent.Kafka.Acks.All,
-                            AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
-                            GroupId = Configuration["Kafka:Receiver:GroupId"],                         
-                            BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
-                        });
-                        option.WithReceiver(
-                            ReceiverAcquireRetryAttempts: 0,
-                            ReceiverHandlerTimeoutMillseconds: 10000);
-
-                        option.WithSender(
-                            AcquireRetryAttempts: 3,
-                            SenderConfirmTimeoutMillseconds: 1000,
-                            SenderConfirmFlushTimeoutMillseconds: 20);
+                        factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                        factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
+                        factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                        factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
+                        factory.WithSender(10);
                     });
+                    // .AddKafka(option =>
+                    // {
+                    //     option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
+                    //     {
+                    //         Acks = Confluent.Kafka.Acks.All,
+                    //         BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
+                    //     });
+                    //     option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
+                    //     {
+                    //         EnableAutoOffsetStore = false,
+                    //         EnableAutoCommit = false,
+                    //         Acks = Confluent.Kafka.Acks.All,
+                    //         AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
+                    //         GroupId = Configuration["Kafka:Receiver:GroupId"],                         
+                    //         BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
+                    //     });
+                    //     option.WithReceiver(
+                    //         ReceiverAcquireRetryAttempts: 0,
+                    //         ReceiverHandlerTimeoutMillseconds: 10000);
+                    //
+                    //     option.WithSender(
+                    //         AcquireRetryAttempts: 3,
+                    //         SenderConfirmTimeoutMillseconds: 1000,
+                    //         SenderConfirmFlushTimeoutMillseconds: 20);
+                    // });
 
 
                 });

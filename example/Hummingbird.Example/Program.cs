@@ -25,10 +25,11 @@ namespace Hummingbird.Example
             WebHost.CreateDefaultBuilder(args)
                 .UseShutdownTimeout(TimeSpan.FromSeconds(30))
                 .UseStartup<Startup>()
+                
                 .UseHealthChecks("/healthcheck")
                 .UseMetrics((builderContext, metricsBuilder) => {
                     metricsBuilder.ToPrometheus();
-                    metricsBuilder.ToInfluxDb(builderContext.Configuration.GetSection("AppMetrics:Influxdb"));
+                   metricsBuilder.ToInfluxDb(builderContext.Configuration.GetSection("AppMetrics:Influxdb"));
                 })
                 .ConfigureAppConfiguration((builderContext, config) =>
                 { 
@@ -39,14 +40,12 @@ namespace Hummingbird.Example
                     config.AddJsonFileEx($"Config/appsettings-{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json",true,true);
                     
                     var configuration = config.Build();
-                   // config.AddNacosConfiguration(configuration.GetSection("Nacos"));
+                    config.AddNacosConfiguration(configuration.GetSection("Nacos"));
                     config.AddApolloConfiguration(configuration.GetSection("Apollo"),
                         new Dictionary<string, ConfigFileFormat>()
                         {
                             { "appsettings", ConfigFileFormat.Json }
                         });
-                 
-                    var server = configuration["Redis:Server"];
                 })
                .ConfigureLogging((hostingContext, logging) =>
                {
