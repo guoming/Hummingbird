@@ -68,5 +68,10 @@ namespace Hummingbird.Extensions.DistributedLock
         /// </summary>
         internal int DBNum { get; private set; } = 0;
 
+        /// <summary>
+        /// 锁过期时间
+        /// </summary>
+        internal int LockExpirySeconds { get; set; }= 10;
+
     }
 }

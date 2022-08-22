@@ -773,10 +773,10 @@ Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.15.0
 #### 3.7.2 基于Nacos
 步骤1： 安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.DynamicRoute -Version 1.17.3
-Install-Package Hummingbird.LoadBalancers -Version 1.17.3
-Install-Package Hummingbird.Extensions.DynamicRoute.Nacos -Version 1.17.6
-Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.17.3
+Install-Package Hummingbird.DynamicRoute -Version 1.17.7
+Install-Package Hummingbird.LoadBalancers -Version 1.17.7
+Install-Package Hummingbird.Extensions.DynamicRoute.Nacos -Version 1.17.7
+Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.17.7
 ```
 
 步骤2：配置 appsettings.json
@@ -928,7 +928,7 @@ Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.17.3
 
 步骤1： 安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.Extensions.Canal -Version 1.17.3
+Install-Package Hummingbird.Extensions.Canal -Version 1.17.7
 ```
 
 步骤2：配置 canal.json, binlog日志输出到控制台

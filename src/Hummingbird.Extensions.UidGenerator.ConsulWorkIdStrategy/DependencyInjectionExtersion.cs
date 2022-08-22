@@ -5,6 +5,7 @@ using Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy;
 using Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy;
 using Microsoft.Extensions.Configuration;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -30,7 +31,8 @@ namespace Microsoft.Extensions.DependencyInjection
             hostBuilder.Services.AddSingleton<IWorkIdCreateStrategy>(sp =>
             {
                 var consulClient = sp.GetService<IConsulClient>();
-                var strategy = new ConsulWorkIdCreateStrategy(consulClient, AppId);
+                var logger = sp.GetService<ILogger<ConsulWorkIdCreateStrategy>>();
+                var strategy = new ConsulWorkIdCreateStrategy(consulClient, logger, AppId);
                 return strategy;
             });
 
@@ -43,7 +45,9 @@ namespace Microsoft.Extensions.DependencyInjection
             hostBuilder.Services.AddSingleton<IWorkIdCreateStrategy>(sp =>
             {
                 var consulClient = sp.GetService<IConsulClient>();
-                var strategy = new ConsulWorkIdCreateStrategy(consulClient, AppId);
+                var logger = sp.GetService<ILogger<ConsulWorkIdCreateStrategy>>();
+
+                var strategy = new ConsulWorkIdCreateStrategy(consulClient,logger, AppId);
                 return strategy;
             });
 
