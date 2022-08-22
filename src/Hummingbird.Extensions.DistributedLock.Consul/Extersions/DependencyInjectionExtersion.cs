@@ -3,6 +3,7 @@ using System;
 using Consul;
 using Hummingbird.Core;
 using Hummingbird.Extensions.DistributedLock.Consul;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -17,6 +18,8 @@ namespace Microsoft.Extensions.DependencyInjection
         
         public static IHummingbirdHostBuilder AddConsulDistributedLock(this IHummingbirdHostBuilder hostBuilder, Action<Config> configuration)
         {
+            configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+
             var config = new Config();
             configuration(config);
 
@@ -29,7 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 hostBuilder.Services.AddSingleton<IConsulClient>(a =>
                 {
-                    var _client = new ConsulClient(delegate(ConsulClientConfiguration obj)
+                    var client = new ConsulClient(delegate(ConsulClientConfiguration obj)
                     {
                         obj.Address = new Uri("http://" + config.SERVICE_REGISTRY_ADDRESS + ":" +
                                               config.SERVICE_REGISTRY_PORT);
@@ -37,14 +40,14 @@ namespace Microsoft.Extensions.DependencyInjection
                         obj.Token = config.SERVICE_REGISTRY_TOKEN;
                     });
 
-                    return _client;
+                    return client;
 
                 });
-                hostBuilder.Services.AddSingleton<Hummingbird.Extensions.DistributedLock.IDistributedLock>(a =>
+                hostBuilder.Services.AddSingleton<Hummingbird.Extensions.DistributedLock.IDistributedLock>(sp =>
                 {
-                    var _client = a.GetService<IConsulClient>();
-
-                    return new ConsulDistributedLock(_client, config.SERVICE_NAME);
+                    var client = sp.GetService<IConsulClient>();
+                    var logger = sp.GetRequiredService<ILogger<ConsulDistributedLock>>();
+                    return new ConsulDistributedLock(client, logger,config.SERVICE_NAME);
 
                 });
             }

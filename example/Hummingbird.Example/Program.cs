@@ -40,7 +40,7 @@ namespace Hummingbird.Example
                     config.AddJsonFileEx($"Config/appsettings-{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json",true,true);
                     
                     var configuration = config.Build();
-                    config.AddNacosConfiguration(configuration.GetSection("Nacos"));
+                   // config.AddNacosConfiguration(configuration.GetSection("Nacos"));
                     config.AddApolloConfiguration(configuration.GetSection("Apollo"),
                         new Dictionary<string, ConfigFileFormat>()
                         {

@@ -80,15 +80,15 @@ namespace Hummingbird.Example
                 //     option.ConfigName = "HummingbirdCache";
                 //     option.CacheRegion = Configuration["SERVICE_NAME"];
                 // })
-                // .AddDistributedLock((option) =>
-                // {
-                //     option.WithDb(0);
-                //     option.WithKeyPrefix("");
-                //     option.WithPassword(Configuration["Redis:Password"]);
-                //     option.WithServerList(Configuration["Redis:Server"]);
-                //     option.WithSsl(false);
-                // })
-                .AddConsulDistributedLock(Configuration)
+                 .AddRedisDistributedLock((option) =>
+                {
+                    option.WithDb(0);
+                    option.WithKeyPrefix("");
+                    option.WithPassword(Configuration["Redis:Password"]);
+                    option.WithServerList(Configuration["Redis:Server"]);
+                    option.WithSsl(false);
+                })
+                //.AddConsulDistributedLock(Configuration)
                 .AddCacheing(option =>
                 {
                     option.WithDb(0);
@@ -103,7 +103,7 @@ namespace Hummingbird.Example
                     option.Druation = TimeSpan.FromMinutes(5);
                     option.CacheRegion = "Idempotency";
                 })
-                .AddNacosDynamicRoute(Configuration.GetSection("Nacos"))
+                //.AddNacosDynamicRoute(Configuration.GetSection("Nacos"))
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
                      s.AddTags(Configuration["SERVICE_TAGS"]);

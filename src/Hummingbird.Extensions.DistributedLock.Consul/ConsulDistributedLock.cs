@@ -5,26 +5,32 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Consul;
+using Microsoft.Extensions.Logging;
 
 
 namespace Hummingbird.Extensions.DistributedLock.Consul
 {
     public class ConsulDistributedLock : IDistributedLock
-    {
+    {        
+        private  static readonly object _syncRoot = new object();
         private readonly IConsulClient _client;
-        private static object _syncRoot = new object();
-        private string _appId;
-        private Hashtable _hashtable = new Hashtable();
-
-        public ConsulDistributedLock(IConsulClient consulClient,string AppId)
+        private readonly string _appId;
+        private readonly Hashtable _hashtable = new Hashtable();
+        private readonly ILogger<ConsulDistributedLock> _logger;
+        
+        public ConsulDistributedLock(
+            IConsulClient consulClient,
+            ILogger<ConsulDistributedLock> logger,
+            string appId)
         {
-            _appId = AppId;
             _client = consulClient;
+            _logger = logger;
+            _appId = appId;
         }
 
-        public  bool Enter(string LockName, 
-            string LockToken, 
-            TimeSpan LockOutTime=default(TimeSpan),
+        public  bool Enter(
+            string lockName, 
+            string lockToken,
             int retryAttemptMillseconds = 50,
             int retryTimes = 5)
         {
@@ -32,7 +38,6 @@ namespace Hummingbird.Extensions.DistributedLock.Consul
             {
                 var ret = _client.Session.Create(new SessionEntry()
                 {
-                    ID = LockToken,
                     Behavior = SessionBehavior.Delete,
                     TTL = TimeSpan.FromSeconds(10)
                 }).Result;
@@ -43,7 +48,7 @@ namespace Hummingbird.Extensions.DistributedLock.Consul
                     //会话自动续约
                     _client.Session.RenewPeriodic(TimeSpan.FromSeconds(1), ret.Response, CancellationToken.None);
 
-                    _hashtable.Add($"{LockName}:{LockToken}", ret.Response);
+                    _hashtable.Add($"{lockName}:{lockToken}", ret.Response);
 
                     do
                     {
@@ -54,8 +59,12 @@ namespace Hummingbird.Extensions.DistributedLock.Consul
                             return false;
                         }
 
-                        var rs = _client.KV.Acquire(new KVPair($"{_appId}/LOCK/{LockName}")
-                                { Value = Encoding.UTF8.GetBytes(LockToken), Session = ret.Response }).Result
+                        var rs = _client.KV.Acquire(new KVPair($"{_appId}/LOCK/{lockName}")
+                            {
+                                Value = Encoding.UTF8.GetBytes(lockToken), 
+                                Session = ret.Response
+                                
+                            }).Result
                             .Response;
 
                         if (rs)
@@ -64,9 +73,10 @@ namespace Hummingbird.Extensions.DistributedLock.Consul
                         }
                         else
                         {
-                            Console.WriteLine(
-                                $"#sessionId={ret.Response}.#lock={LockName}/LOCK Failed, try again in {retryAttemptMillseconds}ms");
+                            _logger.LogInformation( $"#sessionId={ret.Response}.#lock={lockName}/LOCK Failed, try again in {retryAttemptMillseconds}ms");
+                            
                             System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(retryAttemptMillseconds));
+                            
                             continue;
                         }
 
@@ -81,23 +91,31 @@ namespace Hummingbird.Extensions.DistributedLock.Consul
             }
         }
 
-        public  void Exit(string LockName, string LockToken)
+        /// <summary>
+        /// 释放锁
+        /// </summary>
+        /// <param name="lockName">锁名称</param>
+        /// <param name="lockToken">锁Token，token匹配才能解锁</param>
+        public  void Exit(string lockName, string lockToken)
         {
             lock (_syncRoot)
             {
-                if (_hashtable.ContainsKey($"{LockName}:{LockToken}"))
+                if (_hashtable.ContainsKey($"{lockName}:{lockToken}"))
                 {
-                    var sessionId = _hashtable[$"{LockName}:{LockToken}"].ToString();
+                    var sessionId = _hashtable[$"{lockName}:{lockToken}"].ToString();
 
                     if (!string.IsNullOrEmpty((sessionId)))
                     {
-                        var rs = _client.KV.Release(new KVPair($"{_appId}/LOCK/{LockName}")
+                        var rs = _client.KV.Release(new KVPair($"{_appId}/LOCK/{lockName}")
                         {
-                            Value = Encoding.UTF8.GetBytes(LockToken),
+                            Value = Encoding.UTF8.GetBytes(lockToken),
                             Session = sessionId
                         }).Result.Response;
                         
-                        _hashtable.Remove($"{LockName}:{LockToken}");
+                        _hashtable.Remove($"{lockName}:{lockToken}");
+                        
+                        _logger.LogInformation($"release Lock {lockName} successful");
+
                     }
                 }
             }

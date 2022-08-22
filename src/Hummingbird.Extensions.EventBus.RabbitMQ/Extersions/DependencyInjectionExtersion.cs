@@ -227,7 +227,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 for (int i = 0; i < option.ReceiverMaxConnections; i++)
                 {
                     var connection = new DefaultRabbitMQPersistentConnection(hosts, connectionFactory, loggerConnection, option.ReceiverAcquireRetryAttempts);
-                    connection.TryConnect();
+                    try
+                    {
+                        connection.TryConnect();
+                    }
+                    catch (Exception e)
+                    {
+                       logger.LogError(e,e.Message);
+                    }
+                   
                     //消费端的连接池
                     receiveConnections.Add(connection);
                 }
@@ -236,7 +244,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 for (int i = 0; i < option.SenderMaxConnections; i++)
                 {
                     var connection = new DefaultRabbitMQPersistentConnection(hosts, connectionFactory, loggerConnection, option.SenderAcquireRetryAttempts);
-                    connection.TryConnect();
+                    try
+                    {
+                        connection.TryConnect();
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e,e.Message);
+                    }
                     senderConnections.Add(connection);
                 }
 

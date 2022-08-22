@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
 {
@@ -16,26 +17,35 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
         private readonly string _appId;
         private readonly string _serviceId;
         private readonly string _resourceId;
-        private string _sessionId;
-        private int? _workId;
-        private static object _syncRoot = new object();
-        
+        private static readonly object _syncRoot = new object();
+        private readonly ILogger<ConsulWorkIdCreateStrategy> _logger;
+        private  string _sessionId;
+        private  int? _workId;
         public ConsulWorkIdCreateStrategy(
             IConsulClient consulClient,
+            ILogger<ConsulWorkIdCreateStrategy> logger,
             string appId)
         {
             this._client = consulClient;
             this._appId = appId;
             this._resourceId = $"workid/{this._appId}";
             this._sessionId = string.Empty;
-
-            CreateSession();
-
+            this._logger = logger;
+            
+            try
+            {
+                CreateSession();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, e.Message);
+            }
         }
 
 
         public async Task<int> NextId()
         {
+            CreateSession();
             return await GetOrCreateWorkId();
         }
 
@@ -47,29 +57,29 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
                 {
                     if (string.IsNullOrEmpty(_sessionId))
                     {
-                        while (true)
-                        {
                             var ret = _client.Session.Create(new SessionEntry() {  Behavior = SessionBehavior.Delete, TTL = TimeSpan.FromSeconds(30) }).Result;
+                            
                             if (ret.StatusCode == HttpStatusCode.OK)
                             {
-                                this._sessionId = ret.Response;
-
+                                _client.Session.RenewPeriodic(TimeSpan.FromSeconds(5), _sessionId, CancellationToken.None);        
+                                
                                 #region Destory
                                 AppDomain.CurrentDomain.ProcessExit += delegate
                                 {
                                     _client.Session.Destroy(_sessionId);
                                 };
                                 #endregion
-
-                                _client.Session.RenewPeriodic(TimeSpan.FromSeconds(5), _sessionId, CancellationToken.None);                                
+                                
+                                this._sessionId = ret.Response;
+                                
                                 return;
                             }
                             else
                             {
-                                System.Threading.Thread.Sleep(1000);
-                                continue;
+                              
+                                _logger.LogError("Create Session failed");
                             }
-                        }
+                        
                     }
                 }
             }
