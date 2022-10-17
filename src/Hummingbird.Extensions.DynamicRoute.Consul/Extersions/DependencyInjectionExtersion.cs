@@ -52,21 +52,28 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 return config;
             });
+            
             services.AddSingleton<IConsulClient>(a =>
             {
-                var _client = new ConsulClient(delegate (ConsulClientConfiguration obj)
+                var envAddr = (Environment.GetEnvironmentVariable("CONSUL_HTTP_ADDR") ?? string.Empty).Trim().ToLowerInvariant();
+                if (!string.IsNullOrEmpty(envAddr))
                 {
-                    obj.Address = new Uri("http://" + config.SERVICE_REGISTRY_ADDRESS + ":" + config.SERVICE_REGISTRY_PORT);
-                    obj.Datacenter = config.SERVICE_REGION;
-                    obj.Token = config.SERVICE_REGISTRY_TOKEN;
-                });
-
-                return _client;
-
+                    return new ConsulClient();
+                }
+                else
+                {
+                    return  new ConsulClient(delegate (ConsulClientConfiguration obj)
+                    {
+                        obj.Address = new Uri("http://" + config.SERVICE_REGISTRY_ADDRESS + ":" + config.SERVICE_REGISTRY_PORT);
+                        obj.Datacenter = config.SERVICE_REGION;
+                        obj.Token = config.SERVICE_REGISTRY_TOKEN;
+                    });
+                }
             });
             services.AddSingleton<IServiceLocator>(a =>
             {
-                return new ConsulServiceLocator(config.SERVICE_REGISTRY_ADDRESS, config.SERVICE_REGISTRY_PORT, config.SERVICE_REGION, config.SERVICE_REGISTRY_TOKEN);
+                var consul=a.GetRequiredService<ConsulClient>();
+                return new ConsulServiceLocator(consul);
             });
             services.AddSingleton<IServiceDiscoveryProvider, ConsulServiceDiscoveryProvider>();
             services.AddHostedService<ConsulServiceRegisterHostedService>();

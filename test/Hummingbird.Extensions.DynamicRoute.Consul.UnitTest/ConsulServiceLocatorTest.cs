@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using Consul;
 using Hummingbird.DynamicRoute;
 using Xunit;
 namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
@@ -7,8 +9,15 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
     {
         [Fact]
         public async void when_tag_exists_success()
-        {
-            IServiceLocator serviceLocator = new ConsulServiceLocator("localhost", "8500", "dc1", "");
+        { 
+            var consulClient = new ConsulClient(delegate (ConsulClientConfiguration obj)
+            {
+                obj.Address = new Uri("http://localhost:8500");
+                obj.Datacenter = "dc1";
+                obj.Token = "";
+            });
+            
+            IServiceLocator serviceLocator = new ConsulServiceLocator(consulClient);
             var t = await serviceLocator.GetAsync("example", "dev");
             Assert.True(t.Count() > 0);
         }
@@ -16,7 +25,15 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
         [Fact]
         public async void when_tag_notexists_success()
         {
-            IServiceLocator serviceLocator = new ConsulServiceLocator("localhost", "8500", "dc1", "");
+            
+            var consulClient = new ConsulClient(delegate (ConsulClientConfiguration obj)
+            {
+                obj.Address = new Uri("http://localhost:8500");
+                obj.Datacenter = "dc1";
+                obj.Token = "";
+            });
+            
+            IServiceLocator serviceLocator = new ConsulServiceLocator(consulClient);
             var t = await serviceLocator.GetAsync("example", "ddd");
             Assert.True(t.Count() == 0);
         }
@@ -24,7 +41,14 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
         [Fact]
         public async void when_cross_dc_success()
         {
-            IServiceLocator serviceLocator = new ConsulServiceLocator("localhost", "8500", "dc2", "");
+            var consulClient = new ConsulClient(delegate (ConsulClientConfiguration obj)
+            {
+                obj.Address = new Uri("http://localhost:8500");
+                obj.Datacenter = "dc1";
+                obj.Token = "";
+            });
+            
+            IServiceLocator serviceLocator = new ConsulServiceLocator(consulClient);
             var t = await serviceLocator.GetAsync("example", "");
             Assert.True(t.Count() == 0);
         }
