@@ -24,17 +24,11 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             }
         }
 
-        public ConsulServiceLocator(
-            string SERVICE_REGISTRY_ADDRESS, string SERVICE_REGISTRY_PORT, string SERVICE_REGION, string SERVICE_REGISTRY_TOKEN)
+        public ConsulServiceLocator(ConsulClient client)
         {
-            _client = new ConsulClient(delegate (ConsulClientConfiguration obj)
-            {
-                obj.Address = new Uri("http://" + SERVICE_REGISTRY_ADDRESS + ":" + SERVICE_REGISTRY_PORT);
-                obj.Datacenter = SERVICE_REGION;
-                obj.Token = SERVICE_REGISTRY_TOKEN;
-            });
+            _client = client;
             _memoryCache = new MemoryCache(new MemoryCacheOptions());
-            _dataCenter = SERVICE_REGION;
+            _dataCenter = client.Config.Datacenter;
         }
 
         public async Task<IEnumerable<ServiceEndPoint>> GetAsync(string Name, string TagFilter, CancellationToken cancellationToken = default(CancellationToken))
