@@ -4,7 +4,8 @@
       "commandName": "Project",
       "launchBrowser": false,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "local"
+        "ASPNETCORE_ENVIRONMENT": "local",
+        "CONSUL_HTTP_ADDR": "127.0.0.1:8500"
       },
       "applicationUrl": "http://127.0.0.1:5001"
     }
