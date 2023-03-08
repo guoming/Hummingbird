@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard1.3</TargetFrameworks>
     <AssemblyName>Hummingbird.Extensions.HealthChecks</AssemblyName>
-    <Version>1.17.7</Version>
+    <Version>1.17.9</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
