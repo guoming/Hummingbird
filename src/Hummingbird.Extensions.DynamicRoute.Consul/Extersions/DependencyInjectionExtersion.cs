@@ -75,8 +75,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 var consul=a.GetRequiredService<ConsulClient>();
                 return new ConsulServiceLocator(consul);
             });
-            services.AddSingleton<IServiceDiscoveryProvider, ConsulServiceDiscoveryProvider>();
+            
+            #if NETCORE
+            services.AddSingleton<IServiceDiscoveryProvider, ConsulServiceDiscoveryAspCoreProvider>();
             services.AddHostedService<ConsulServiceRegisterHostedService>();
+            #else
+            services.AddSingleton<IServiceDiscoveryProvider, ConsulServiceDiscoveryAspNetProvider>();
+            #endif        
             
             return services;
         }

@@ -20,8 +20,6 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
     {
         private readonly IHealthCheckService _healthCheckService;
         private readonly ILogger<ConsulServiceDiscoveryProvider> _logger;
-        private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly IConfiguration _configuration;
         private readonly ConsulConfig _serviceConfig = new ConsulConfig();
         private readonly IConsulClient _client;
         private readonly List<AgentServiceRegistration> _registrations;
@@ -76,39 +74,23 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             IConsulClient client,
             IHealthCheckService healthCheckService,
             ILogger<ConsulServiceDiscoveryProvider> logger,
-            IHostingEnvironment hostingEnvironment,
-            IConfiguration configuration,      
-            ConsulConfig consulConfig)
+            ConsulConfig consulConfig
+            )
         {
             this._client =client;
             this._healthCheckService = healthCheckService;
             this._logger = logger;
-            this._hostingEnvironment = hostingEnvironment;
-            this._configuration = configuration;
             this._serviceConfig = consulConfig;
             this._registrations = new List<AgentServiceRegistration>();
-                
-            var urls = string.Empty;
+
+          
+        }
+
+        protected void Init(string urls)
+        {
+            
             var tags = new List<string>();
-
-            if (configuration != null)
-            {
-                urls = configuration["urls"]?.TrimEnd('/');
-            }
-
-            if (hostingEnvironment != null)
-            {
-                if (!string.IsNullOrEmpty(hostingEnvironment.EnvironmentName))
-                {
-                    tags.Add(hostingEnvironment.EnvironmentName);
-                }
-
-                if (!string.IsNullOrEmpty(hostingEnvironment.ApplicationName))
-                {
-                    tags.Add(hostingEnvironment.ApplicationName);
-                }
-            }
-
+            
             try
             {
                 if (!string.IsNullOrEmpty(_serviceConfig.SERVICE_TAGS))
@@ -413,6 +395,73 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             }
         }
     }
+    
+    #if NETCORE
+    class ConsulServiceDiscoveryAspCoreProvider : ConsulServiceDiscoveryProvider
+    {
+       
+        
+        public ConsulServiceDiscoveryAspCoreProvider(
+            IConsulClient client,
+            IHealthCheckService healthCheckService,
+            ILogger<ConsulServiceDiscoveryProvider> logger,
+            IHostingEnvironment hostingEnvironment,
+            IConfiguration configuration,      
+            ConsulConfig consulConfig):base(client,
+            healthCheckService,
+            logger,
+            consulConfig)
+        {
+
+            var urls = string.Empty;
+            var tags = new List<string>();
+
+            if (configuration != null)
+            {
+                urls = configuration["urls"]?.TrimEnd('/');
+            }
+
+            if (hostingEnvironment != null)
+            {
+                if (!string.IsNullOrEmpty(hostingEnvironment.EnvironmentName))
+                {
+                    tags.Add(hostingEnvironment.EnvironmentName);
+                }
+
+                if (!string.IsNullOrEmpty(hostingEnvironment.ApplicationName))
+                {
+                    tags.Add(hostingEnvironment.ApplicationName);
+                }
+            }
+
+            base.Init(urls);
+            
+        }
+
+    
+    }
+    #else
+    class ConsulServiceDiscoveryAspNetProvider : ConsulServiceDiscoveryProvider
+    {
 
 
+        public ConsulServiceDiscoveryAspNetProvider(
+            IConsulClient client,
+            IHealthCheckService healthCheckService,
+            ILogger<ConsulServiceDiscoveryProvider> logger,
+            IHostingEnvironment hostingEnvironment,
+            IConfiguration configuration,      
+            ConsulConfig consulConfig):base(client,
+            healthCheckService,
+            logger,
+            consulConfig)
+        {
+            base.Init("");
+            
+            base.Register();
+            
+        }
+
+    }
+    #endif
 }
