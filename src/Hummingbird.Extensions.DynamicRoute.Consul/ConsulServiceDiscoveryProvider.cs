@@ -449,8 +449,6 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             IConsulClient client,
             IHealthCheckService healthCheckService,
             ILogger<ConsulServiceDiscoveryProvider> logger,
-            IHostingEnvironment hostingEnvironment,
-            IConfiguration configuration,      
             ConsulConfig consulConfig):base(client,
             healthCheckService,
             logger,
