@@ -72,8 +72,8 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             services.AddSingleton<IServiceLocator>(a =>
             {
-                var consul=a.GetRequiredService<ConsulClient>();
-                return new ConsulServiceLocator(consul);
+                var consul=a.GetRequiredService<IConsulClient>();
+                return new ConsulServiceLocator(consul as ConsulClient);
             });
             
             #if NETCORE
