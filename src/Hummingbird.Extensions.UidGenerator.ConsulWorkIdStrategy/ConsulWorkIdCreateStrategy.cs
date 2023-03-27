@@ -2,6 +2,7 @@
 using Hummingbird.Extensions.UidGenerator.Implements;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -12,29 +13,46 @@ using Microsoft.Extensions.Logging;
 namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
 {
     class ConsulWorkIdCreateStrategy : IWorkIdCreateStrategy
-    {
+    {     
+        private static readonly object _syncRoot = new object();
         private readonly IConsulClient _client;
         private readonly string _appId;
         private readonly string _serviceId;
         private readonly string _resourceId;
-        private static readonly object _syncRoot = new object();
+        private readonly TimeSpan _sessionTTL;
+        private readonly TimeSpan _sessionRenewTTL;
         private readonly ILogger<ConsulWorkIdCreateStrategy> _logger;
+        private readonly int _centerId;
         private  string _sessionId;
         private  int? _workId;
+        private readonly string _sessionName;
+        
         public ConsulWorkIdCreateStrategy(
             IConsulClient consulClient,
             ILogger<ConsulWorkIdCreateStrategy> logger,
-            string appId)
+            int CenterId,
+            string appId,
+            TimeSpan sessionTTL,
+            TimeSpan sessionRenewTTL)
         {
             this._client = consulClient;
             this._appId = appId;
             this._resourceId = $"workid/{this._appId}";
             this._sessionId = string.Empty;
             this._logger = logger;
+            this._centerId = CenterId;
+            this._sessionTTL = sessionTTL;
+            this._sessionRenewTTL = sessionRenewTTL;
+            this._sessionName = $"{System.Net.Dns.GetHostName()}-{Process.GetCurrentProcess().ProcessName}-{Process.GetCurrentProcess().Id}";
             
             try
             {
                 CreateSession();
+                
+                AppDomain.CurrentDomain.ProcessExit += delegate
+                {
+                    Dispose();
+                };
             }
             catch (Exception e)
             {
@@ -43,13 +61,19 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
         }
 
 
-        public async Task<int> NextId()
+        public int GetCenterId()
         {
-            CreateSession();
-            return await GetOrCreateWorkId();
+            return _centerId;
         }
 
-        private void CreateSession()
+        public async Task<int> GetWorkId()
+        {
+            CreateSession();
+            
+            return await CreateWorkId();
+        }
+
+        private  void CreateSession()
         {
             if (string.IsNullOrEmpty(_sessionId))
             {
@@ -57,20 +81,13 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
                 {
                     if (string.IsNullOrEmpty(_sessionId))
                     {
-                            var ret = _client.Session.Create(new SessionEntry() {  Behavior = SessionBehavior.Delete, TTL = TimeSpan.FromSeconds(30) }).Result;
+                            var ret = _client.Session.Create(new SessionEntry() {  Behavior = SessionBehavior.Delete,  TTL = _sessionTTL }).Result;
                             
                             if (ret.StatusCode == HttpStatusCode.OK)
                             {
-                                _client.Session.RenewPeriodic(TimeSpan.FromSeconds(5), _sessionId, CancellationToken.None);        
-                                
-                                #region Destory
-                                AppDomain.CurrentDomain.ProcessExit += delegate
-                                {
-                                    _client.Session.Destroy(_sessionId);
-                                };
-                                #endregion
-                                
                                 this._sessionId = ret.Response;
+                                
+                                _client.Session.RenewPeriodic(_sessionRenewTTL, this._sessionId, CancellationToken.None); 
                                 
                                 return;
                             }
@@ -85,15 +102,17 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
             }
         }
 
-        private async Task<int> GetOrCreateWorkId()
+
+        private async Task<int> CreateWorkId()
         {
             if (!_workId.HasValue)
             {
                 while (true)
                 {
+                    
                     try
                     {
-                        var rs = (await _client.KV.Acquire(new KVPair($"{_resourceId}/LOCK") { Session = _sessionId })).Response;
+                        var rs = (await _client.KV.Acquire(new KVPair($"{_resourceId}/LOCK") {  Session = _sessionId })).Response;
 
                         if (rs)
                         {
@@ -118,7 +137,7 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
                             //存在可用的workId
                             if (workIdRange.Any())
                             {
-                                var ret = await _client.KV.Acquire(new KVPair($"{_resourceId}/{workIdRange.First()}") { Session = _sessionId, Value = Encoding.UTF8.GetBytes(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) });
+                                var ret = await _client.KV.Acquire(new KVPair($"{_resourceId}/{workIdRange.First()}") {  Session = _sessionId, Value = Encoding.UTF8.GetBytes(_sessionName) });
 
                                 if (ret.StatusCode == HttpStatusCode.OK && !ret.Response)
                                 {
@@ -138,7 +157,7 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
                         else
                         {
                             Console.WriteLine($"#sessionId={_sessionId}.#lock={_resourceId}/LOCK Failed to allocate workid, try again in 5 seconds");
-                            await System.Threading.Tasks.Task.Delay(5000);
+                            await System.Threading.Tasks.Task.Delay(1000);
                             continue;
                         }
                     }                    
@@ -153,7 +172,7 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
                             }
                             else
                             {
-                                await System.Threading.Tasks.Task.Delay(5000);
+                                await System.Threading.Tasks.Task.Delay(1000);
                                 continue;
                             }
                         }
@@ -164,6 +183,37 @@ namespace Hummingbird.Extensions.UidGenerator.WorkIdCreateStrategy
 
             return _workId.Value;
         }
-            
+
+        public async void Dispose()
+        {
+            if (!string.IsNullOrEmpty(_sessionId))
+            {
+                //释放WorkId
+                if (_workId.HasValue)
+                {
+                    while(true)
+                    {
+                        var rs=(await _client.KV.Release(new KVPair($"{_resourceId}/{_workId.Value}")
+                        {
+                            Session = _sessionId,
+                            Value = Encoding.UTF8.GetBytes(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"))
+                        })).Response;
+                        
+                        if(rs)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            await System.Threading.Tasks.Task.Delay(5000);
+                            continue;
+                        }
+                    }
+                }
+                
+                //结束会话
+                await _client.Session.Destroy(_sessionId);
+            }
+        }
     }
 }

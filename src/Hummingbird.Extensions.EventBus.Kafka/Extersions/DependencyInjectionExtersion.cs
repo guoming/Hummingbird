@@ -111,7 +111,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
     public static class DependencyInjectionExtersion
     {
-        public static IHummingbirdEventBusHostBuilder AddKafka(this IHummingbirdEventBusHostBuilder hostBuilder, Action<KafkaOption>  setupConnectionFactory)
+        public static IHummingbirdEventBusHostBuilder AddKafka(this IHummingbirdEventBusHostBuilder hostBuilder, Action<KafkaOption> setupConnectionFactory)
+        {
+            return AddKafka(hostBuilder, "kafka",setupConnectionFactory);
+        }
+
+        public static IHummingbirdEventBusHostBuilder AddKafka(this IHummingbirdEventBusHostBuilder hostBuilder, string name,Action<KafkaOption>  setupConnectionFactory)
         {
             setupConnectionFactory = setupConnectionFactory ?? throw new ArgumentNullException(nameof(setupConnectionFactory));
 
@@ -122,7 +127,13 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 return new DefaultLoadBalancerFactory<IKafkaPersistentConnection>();
             });
+
             hostBuilder.Services.AddSingleton<IEventBus, EventBusKafka>(sp =>
+            {
+                return sp.GetRequiredService<EventBusKafka>();
+            });
+            
+            hostBuilder.Services.AddSingleton<EventBusKafka>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<IEventBus>>();
                 var loggerConnection = sp.GetRequiredService<ILogger<IKafkaPersistentConnection>>();
@@ -145,17 +156,19 @@ namespace Microsoft.Extensions.DependencyInjection
                 var receiveLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> receiveConnections, option.ReceiverLoadBalancer);
                 var senderLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> senderConnections, option.SenderLoadBalancer);
 
-                return new EventBusKafka(
+                var eventBus= new EventBusKafka(
                     receiveLoadBlancer,
                     senderLoadBlancer,
                     logger,
                     sp,
                     senderRetryCount: option.SenderAcquireRetryAttempts,
                     senderConfirmTimeoutMillseconds: option.SenderConfirmTimeoutMillseconds,
-                    senderConfirmFlushTimeoutMillseconds: option.SenderConfirmFlushTimeoutMillseconds,              
+                    senderConfirmFlushTimeoutMillseconds: option.SenderConfirmFlushTimeoutMillseconds,
                     receiverAcquireRetryAttempts: option.ReceiverAcquireRetryAttempts,
                     receiverHandlerTimeoutMillseconds: option.ReceiverHandlerTimeoutMillseconds
-                   );
+                );
+                
+                return eventBus;
             });
 
             return hostBuilder;

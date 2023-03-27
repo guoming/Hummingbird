@@ -188,7 +188,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
     public static class DependencyInjectionExtersion
     {
-        public static IHummingbirdEventBusHostBuilder AddRabbitmq(this IHummingbirdEventBusHostBuilder hostBuilder, Action<RabbitMqOption>  setupConnectionFactory)
+        public static IHummingbirdEventBusHostBuilder AddRabbitmq(
+            this IHummingbirdEventBusHostBuilder hostBuilder,
+            Action<RabbitMqOption> setupConnectionFactory)
+        {
+            return AddRabbitmq(hostBuilder, "rabbitmq", setupConnectionFactory);
+        }
+
+        public static IHummingbirdEventBusHostBuilder AddRabbitmq(this IHummingbirdEventBusHostBuilder hostBuilder,string name, Action<RabbitMqOption>  setupConnectionFactory)
         {
             setupConnectionFactory = setupConnectionFactory ?? throw new ArgumentNullException(nameof(setupConnectionFactory));
 
@@ -198,6 +205,7 @@ namespace Microsoft.Extensions.DependencyInjection
             hostBuilder.Services.AddSingleton<IConnectionFactory>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<IConnectionFactory>>();
+              
 
                 var factory = new ConnectionFactory();              
                 factory.Port = option.Port;
@@ -213,7 +221,14 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 return new DefaultLoadBalancerFactory<IRabbitMQPersistentConnection>();
             });
+
             hostBuilder.Services.AddSingleton<IEventBus, EventBusRabbitMQ>(sp =>
+            {
+                return sp.GetRequiredService<EventBusRabbitMQ>();
+
+            });
+            
+            hostBuilder.Services.AddSingleton<EventBusRabbitMQ>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<IEventBus>>();
                 var loggerConnection = sp.GetRequiredService<ILogger<IRabbitMQPersistentConnection>>();
@@ -258,7 +273,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 var receiveLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> receiveConnections, option.ReceiverLoadBalancer);
                 var senderLoadBlancer = rabbitMQPersisterConnectionLoadBalancerFactory.Get(()=> senderConnections, option.SenderLoadBalancer);
                 
-                return new EventBusRabbitMQ(
+                var eventBus= new EventBusRabbitMQ(
                     receiveLoadBlancer,
                     senderLoadBlancer,
                     logger,
@@ -272,6 +287,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     exchange: option.Exchange,
                     exchangeType: option.ExchangeType
                     );
+                return eventBus;
             });
 
             return hostBuilder;

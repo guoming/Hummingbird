@@ -7,12 +7,22 @@ namespace Hummingbird.Extensions.UidGenerator.Implements
 {
     class HostNameWorkIdCreateStrategy : IWorkIdCreateStrategy
     {
+        private readonly int _centerId;
+
+        public HostNameWorkIdCreateStrategy(int CenterId)
+        {
+            _centerId = CenterId;
+        }
+        public int GetCenterId()
+        {
+            return _centerId;
+        }
 
         /**
          * 根据机器名最后的数字编号获取工作进程Id.如果线上机器命名有统一规范,建议使用此种方式.
          * 例如机器的HostName为:(公司名-部门名-服务名-环境名-编号),会截取HostName最后的编号01作为workerId.         
          **/
-        public Task<int> NextId()
+        public Task<int> GetWorkId()
         {
 
             var hostName = Dns.GetHostName();

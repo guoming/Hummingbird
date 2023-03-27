@@ -109,12 +109,12 @@ namespace Hummingbird.Example
                      s.AddTags(Configuration["SERVICE_TAGS"]);
                  })
                 .AddSnowflakeUniqueIdGenerator((workIdBuilder) =>
-                {
-                    workIdBuilder.CenterId = 0;
-                    //workIdBuilder.AddStaticWorkIdCreateStrategy(1);
-                    workIdBuilder.AddConsulWorkIdCreateStrategy(Configuration["SERVICE_NAME"]);
-                
-                })
+                   { 
+                       var CenterId = 0;
+                       //workIdBuilder.AddStaticWorkIdCreateStrategy(CenterId,1);
+                        //workIdBuilder.AddHostNameWorkIdCreateStrategy(CenterId);
+                        workIdBuilder.AddConsulWorkIdCreateStrategy(CenterId,Configuration["SERVICE_NAME"]);
+                   })
                 .AddOpenTracing(builder =>
                 {
                     builder.AddJaeger(Configuration.GetSection("Jaeger"));
@@ -144,34 +144,32 @@ namespace Hummingbird.Example
                         factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
                         factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
                         factory.WithSender(10);
+                    })
+                    .AddKafka(option =>
+                    {
+                        option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
+                        {
+                            Acks = Confluent.Kafka.Acks.All,
+                            BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
+                        });
+                        option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
+                        {
+                            EnableAutoOffsetStore = false,
+                            EnableAutoCommit = false,
+                            Acks = Confluent.Kafka.Acks.All,
+                            AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
+                            GroupId = Configuration["Kafka:Receiver:GroupId"],                         
+                            BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
+                        });
+                        option.WithReceiver(
+                            ReceiverAcquireRetryAttempts: 0,
+                            ReceiverHandlerTimeoutMillseconds: 10000);
+                    
+                        option.WithSender(
+                            AcquireRetryAttempts: 3,
+                            SenderConfirmTimeoutMillseconds: 1000,
+                            SenderConfirmFlushTimeoutMillseconds: 20);
                     });
-                    // .AddKafka(option =>
-                    // {
-                    //     option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
-                    //     {
-                    //         Acks = Confluent.Kafka.Acks.All,
-                    //         BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
-                    //     });
-                    //     option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
-                    //     {
-                    //         EnableAutoOffsetStore = false,
-                    //         EnableAutoCommit = false,
-                    //         Acks = Confluent.Kafka.Acks.All,
-                    //         AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
-                    //         GroupId = Configuration["Kafka:Receiver:GroupId"],                         
-                    //         BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
-                    //     });
-                    //     option.WithReceiver(
-                    //         ReceiverAcquireRetryAttempts: 0,
-                    //         ReceiverHandlerTimeoutMillseconds: 10000);
-                    //
-                    //     option.WithSender(
-                    //         AcquireRetryAttempts: 3,
-                    //         SenderConfirmTimeoutMillseconds: 1000,
-                    //         SenderConfirmFlushTimeoutMillseconds: 20);
-                    // });
-
-
                 });
                 
                 hummingbird.AddQuartz(Configuration.GetSection("Quartz"));

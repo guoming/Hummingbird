@@ -7,6 +7,7 @@ namespace Hummingbird.Extensions.UidGenerator
 {
     public interface IWorkIdCreateStrategy
     {
-        Task<int> NextId();
+        int GetCenterId();
+        Task<int> GetWorkId();
     }
 }

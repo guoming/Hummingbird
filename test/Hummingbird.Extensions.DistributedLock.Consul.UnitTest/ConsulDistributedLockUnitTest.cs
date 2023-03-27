@@ -4,9 +4,9 @@ using Hummingbird.Extensions.DistributedLock.Consul;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Tests
+namespace Hummingbird.Extensions.DistributedLock.Consul.UnitTest
 {
-    public class Tests
+    public class ConsulDistributedLockUnitTest
     {
         
 

@@ -8,7 +8,5 @@ namespace Hummingbird.Extensions.UidGenerator.Abastracts
     public interface IWorkIdCreateStrategyBuilder
     {
         IServiceCollection Services { get; }
-
-        int CenterId { get; set; }
     }
 }

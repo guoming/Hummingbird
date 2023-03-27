@@ -24,8 +24,8 @@ namespace Microsoft.Extensions.DependencyInjection
             hostBuilder.Services.AddSingleton<IUniqueIdGenerator>(sp =>
             {
                 var WorkIdCreateStrategy = sp.GetService<IWorkIdCreateStrategy>();
-                var workId = WorkIdCreateStrategy.NextId().Result;
-                return new SnowflakeUniqueIdGenerator(workId, builder.CenterId);
+                var workId = WorkIdCreateStrategy.GetWorkId().Result;
+                return new SnowflakeUniqueIdGenerator(workId, WorkIdCreateStrategy.GetCenterId());
             });
 
 #if NETCORE
@@ -35,30 +35,30 @@ namespace Microsoft.Extensions.DependencyInjection
             return hostBuilder;
         }
 
-        public static IWorkIdCreateStrategyBuilder AddStaticWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder, int WorkId)
-        {
+        public static IWorkIdCreateStrategy AddStaticWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder, int CenterId,int WorkId)
+        {  
+            var strategy=  new StaticWorkIdCreateStrategy(CenterId,WorkId);
             hostBuilder.Services.AddSingleton<IWorkIdCreateStrategy>(sp =>
             {
-                var strategy=  new StaticWorkIdCreateStrategy(WorkId);
+               
                 return strategy;
             });
 
-            return hostBuilder;
+            return strategy;
 
         }
 
-        public static IWorkIdCreateStrategyBuilder AddHostNameWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder)
+        public static IWorkIdCreateStrategy AddHostNameWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder,int CenterId)
         {
+            var strategy= new HostNameWorkIdCreateStrategy(CenterId);
             hostBuilder.Services.AddSingleton<IWorkIdCreateStrategy>(sp =>
             {
-                var strategy= new HostNameWorkIdCreateStrategy();
+               
                 return strategy;
             });
 
-            return hostBuilder;
+            return strategy;
         }
-
-
     }
 
 }
