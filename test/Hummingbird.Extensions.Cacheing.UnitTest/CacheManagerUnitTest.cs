@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Hummingbird.Extensions.Cacheing.UnitTest
 {
-    public class UnitTest1
+    public class CacheManagerUnitTest
     {
         [Fact]
         public void Test1()

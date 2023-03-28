@@ -93,7 +93,7 @@ namespace Hummingbird.Extensions.UidGenerator.Implements
         //机器ID最大值
         public const long MaxWorkerId = -1L ^ (-1L << WorkerIdBits);
         //数据标志ID最大值
-        const long MaxDatacenterId = -1L ^ (-1L << DatacenterIdBits);
+        public const long MaxDatacenterId = -1L ^ (-1L << DatacenterIdBits);
         //序列号ID最大值
         private const long SequenceMask = -1L ^ (-1L << SequenceBits);
         //机器ID偏左移12位

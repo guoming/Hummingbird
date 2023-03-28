@@ -1,5 +1,8 @@
 ﻿
 
+using Hummingbird.Extensions.EventBus.Kafka;
+using Hummingbird.Extensions.EventBus.RabbitMQ;
+
 namespace Hummingbird.Example.Controllers
 {
     using Hummingbird.Extensions.EventBus.Abstractions;
@@ -18,11 +21,15 @@ namespace Hummingbird.Example.Controllers
         private readonly IEventBus eventBus;
 
         public MQController(
+            EventBusRabbitMQ  rabbitMq,
+            EventBusKafka  kafka,
             IEventLogger eventLogger,
             IEventBus eventBus)
         {
+           
             this.eventLogger = eventLogger;
             this.eventBus = eventBus;
+            
         }
 
    

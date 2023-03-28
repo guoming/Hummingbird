@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
     public static class DependencyInjectionExtersion
     {
-        public static IWorkIdCreateStrategyBuilder AddConsulWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder, IConfiguration configuration, string AppId)
+        public static IWorkIdCreateStrategyBuilder AddConsulWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder, IConfiguration configuration, int CenterId,string AppId)
         {
             var config = configuration.Get<ConsulConfig>();
             hostBuilder.Services.AddSingleton<IConsulClient>(a =>
@@ -32,7 +32,13 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 var consulClient = sp.GetService<IConsulClient>();
                 var logger = sp.GetService<ILogger<ConsulWorkIdCreateStrategy>>();
-                var strategy = new ConsulWorkIdCreateStrategy(consulClient, logger, AppId);
+                var strategy = new ConsulWorkIdCreateStrategy(
+                    consulClient, 
+                    logger,CenterId, 
+                    AppId,
+                    TimeSpan.FromSeconds(300),
+                    TimeSpan.FromSeconds(5)
+                    );
                 return strategy;
             });
 
@@ -40,14 +46,21 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
 
-        public static IWorkIdCreateStrategyBuilder AddConsulWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder, string AppId)
+        public static IWorkIdCreateStrategyBuilder AddConsulWorkIdCreateStrategy(this IWorkIdCreateStrategyBuilder hostBuilder,int CenterId, string AppId)
         {
             hostBuilder.Services.AddSingleton<IWorkIdCreateStrategy>(sp =>
             {
                 var consulClient = sp.GetService<IConsulClient>();
                 var logger = sp.GetService<ILogger<ConsulWorkIdCreateStrategy>>();
-
-                var strategy = new ConsulWorkIdCreateStrategy(consulClient,logger, AppId);
+              
+                var strategy = new ConsulWorkIdCreateStrategy(
+                    consulClient,
+                    logger, 
+                    CenterId,
+                    AppId,
+                    TimeSpan.FromSeconds(300),
+                    TimeSpan.FromSeconds(5)
+                    );
                 return strategy;
             });
 

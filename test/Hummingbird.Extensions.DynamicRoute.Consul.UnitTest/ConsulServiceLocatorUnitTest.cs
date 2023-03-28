@@ -5,7 +5,7 @@ using Hummingbird.DynamicRoute;
 using Xunit;
 namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
 {
-    public class ConsulServiceLocatorTest
+    public class ConsulServiceLocatorUnitTest
     {
         [Fact]
         public async void when_tag_exists_success()

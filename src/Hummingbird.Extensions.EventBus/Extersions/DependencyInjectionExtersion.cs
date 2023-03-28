@@ -23,7 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var builder = new HummingbirdEventBusHostBuilder(hostBuilder.Services);
             setup(builder);
-           
+
             return hostBuilder;
         }
 
@@ -41,7 +41,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var builder = new HummingbirdEventBusHostBuilder(hostBuilder.Services);
             setup(builder);
-
             return hostBuilder;
         }
 
