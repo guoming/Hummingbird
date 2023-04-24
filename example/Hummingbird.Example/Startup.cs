@@ -87,6 +87,7 @@ namespace Hummingbird.Example
                     option.WithPassword(Configuration["Redis:Password"]);
                     option.WithServerList(Configuration["Redis:Server"]);
                     option.WithSsl(false);
+                    option.WithLockExpirySeconds(30);
                 })
                 //.AddConsulDistributedLock(Configuration)
                 .AddCacheing(option =>

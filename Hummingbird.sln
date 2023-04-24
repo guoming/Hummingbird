@@ -6,6 +6,12 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{54CC6103-E558-4122-9147-B73F2265997E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{28015912-782A-4B96-9F86-D54081CD7A97}"
+	ProjectSection(SolutionItems) = preProject
+		test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\obj\rider.project.restore.info = test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\obj\rider.project.restore.info
+		test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\obj\project.nuget.cache = test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\obj\project.nuget.cache
+		test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\obj\project.packagespec.json = test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\obj\project.packagespec.json
+		test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\obj\project.assets.json = test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\obj\project.assets.json
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hummingbird.Core", "src\Hummingbird.Core\Hummingbird.Core.csproj", "{27915655-9459-4FC4-A6F5-E59EF7574162}"
 EndProject
@@ -90,6 +96,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DistributedLock.Consul", "src\Hummingbird.Extensions.DistributedLock.Consul\Hummingbird.Extensions.DistributedLock.Consul.csproj", "{74E16769-AF86-4E35-993D-89975CAD540E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DistributedLock.Consul.UnitTest", "test\Hummingbird.Extensions.DistributedLock.Consul.UnitTest\Hummingbird.Extensions.DistributedLock.Consul.UnitTest.csproj", "{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DistributedLock.Redis.UnitTest", "test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\Hummingbird.Extensions.DistributedLock.Redis.UnitTest.csproj", "{AC33F000-7E53-48C4-8C57-7049C741C289}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -257,6 +265,10 @@ Global
 		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC33F000-7E53-48C4-8C57-7049C741C289}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC33F000-7E53-48C4-8C57-7049C741C289}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC33F000-7E53-48C4-8C57-7049C741C289}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC33F000-7E53-48C4-8C57-7049C741C289}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -303,6 +315,7 @@ Global
 		{F1438E39-6D48-4A95-928D-42C5707CD7BB} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{74E16769-AF86-4E35-993D-89975CAD540E} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D} = {28015912-782A-4B96-9F86-D54081CD7A97}
+		{AC33F000-7E53-48C4-8C57-7049C741C289} = {28015912-782A-4B96-9F86-D54081CD7A97}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}

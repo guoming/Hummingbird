@@ -326,9 +326,7 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         {
             if (!string.IsNullOrEmpty(cacheKey))
             {
-                var value = GetPooledClientManager(cacheKey).StringGet(cacheKey);
-
-                return value != null ? true : false;
+                return GetPooledClientManager(cacheKey).KeyExists(cacheKey);
             }
             return false;
         }

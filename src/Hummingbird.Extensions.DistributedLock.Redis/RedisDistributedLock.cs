@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace Hummingbird.Extensions.DistributedLock.Redis
 {
 
-    class RedisDistributedLock : IDistributedLock
+    public class RedisDistributedLock : IDistributedLock
     {
         private readonly ICacheManager _cacheManager;
         private readonly TimeSpan _lockCacheExpiry;

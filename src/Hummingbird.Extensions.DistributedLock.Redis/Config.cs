@@ -41,6 +41,11 @@ namespace Hummingbird.Extensions.DistributedLock
             this.DBNum = num;
         }
 
+        public void WithLockExpirySeconds(int LockExpirySeconds)
+        {
+            this.LockExpirySeconds = LockExpirySeconds;
+        }
+        
         /// <summary>
         /// 写入服务器列表
         /// </summary>
@@ -71,7 +76,7 @@ namespace Hummingbird.Extensions.DistributedLock
         /// <summary>
         /// 锁过期时间
         /// </summary>
-        internal int LockExpirySeconds { get; set; }= 10;
+        internal int LockExpirySeconds { get; set; }= 30;
 
     }
 }

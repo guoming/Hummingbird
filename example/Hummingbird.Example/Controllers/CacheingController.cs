@@ -1,4 +1,7 @@
 ﻿
+using System;
+using System.Text.Json.Serialization;
+
 namespace Hummingbird.Example.Controllers
 {
     using Hummingbird.Extensions.Cacheing;
@@ -30,6 +33,25 @@ namespace Hummingbird.Example.Controllers
             }
 
             return cacheValue;
+
+        }
+        
+        
+        [HttpGet]
+        [Route("Test2/{cacheKey}")]
+        public  string Test2(string cacheKey="key1")
+        {
+            var cacheValue = cacheManager.StringGet<object>(cacheKey);
+            if(cacheValue == null)
+            {
+                cacheValue = new
+                {
+                    name = Guid.NewGuid()
+                };
+                cacheManager.StringSet(cacheKey, cacheValue);
+            }
+
+            return Newtonsoft.Json.JsonConvert.SerializeObject(cacheValue);
 
         }
 

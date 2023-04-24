@@ -1201,10 +1201,15 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
 
         private string ConvertJson<T>(T value)
         {
-
-            string result = JsonConvert.SerializeObject(value);
-            return result;
-
+            if (typeof(T).IsValueType || typeof(T).FullName == "System.String")
+            {
+                return value.ToString();
+            }
+            else
+            {
+                string result = JsonConvert.SerializeObject(value);
+                return result;
+            }
         }
 
         private T ConvertObj<T>(RedisValue value)
