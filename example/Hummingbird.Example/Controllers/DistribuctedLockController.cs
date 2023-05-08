@@ -1,4 +1,6 @@
 ﻿
+using Hummingbird.Extensions.DistributedLock;
+
 namespace Hummingbird.Example.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
@@ -21,31 +23,35 @@ namespace Hummingbird.Example.Controllers
         public async Task<string> Test(string lockName="key1")
         {
             var lockToken = Guid.NewGuid().ToString("N");
-            try
-            {
-                if (distributedLock.Enter(
-                        lockName, 
-                        lockToken))
-                {
-                    await System.Threading.Tasks.Task.Delay(15000);
-
-                    // do something
-                    return "ok";
-                }
-                else
-                {
-                    return "error";
-                }
-            }
-            catch(Exception ex)
-            {
-                return ex.Message;
-            }
-            finally
-            {
-               distributedLock.Exit(lockName, lockToken);
-            }
             
+            using (LockResult lockResult = distributedLock.Enter(
+                       lockName,
+                       lockToken))
+            {
+                try
+                {
+                    if (lockResult.Acquired)
+                    {
+                        await System.Threading.Tasks.Task.Delay(15000);
+
+                        // do something
+                        return "ok";
+                    }
+                    else
+                    {
+                        return "error";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return ex.Message;
+                }
+                finally
+                {
+                    distributedLock.Exit(lockResult);
+                }
+            }
+
         }
 
     }

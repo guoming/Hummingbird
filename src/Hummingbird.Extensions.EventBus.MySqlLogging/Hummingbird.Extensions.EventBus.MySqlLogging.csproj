@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>1.17.13</Version>
+    <Version>1.17.14</Version>
     <AssemblyName>Hummingbird.Extensions.EventBus.MySqlLogging</AssemblyName>
     <RootNamespace>Hummingbird.Extensions.EventBus.MySqlLogging</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

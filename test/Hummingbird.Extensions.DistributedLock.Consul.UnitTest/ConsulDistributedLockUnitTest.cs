@@ -21,9 +21,8 @@ namespace Hummingbird.Extensions.DistributedLock.Consul.UnitTest
             });
 
             ConsulDistributedLock consulDistributedLock = new ConsulDistributedLock(client, null,"test");
-            consulDistributedLock.Enter("test-lock1", "");
-            consulDistributedLock.Enter("test-lock1", "");
-            consulDistributedLock.Exit("test-lock1","");
+            var lockResult = consulDistributedLock.Enter("test-lock1", "");
+            consulDistributedLock.Exit(lockResult);
         }
     }
 }

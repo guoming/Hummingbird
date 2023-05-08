@@ -4,7 +4,7 @@
    <TargetFrameworks>netstandard2.0;</TargetFrameworks>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-  <Version>1.17.13</Version>
+  <Version>1.17.14</Version>
   <Description>分布式锁实现</Description>
   <Authors>GUOMING</Authors>
   <Company>GUOMING</Company>
