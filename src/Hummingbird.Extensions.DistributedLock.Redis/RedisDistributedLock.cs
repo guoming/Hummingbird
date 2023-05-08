@@ -4,8 +4,10 @@ using Polly;
 using System;
 using System.Collections;
 using System.Linq;
-using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Timer = System.Timers.Timer;
 
 namespace Hummingbird.Extensions.DistributedLock.Redis
 {
@@ -22,7 +24,6 @@ namespace Hummingbird.Extensions.DistributedLock.Redis
             this._lockCacheExpiry = lockCacheExpiry;
             this._logger = logger;
             this._timer = new Timer(1000);
-            this.Renew();
         }
 
         private string GetLockCacheKey(string lockName)
@@ -30,76 +31,23 @@ namespace Hummingbird.Extensions.DistributedLock.Redis
             return "Lock:" + lockName;
         }
 
-        private bool RenewEnsure()
-        {
-            return _cacheManager.LockTake("Locks:RenewRunning", "", TimeSpan.FromSeconds(5));
-        }
-        
-        private void RenewFinished()
-        { 
-            _cacheManager.LockRelease("Locks:RenewRunning","");
-        }
-
 
         /// <summary>
         /// 锁过期时间续期
         /// </summary>
-        private void Renew()
+        private async Task Renew(string cacheKey, CancellationTokenSource cancellationToken)
         {
-            _timer.Elapsed += (sender, args) =>
+            var i = 0;
+            while (!cancellationToken.IsCancellationRequested)
             {
-                
-                try
-                {
-                    if (RenewEnsure())
-                    {
-                        var keys = _cacheManager.ListRange<string>("Locks");
+                _cacheManager.ExpireEntryAt(cacheKey, _lockCacheExpiry);
 
-                        foreach (var key in keys)
-                        {
-                            var arrs = key.Split(':').ToArray();
+                _logger.LogInformation(
+                    $"lock query {cacheKey} successfully, expires in {_lockCacheExpiry.TotalMilliseconds} millseconds #{i} ");
 
-                            if (arrs.Length == 2)
-                            {
-                                var cacheKey = GetLockCacheKey(arrs[1]);
-
-                                if (_cacheManager.KeyExists(cacheKey))
-                                {
-                                    _cacheManager.ExpireEntryAt(cacheKey, _lockCacheExpiry);
-
-                                    _logger.LogInformation(
-                                        $"expire lock {arrs[1]} successfully, expires in {_lockCacheExpiry.TotalMilliseconds} millseconds  ");
-
-                                }
-                                else
-                                {
-                                    _cacheManager.ListRemove("Locks", key);
-                                }
-
-                            }
-                            else
-                            {
-                                _cacheManager.ListRemove("Locks", key);
-                            }
-                        }
-
-                        RenewFinished();
-                        
-                        _logger.LogInformation("renew successfully");
-                    }
-                    else
-                    {
-                        _logger.LogInformation("renew failure, other processes are in process");
-                    }
-                    
-                }
-                catch (Exception e)
-                {
-                   _logger.LogError(e,e.Message);
-                }
-              
-            };
-            _timer.Start();
+                await Task.Delay(3000);
+                i++;
+            }
         }
 
         /// <summary>
@@ -112,17 +60,20 @@ namespace Hummingbird.Extensions.DistributedLock.Redis
         /// <param name="retryAttemptMillseconds">自旋锁重试间隔时间（默认50毫秒）</param>
         /// <param name="retryTimes">自旋重试次数(默认10次)</param>
         /// <returns></returns>
-        public bool Enter(
+        public LockResult Enter(
             string lockName,
             string lockToken,
             int retryAttemptMillseconds = 50,
             int retryTimes = 5)
         {
+
+            var cancellationToken = new CancellationTokenSource();
             
             if (_cacheManager != null)
             {
                 var cacheKey = GetLockCacheKey(lockName);
-
+             
+                
                 do
                 {
                     if (!_cacheManager.LockTake(cacheKey, lockToken, _lockCacheExpiry))
@@ -130,7 +81,7 @@ namespace Hummingbird.Extensions.DistributedLock.Redis
                         retryTimes--;
                         if (retryTimes < 0)
                         {
-                            return false;
+                            return new LockResult(false,cancellationToken, lockName,lockToken);
                         }
 
                         if (retryAttemptMillseconds > 0)
@@ -142,19 +93,21 @@ namespace Hummingbird.Extensions.DistributedLock.Redis
                         }
                     }
                     else
-                    {  
-                        _cacheManager.ListLeftPush("Locks", $"{lockToken}:{lockName}");
-                        
+                    {
                         _logger.LogInformation($"enter Lock {lockName} successfully");
+
+                        Renew(cacheKey, cancellationToken);
                         
-                        return true;
+                        return new LockResult(true, cancellationToken, lockName,lockToken);
                     }
                 }
                 while (retryTimes > 0);
+
+              
             }
 
             //获取锁超时返回
-            return false;
+            return new LockResult(false,cancellationToken, lockName,lockToken);
 
         }
 
@@ -163,26 +116,29 @@ namespace Hummingbird.Extensions.DistributedLock.Redis
         /// </summary>
         /// <param name="lockName">锁名称</param>
         /// <param name="lockToken">锁Token，token匹配才能解锁</param>
-        public void Exit(
-            string lockName,
-            string lockToken)
+        public void Exit(LockResult lockResult)
         {
-            if (_cacheManager != null)
+            if (lockResult != null)
             {
-                var polly = Policy.Handle<Exception>()
-                    .WaitAndRetry(10, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)), (exception, timespan, retryCount, context) =>
-                    {                            
-                        _logger.LogError($"release Lock {lockName} failure,{exception.Message}");
-                    });
+                lockResult.CancellationToken.Cancel();
 
-                polly.Execute(() =>
+                if (_cacheManager != null)
                 {
-                    var cacheKey = GetLockCacheKey(lockName);
-                    _cacheManager.LockRelease(cacheKey, lockToken);
-                    _cacheManager.ListRemove("Locks",  $"{lockToken}:{lockName}");
-                    _logger.LogInformation($"release Lock {lockName} successful");
+                    var polly = Policy.Handle<Exception>()
+                        .WaitAndRetry(10, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt)),
+                            (exception, timespan, retryCount, context) =>
+                            {
+                                _logger.LogError($"release Lock {lockResult.LockName} failure,{exception.Message}");
+                            });
 
-                });
+                    polly.Execute(() =>
+                    {
+                        var cacheKey = GetLockCacheKey(lockResult.LockName);
+                        _cacheManager.LockRelease(cacheKey, lockResult.LockToken);
+                        _logger.LogInformation($"release Lock {lockResult.LockName} successful");
+
+                    });
+                }
             }
         }
     }
