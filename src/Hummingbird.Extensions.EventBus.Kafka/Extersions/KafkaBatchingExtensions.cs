@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
 {
@@ -39,6 +40,36 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
             return res;
         }
 
+        public static async Task ProduceBatchAsync<TKey, TVal>(
+            this IProducer<TKey, TVal> producer,
+            string topic,
+            IEnumerable<Message<TKey, TVal>> messages,
+            CancellationToken cts = default(CancellationToken))
+        {
+            var reportsExpected = 0;
+            var reportsReceived = 0;
+            var tasks = new List<Task>();
+            foreach (var message in messages)
+            {
+                int partation = GetPartation(message.Headers);
+
+                tasks.Add(producer.ProduceAsync(new TopicPartition(topic, new Partition(partation)), message, cts)
+                    .ContinueWith(
+                        state => { Interlocked.Increment(ref reportsReceived); }));
+
+                reportsExpected++;
+            }
+
+            Task.WaitAll(tasks.ToArray());
+
+            if (reportsReceived < reportsExpected)
+            {
+                var msg =
+                    $"Kafka producer flush did not complete within the timeout; only received {reportsReceived} " +
+                    $"delivery reports out of {reportsExpected} expected.";
+                throw new Exception(msg);
+            }
+        }
 
         public static void ProduceBatch<TKey, TVal>(
             this IProducer<TKey, TVal> producer, 
@@ -71,7 +102,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                 reportsExpected++;
             }
 
-            producer.Flush(flushTimeout);
+         
 
             var deadline = DateTime.UtcNow + flushTimeout;
 
@@ -80,6 +111,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                 reportsReceived < reportsExpected)
             {
                 cts.ThrowIfCancellationRequested();
+                producer.Flush(flushWait);
             }
 
             if (!errorReports.IsEmpty)

@@ -128,7 +128,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka
             {
                 tracer.SetComponent(_compomentName);
 
-                Enqueue(Mapping(Events), cancellationToken);
+               
+                await Enqueue(Mapping(Events), cancellationToken);
             }
         }
 
@@ -141,7 +142,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
             {
                 tracer.SetComponent(_compomentName);
 
-                Enqueue(Mapping(Events), cancellationToken);
+                await Enqueue(Mapping(Events), cancellationToken);
 
                 return await Task.FromResult(true);
 
@@ -185,7 +186,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
             return evtDicts;
         }
 
-        private void Enqueue(List<EventMessage> Events, CancellationToken cancellationToken)
+        private async Task Enqueue(List<EventMessage> Events, CancellationToken cancellationToken)
         {
             var persistentConnection = _senderLoadBlancer.Lease();
 
@@ -225,7 +226,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                         }
                     }
 
-                    channel.ProduceBatch(topic, messages, TimeSpan.FromMilliseconds(_senderConfirmTimeoutMillseconds), TimeSpan.FromMilliseconds(_senderConfirmFlushTimeoutMillseconds), cancellationToken);
+                   await channel.ProduceBatchAsync(topic, messages, cancellationToken);
                 }
             }
             catch (Exception ex)
