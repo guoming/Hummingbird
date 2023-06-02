@@ -4,6 +4,7 @@ using Hummingbird.DynamicRoute;
 using Hummingbird.Extensions.DynamicRoute.Consul;
 using Microsoft.Extensions.Configuration;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -55,25 +56,21 @@ namespace Microsoft.Extensions.DependencyInjection
             
             services.AddSingleton<IConsulClient>(a =>
             {
-                var envAddr = (Environment.GetEnvironmentVariable("CONSUL_HTTP_ADDR") ?? string.Empty).Trim().ToLowerInvariant();
-                if (!string.IsNullOrEmpty(envAddr))
+                
+                return  new ConsulClient(delegate (ConsulClientConfiguration obj)
                 {
-                    return new ConsulClient();
-                }
-                else
-                {
-                    return  new ConsulClient(delegate (ConsulClientConfiguration obj)
-                    {
-                        obj.Address = new Uri("http://" + config.SERVICE_REGISTRY_ADDRESS + ":" + config.SERVICE_REGISTRY_PORT);
-                        obj.Datacenter = config.SERVICE_REGION;
-                        obj.Token = config.SERVICE_REGISTRY_TOKEN;
-                    });
-                }
+                    obj.Address = new Uri("http://" + config.SERVICE_REGISTRY_ADDRESS + ":" + config.SERVICE_REGISTRY_PORT);
+                    obj.Datacenter = config.SERVICE_REGION;
+                    obj.Token = config.SERVICE_REGISTRY_TOKEN;
+                });
+                
             });
             services.AddSingleton<IServiceLocator>(a =>
             {
                 var consul=a.GetRequiredService<IConsulClient>();
-                return new ConsulServiceLocator(consul as ConsulClient);
+                var logger=a.GetRequiredService<ILogger<ConsulServiceLocator>>();
+
+                return new ConsulServiceLocator(logger,consul as ConsulClient);
             });
             
             #if NETCORE

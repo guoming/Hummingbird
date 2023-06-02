@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Consul;
 using Hummingbird.DynamicRoute;
+using Microsoft.Extensions.Logging;
 using Xunit;
 namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
 {
@@ -16,8 +17,10 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
                 obj.Datacenter = "dc1";
                 obj.Token = "";
             });
+
+     
             
-            IServiceLocator serviceLocator = new ConsulServiceLocator(consulClient);
+            IServiceLocator serviceLocator = new ConsulServiceLocator(null,consulClient);
             var t = await serviceLocator.GetAsync("example", "dev");
             Assert.True(t.Count() > 0);
         }
@@ -33,7 +36,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
                 obj.Token = "";
             });
             
-            IServiceLocator serviceLocator = new ConsulServiceLocator(consulClient);
+            IServiceLocator serviceLocator = new ConsulServiceLocator(null,consulClient);
             var t = await serviceLocator.GetAsync("example", "ddd");
             Assert.True(t.Count() == 0);
         }
@@ -48,7 +51,7 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul.UnitTest
                 obj.Token = "";
             });
             
-            IServiceLocator serviceLocator = new ConsulServiceLocator(consulClient);
+            IServiceLocator serviceLocator = new ConsulServiceLocator(null,consulClient);
             var t = await serviceLocator.GetAsync("example", "");
             Assert.True(t.Count() == 0);
         }
