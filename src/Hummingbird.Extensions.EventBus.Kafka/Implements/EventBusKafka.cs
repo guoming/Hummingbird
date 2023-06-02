@@ -124,11 +124,10 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         /// </summary>
         public async Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events, CancellationToken cancellationToken)
         {
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("Kafka"))
             {
                 tracer.SetComponent(_compomentName);
-
-               
+                
                 await Enqueue(Mapping(Events), cancellationToken);
             }
         }
@@ -138,14 +137,13 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         /// </summary>
         public async Task<bool> PublishAsync(List<Models.EventLogEntry> Events, CancellationToken cancellationToken)
         {
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("Kafka"))
             {
                 tracer.SetComponent(_compomentName);
 
                 await Enqueue(Mapping(Events), cancellationToken);
 
                 return await Task.FromResult(true);
-
             }
         }
 

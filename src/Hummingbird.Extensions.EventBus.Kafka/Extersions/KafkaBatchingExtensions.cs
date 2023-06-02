@@ -46,29 +46,53 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
             IEnumerable<Message<TKey, TVal>> messages,
             CancellationToken cts = default(CancellationToken))
         {
+            //错误报告
+            var errorReports = new ConcurrentQueue<DeliveryResult<TKey, TVal>>();
+            //期望接收数量
             var reportsExpected = 0;
+            //实际接收的数量
             var reportsReceived = 0;
             var tasks = new List<Task>();
+            
             foreach (var message in messages)
             {
                 int partation = GetPartation(message.Headers);
 
                 tasks.Add(producer.ProduceAsync(new TopicPartition(topic, new Partition(partation)), message, cts)
-                    .ContinueWith(
-                        state => { Interlocked.Increment(ref reportsReceived); }));
+                    .ContinueWith(state =>
+                    {
+                        Interlocked.Increment(ref reportsReceived);
+                        
+                        //消息没有被持久化，则写入异常报告中
+                        if (state.Result.Status != PersistenceStatus.Persisted)
+                        {
+                            errorReports.Enqueue(state.Result);
+                        }
+                        
+                    },cts));
 
                 reportsExpected++;
             }
 
-            Task.WaitAll(tasks.ToArray());
-
-            if (reportsReceived < reportsExpected)
+            //等待所有发送完成
+            await Task.WhenAll(tasks.ToArray()).ContinueWith(state =>
             {
-                var msg =
-                    $"Kafka producer flush did not complete within the timeout; only received {reportsReceived} " +
-                    $"delivery reports out of {reportsExpected} expected.";
-                throw new Exception(msg);
-            }
+                //如果存在失败报告，则抛出异常
+                if (!errorReports.IsEmpty)
+                {
+                    throw new Exception($"{errorReports.Count} Kafka produce(s) failed.");
+                }
+
+                //如果实际接收数量小于期望数量，则抛出异常
+                if (reportsReceived < reportsExpected)
+                {
+                    var msg =
+                        $"Kafka producer flush did not complete within the timeout; only received {reportsReceived} " +
+                        $"delivery reports out of {reportsExpected} expected.";
+                    throw new Exception(msg);
+                }
+
+            },cts);
         }
 
         public static void ProduceBatch<TKey, TVal>(
@@ -101,9 +125,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
 
                 reportsExpected++;
             }
-
-         
-
+            
             var deadline = DateTime.UtcNow + flushTimeout;
 
             while (
