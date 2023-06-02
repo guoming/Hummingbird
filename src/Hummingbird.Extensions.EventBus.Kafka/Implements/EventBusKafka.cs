@@ -124,11 +124,11 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         /// </summary>
         public async Task PublishNonConfirmAsync(List<Models.EventLogEntry> Events, CancellationToken cancellationToken)
         {
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("Kafka"))
             {
                 tracer.SetComponent(_compomentName);
-
-                Enqueue(Mapping(Events), cancellationToken);
+                
+                await Enqueue(Mapping(Events), cancellationToken);
             }
         }
 
@@ -137,14 +137,13 @@ namespace Hummingbird.Extensions.EventBus.Kafka
         /// </summary>
         public async Task<bool> PublishAsync(List<Models.EventLogEntry> Events, CancellationToken cancellationToken)
         {
-            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("AMQP"))
+            using (var tracer = new Hummingbird.Extensions.Tracing.Tracer("Kafka"))
             {
                 tracer.SetComponent(_compomentName);
 
-                Enqueue(Mapping(Events), cancellationToken);
+                await Enqueue(Mapping(Events), cancellationToken);
 
                 return await Task.FromResult(true);
-
             }
         }
 
@@ -185,7 +184,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
             return evtDicts;
         }
 
-        private void Enqueue(List<EventMessage> Events, CancellationToken cancellationToken)
+        private async Task Enqueue(List<EventMessage> Events, CancellationToken cancellationToken)
         {
             var persistentConnection = _senderLoadBlancer.Lease();
 
@@ -225,7 +224,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                         }
                     }
 
-                    channel.ProduceBatch(topic, messages, TimeSpan.FromMilliseconds(_senderConfirmTimeoutMillseconds), TimeSpan.FromMilliseconds(_senderConfirmFlushTimeoutMillseconds), cancellationToken);
+                   await channel.ProduceBatchAsync(topic, messages, cancellationToken);
                 }
             }
             catch (Exception ex)
