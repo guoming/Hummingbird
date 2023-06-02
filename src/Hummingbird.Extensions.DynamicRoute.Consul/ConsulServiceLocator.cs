@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Hummingbird.Extensions.DynamicRoute.Consul
 {
 
     public class ConsulServiceLocator:IServiceLocator
     {
+        private readonly ILogger<ConsulServiceLocator> _logger;
         private readonly ConsulClient _client;
         private readonly MemoryCache _memoryCache;
         private readonly string _dataCenter = "";
@@ -24,8 +26,11 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             }
         }
 
-        public ConsulServiceLocator(ConsulClient client)
+        public ConsulServiceLocator(
+            ILogger<ConsulServiceLocator> logger,
+            ConsulClient client)
         {
+            _logger = logger;
             _client = client;
             _memoryCache = new MemoryCache(new MemoryCacheOptions());
             _dataCenter = client.Config.Datacenter;
@@ -45,9 +50,16 @@ namespace Hummingbird.Extensions.DynamicRoute.Consul
             {
                 if(center!=_dataCenter)
                 {
-                   var list=  await GetAsync(Name, TagFilter, center, cancellationToken);
+                    try
+                    {
+                        var list=  await GetAsync(Name, TagFilter, center, cancellationToken);
 
-                   allList= allList.Union(list);
+                        allList= allList.Union(list);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.Message,ex);
+                    }
                 }
             }
 
