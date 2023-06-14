@@ -59,7 +59,7 @@ namespace Hummingbird.Extensions.EventBus.MySqlLogging
                 sqlParamters.Add("TraceId", eventLogEntry.TraceId, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 50);
                 sqlParamters.Add("EventTypeName", eventLogEntry.EventTypeName, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input, 500);
                 sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
-                sqlParamters.Add("TimesSent", 0, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
+                sqlParamters.Add("TimesSent", eventLogEntry.TimesSent, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("CreationTime", DateTime.UtcNow, System.Data.DbType.Date, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("Content", eventLogEntry.Content, System.Data.DbType.StringFixedLength, System.Data.ParameterDirection.Input);
                 sqlParamtersList.Add(sqlParamters);
