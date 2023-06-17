@@ -69,7 +69,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                             errorReports.Enqueue(state.Result);
                         }
                         
-                    },cts));
+                    },TaskContinuationOptions.NotOnFaulted));
 
                 reportsExpected++;
             }
@@ -92,7 +92,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                     throw new Exception(msg);
                 }
 
-            },cts);
+            }, TaskContinuationOptions.NotOnFaulted);
         }
 
         public static void ProduceBatch<TKey, TVal>(

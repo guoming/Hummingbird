@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Com.Ctrip.Framework.Apollo.Enums;
 using Com.Ctrip.Framework.Apollo.Logging;
 using Hummingbird.AspNetCore.HealthChecks;
@@ -16,6 +17,7 @@ namespace Hummingbird.Example
 {
     public class Program
     {
+
         public static void Main(string[] args)
         {
             BuildWebHost(args).Run();
