@@ -136,7 +136,7 @@ namespace Hummingbird.Extensions.EventBus.SqlServerLogging
                 sqlParamters.Add("State", eventLogEntry.State, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("TimesSent", eventLogEntry.TimesSent, System.Data.DbType.Int32, System.Data.ParameterDirection.Input, 4);
                 sqlParamters.Add("CreationTime", DateTime.UtcNow, System.Data.DbType.DateTime2, System.Data.ParameterDirection.Input, 4);
-                sqlParamters.Add("Content", eventLogEntry.Content, System.Data.DbType.Binary, System.Data.ParameterDirection.Input);
+                sqlParamters.Add("Content", eventLogEntry.Content, System.Data.DbType.String, System.Data.ParameterDirection.Input);
                 sqlParamtersList.Add(sqlParamters);
             }
 
