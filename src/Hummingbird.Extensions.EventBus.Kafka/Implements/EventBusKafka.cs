@@ -224,7 +224,10 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                         }
                     }
 
-                   await channel.ProduceBatchAsync(topic, messages, cancellationToken);
+                   await channel.ProduceBatchAsync(topic, messages,
+                       flushTimeout: TimeSpan.FromMilliseconds(_senderConfirmTimeoutMillseconds), 
+                       flushWait: TimeSpan.FromMilliseconds(_senderConfirmFlushTimeoutMillseconds),
+                       cancellationToken);
                 }
             }
             catch (Exception ex)

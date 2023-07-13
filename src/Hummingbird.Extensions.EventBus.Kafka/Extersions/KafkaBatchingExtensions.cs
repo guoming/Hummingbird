@@ -44,6 +44,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
             this IProducer<TKey, TVal> producer,
             string topic,
             IEnumerable<Message<TKey, TVal>> messages,
+            TimeSpan flushTimeout,
+            TimeSpan flushWait,
             CancellationToken cts = default(CancellationToken))
         {
             //错误报告
@@ -77,6 +79,15 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
             //等待所有发送完成
             await Task.WhenAll(tasks.ToArray()).ContinueWith(state =>
             {
+                var deadline = DateTime.UtcNow + flushTimeout;
+
+                while (
+                    DateTime.UtcNow < deadline && 
+                    reportsReceived < reportsExpected)
+                {
+                    cts.ThrowIfCancellationRequested();
+                }
+                
                 //如果存在失败报告，则抛出异常
                 if (!errorReports.IsEmpty)
                 {
