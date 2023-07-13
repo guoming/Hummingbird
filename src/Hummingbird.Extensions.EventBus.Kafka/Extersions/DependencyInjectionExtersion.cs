@@ -36,13 +36,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="IdempotencyDurationSeconds">幂等持续时间（秒）</param>
         /// <param name="PreFetch">预取数量</param>
         public void WithReceiver(            
+            int ReveiverMaxDegreeOfParallelism=1,
             int ReceiverAcquireRetryAttempts = 0, 
             int ReceiverHandlerTimeoutMillseconds=10000,
             string LoadBalancer= "RoundRobinLoadBalancer")
         {   
             this.ReceiverAcquireRetryAttempts = ReceiverAcquireRetryAttempts;
             this.ReceiverHandlerTimeoutMillseconds = ReceiverHandlerTimeoutMillseconds;
-           
+            this.ReveiverMaxDegreeOfParallelism= ReveiverMaxDegreeOfParallelism;
             this.ReceiverLoadBalancer = LoadBalancer;
             
         }
@@ -92,6 +93,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// 消费者负载均衡器
         /// </summary>
         internal string ReceiverLoadBalancer { get; set; }
+
+        internal int ReveiverMaxDegreeOfParallelism { get; set; } = 1;
 
         /// <summary>
         /// 消费者最大重试次数
@@ -164,6 +167,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     senderRetryCount: option.SenderAcquireRetryAttempts,
                     senderConfirmTimeoutMillseconds: option.SenderConfirmTimeoutMillseconds,
                     senderConfirmFlushTimeoutMillseconds: option.SenderConfirmFlushTimeoutMillseconds,
+                    reveiverMaxDegreeOfParallelism: option.ReveiverMaxDegreeOfParallelism,
                     receiverAcquireRetryAttempts: option.ReceiverAcquireRetryAttempts,
                     receiverHandlerTimeoutMillseconds: option.ReceiverHandlerTimeoutMillseconds
                 );
