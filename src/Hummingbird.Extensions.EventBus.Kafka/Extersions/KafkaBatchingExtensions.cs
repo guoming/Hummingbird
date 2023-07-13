@@ -86,6 +86,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                     reportsReceived < reportsExpected)
                 {
                     cts.ThrowIfCancellationRequested();
+                    System.Threading.Thread.Sleep(1);
                 }
                 
                 //如果存在失败报告，则抛出异常
