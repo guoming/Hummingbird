@@ -65,19 +65,30 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                     {
                         Interlocked.Increment(ref reportsReceived);
                         
-                        //消息没有被持久化，则写入异常报告中
-                        if (state.Result.Status != PersistenceStatus.Persisted)
+                        if (state.IsFaulted)
                         {
-                            errorReports.Enqueue(state.Result);
+                            errorReports.Enqueue(new DeliveryResult<TKey, TVal>
+                            {
+                                Message = message,
+                                Status = PersistenceStatus.NotPersisted,
+                            });
+                        }
+                        else
+                        {
+                            //消息没有被持久化，则写入异常报告中
+                            if (state.Result.Status != PersistenceStatus.Persisted)
+                            {
+                                errorReports.Enqueue(state.Result);
+                            }
                         }
                         
-                    },TaskContinuationOptions.NotOnFaulted));
+                    }));
 
                 reportsExpected++;
             }
-
+            
             //等待所有发送完成
-            await Task.WhenAll(tasks.ToArray()).ContinueWith(state =>
+            await Task.WhenAll(tasks.ToArray()).ContinueWith(async state =>
             {
                 var deadline = DateTime.UtcNow + flushTimeout;
 
@@ -86,6 +97,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                     reportsReceived < reportsExpected)
                 {
                     cts.ThrowIfCancellationRequested();
+                    
+                    await Task.Delay(1);
                 }
                 
                 //如果存在失败报告，则抛出异常
