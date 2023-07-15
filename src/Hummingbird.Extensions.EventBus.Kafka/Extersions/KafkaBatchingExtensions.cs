@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -58,143 +59,43 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
             var reportsExpected = 0;
             //实际接收的数量
             var reportsReceived = 0;
-            var tasks = new List<Task>();
+            
+            var tasks = new List<Task<DeliveryResult<TKey,TVal>>>();
             
             foreach (var message in messages)
             {
                 int partation = GetPartation(message.Headers);
+                tasks.Add(producer.ProduceAsync(new TopicPartition(topic, new Partition(partation)), message, cts));
+                reportsExpected++;
+            }
 
-                tasks.Add(producer.ProduceAsync(new TopicPartition(topic, new Partition(partation)), message, cts)
-                    .ContinueWith(state =>
+            var allTaskCompleted= await Task.WhenAll(tasks).ContinueWith(async state =>
+            {
+                foreach (var deliveryResult in state.Result)
+                {
+                    //消息没有被持久化，则写入异常报告中
+                    if (deliveryResult.Status == PersistenceStatus.Persisted)
                     {
                         Interlocked.Increment(ref reportsReceived);
+                    }
+                }
 
-                        if (state.IsCanceled)
-                        {
-                            logger.LogError(state.Exception,$"Kafka: Delivery canceled: {state}");
-                            errorReports.Enqueue(new DeliveryResult<TKey, TVal>
-                            {
-                                Message = message,
-                                Status = PersistenceStatus.NotPersisted,
-                            });
-                        }
-                        else if (state.IsFaulted)
-                        {
-                            logger.LogError(state.Exception, $"Kafka: Delivery faulted: {state}");
-                            
-                            errorReports.Enqueue(new DeliveryResult<TKey, TVal>
-                            {
-                                Message = message,
-                                Status = PersistenceStatus.NotPersisted,
-                            });
-                        }
-                        else
-                        {
-                            //消息没有被持久化，则写入异常报告中
-                            if (state.Result.Status != PersistenceStatus.Persisted)
-                            {
-                                errorReports.Enqueue(state.Result);
-                            }
-                        }
-                        
-                    }));
+                await Task.FromResult(reportsExpected);
 
-                reportsExpected++;
-            }
+            },TaskContinuationOptions.OnlyOnRanToCompletion);
+
+            await allTaskCompleted;
             
-            //等待所有发送完成
-            var continueWith = await Task.WhenAll(tasks).ContinueWith(async state =>
-            {
-                var deadline = DateTime.UtcNow + flushTimeout;
-
-                while (
-                    DateTime.UtcNow < deadline && 
-                    reportsReceived < reportsExpected)
-                {
-                    cts.ThrowIfCancellationRequested();
-                    
-                    await Task.Delay(1);
-                }
-                
-                //如果存在失败报告，则抛出异常
-                if (!errorReports.IsEmpty)
-                {
-                    throw new Exception($"{errorReports.Count} Kafka produce(s) failed.");
-                }
-
-                //如果实际接收数量小于期望数量，则抛出异常
-                if (reportsReceived < reportsExpected)
-                {
-                    var msg =
-                        $"Kafka producer flush did not complete within the timeout; only received {reportsReceived} " +
-                        $"delivery reports out of {reportsExpected} expected.";
-                    throw new Exception(msg);
-                }
-
-            }, TaskContinuationOptions.NotOnFaulted);
-            
-            await continueWith;
-        }
-
-        public static void ProduceBatch<TKey, TVal>(
-            this IProducer<TKey, TVal> producer, 
-            string topic,
-            IEnumerable<Message<TKey, TVal>> messages,
-            TimeSpan flushTimeout,
-            TimeSpan flushWait,
-            CancellationToken cts = default(CancellationToken))
-        {
-            var errorReports = new ConcurrentQueue<DeliveryReport<TKey, TVal>>();
-            var reportsExpected = 0;
-            var reportsReceived = 0;
-
-            void DeliveryHandler(DeliveryReport<TKey, TVal> report)
-            {
-                Interlocked.Increment(ref reportsReceived);
-
-                if (report.Error.IsError)
-                {
-                    errorReports.Enqueue(report);
-                }
-            }
-
-            foreach (var message in messages)
-            {
-                int partation = GetPartation(message.Headers);
-               
-                producer.Produce(new TopicPartition(topic, new Partition(partation)), message, DeliveryHandler);
-
-                reportsExpected++;
-            }
-            
-            var deadline = DateTime.UtcNow + flushTimeout;
-
-            while (
-                DateTime.UtcNow < deadline && 
-                reportsReceived < reportsExpected)
-            {
-                cts.ThrowIfCancellationRequested();
-                producer.Flush(flushWait);
-            }
-
-            if (!errorReports.IsEmpty)
-            {
-                throw new AggregateException($"{errorReports.Count} Kafka produce(s) failed. Up to 10 inner exceptions follow.",
-                    errorReports.Take(10).Select(i => new Exception(
-                        $"A Kafka produce error occurred. Topic: {topic}, Partation:{GetPartation(i.Headers)}, Message key: {i.Message.Key}, Code: {i.Error.Code}, Reason: " +
-                        $"{i.Error.Reason}, IsBroker: {i.Error.IsBrokerError}, IsLocal: {i.Error.IsLocalError}, IsFatal: {i.Error.IsFatal}"
-                    ))
-                );
-            }
-
+            //如果实际接收数量小于期望数量，则抛出异常
             if (reportsReceived < reportsExpected)
             {
-                var msg = $"Kafka producer flush did not complete within the timeout; only received {reportsReceived} " +
-                          $"delivery reports out of {reportsExpected} expected.";
+                var msg =
+                    $"Kafka producer flush did not complete within the timeout; only received {reportsReceived} " +
+                    $"delivery reports out of {reportsExpected} expected.";
                 throw new Exception(msg);
             }
         }
-
+        
         static int GetPartation(Headers headers)
         {
             int partation = 0;
