@@ -129,48 +129,53 @@ namespace Hummingbird.Example
                     var DatabaseConnectionString = $"Server={Database_Server};Database={Database_Database};User Id={Database_UserId};Password={Database_Password};MultipleActiveResultSets=true";
 
                     builder
-                    
-                    .AddMySqlEventLogging(o =>
-                    {
-                        o.WithEndpoint("Server=localhost;Port=63307;Database=test; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180");
-                    })
-                    //.AddSqlServerEventLogging(a =>
-                    //{
-                    //    a.WithEndpoint(DatabaseConnectionString);
-                    //})
-                    .AddRabbitmq(factory =>
-                    {
-                        factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost", int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                        factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest", Configuration["EventBus:Password"] ?? "guest");
-                        factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
-                        factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1, ReveiverMaxDegreeOfParallelism: 1);
-                        factory.WithSender(10);
-                    })
-                    .AddKafka(option =>
-                    {
-                        option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
+
+                        .AddMySqlEventLogging(o =>
                         {
-                            Acks = Confluent.Kafka.Acks.All,
-                            BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
-                        });
-                        option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
+                            o.WithEndpoint(
+                                "Server=localhost;Port=63307;Database=test; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180");
+                        })
+                        //.AddSqlServerEventLogging(a =>
+                        //{
+                        //    a.WithEndpoint(DatabaseConnectionString);
+                        //})
+
+                        .AddKafka(option =>
                         {
-                            EnableAutoOffsetStore = false,
-                            EnableAutoCommit = false,
-                            Acks = Confluent.Kafka.Acks.All,
-                            AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
-                            GroupId = Configuration["Kafka:Receiver:GroupId"],                         
-                            BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
+                            option.WithSenderConfig(new Confluent.Kafka.ProducerConfig()
+                            {
+                                Acks = Confluent.Kafka.Acks.All,
+                                BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
+                            });
+                            option.WithReceiverConfig(new Confluent.Kafka.ConsumerConfig()
+                            {
+                                EnableAutoOffsetStore = false,
+                                EnableAutoCommit = false,
+                                Acks = Confluent.Kafka.Acks.All,
+                                AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest,
+                                GroupId = Configuration["Kafka:Receiver:GroupId"],
+                                BootstrapServers = Configuration["Kafka:Receiver:bootstrap.servers"]
+                            });
+                            option.WithReceiver(
+                                ReceiverAcquireRetryAttempts: 0,
+                                ReceiverHandlerTimeoutMillseconds: 10000);
+
+                            option.WithSender(
+                                AcquireRetryAttempts: 3,
+                                SenderConfirmTimeoutMillseconds: 1000,
+                                SenderConfirmFlushTimeoutMillseconds: 20);
                         });
-                        option.WithReceiver(
-                            ReceiverAcquireRetryAttempts: 0,
-                            ReceiverHandlerTimeoutMillseconds: 10000);
-                    
-                        option.WithSender(
-                            AcquireRetryAttempts: 3,
-                            SenderConfirmTimeoutMillseconds: 1000,
-                            SenderConfirmFlushTimeoutMillseconds: 20);
-                    });
+                    // .AddRabbitmq(factory =>
+                    // {
+                    //     factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost",
+                    //         int.Parse(Configuration["EventBus:Port"] ?? "5672"));
+                    //     factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest",
+                    //         Configuration["EventBus:Password"] ?? "guest");
+                    //     factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                    //     factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1,
+                    //         ReveiverMaxDegreeOfParallelism: 1);
+                    //     factory.WithSender(10);
+                    // });
                 });
                 
                 hummingbird.AddQuartz(Configuration.GetSection("Quartz"));

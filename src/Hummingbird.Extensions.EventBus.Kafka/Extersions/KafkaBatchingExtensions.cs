@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Hummingbird.Extensions.EventBus.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
 {
@@ -42,12 +44,14 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
 
         public static async Task ProduceBatchAsync<TKey, TVal>(
             this IProducer<TKey, TVal> producer,
+            ILogger<IEventBus> logger,
             string topic,
             IEnumerable<Message<TKey, TVal>> messages,
             TimeSpan flushTimeout,
             TimeSpan flushWait,
             CancellationToken cts = default(CancellationToken))
         {
+            
             //错误报告
             var errorReports = new ConcurrentQueue<DeliveryResult<TKey, TVal>>();
             //期望接收数量
@@ -67,6 +71,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
 
                         if (state.IsCanceled)
                         {
+                            logger.LogError(state.Exception,$"Kafka: Delivery canceled: {state}");
                             errorReports.Enqueue(new DeliveryResult<TKey, TVal>
                             {
                                 Message = message,
@@ -75,6 +80,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                         }
                         else if (state.IsFaulted)
                         {
+                            logger.LogError(state.Exception, $"Kafka: Delivery faulted: {state}");
+                            
                             errorReports.Enqueue(new DeliveryResult<TKey, TVal>
                             {
                                 Message = message,
@@ -90,7 +97,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka.Extersions
                             }
                         }
                         
-                    }, TaskContinuationOptions.NotOnFaulted));
+                    }));
 
                 reportsExpected++;
             }

@@ -54,8 +54,8 @@ namespace Hummingbird.Example
                    logging.ClearProviders();
                    //logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
                    //logging.AddLog4Net("Config/log4net.xml", true);
-                   logging.AddConsole();
-                   logging.AddDebug();
+                   // logging.AddConsole();
+                   // logging.AddDebug();
                    LogManager.UseConsoleLogging(Com.Ctrip.Framework.Apollo.Logging.LogLevel.Debug);
                
 

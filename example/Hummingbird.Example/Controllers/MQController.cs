@@ -21,8 +21,8 @@ namespace Hummingbird.Example.Controllers
         private readonly IEventBus eventBus;
 
         public MQController(
-            EventBusRabbitMQ  rabbitMq,
-            EventBusKafka  kafka,
+           // EventBusRabbitMQ  rabbitMq,
+           // EventBusKafka  kafka,
             IEventLogger eventLogger,
             IEventBus eventBus)
         {
@@ -52,7 +52,7 @@ namespace Hummingbird.Example.Controllers
             });
             item2.EventId = 1;
 
-            var item3 = new EventLogEntry("TestEventHandler", 1, new
+            var item3 = new EventLogEntry("TestEventHandler", 0, new
             {
 
                 EventType = "Test2"
