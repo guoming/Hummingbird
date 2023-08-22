@@ -578,18 +578,18 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                             {
                                 var handlerSuccess = false;
                                 var handlerException = default(Exception);
-                                var eas = consumer.ConsumeBatch(TimeSpan.FromMilliseconds(100), BatchSize,
+                                var eas = consumer.ConsumeBatch(TimeSpan.FromMilliseconds(BatchSize*20), BatchSize,
                                     cancellationToken).ToArray();
                                 var Messages = new EventResponse[eas.Count()];
 
                                 if (Messages.Length > 0)
                                 {
-                                    _logger.LogInformation(
+                                    _logger.LogDebug(
                                         $"customer {consumer.Name} got {Messages.Length} messages on subject {routeKey}.");
                                 }
                                 else
                                 {
-                                    _logger.LogInformation(
+                                    _logger.LogDebug(
                                         $"customer {consumer.Name} did not get the message of topic {routeKey}.");
                                     await System.Threading.Tasks.Task.Delay(50);
                                     continue;
