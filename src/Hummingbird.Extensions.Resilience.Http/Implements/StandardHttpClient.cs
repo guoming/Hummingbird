@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -102,6 +103,25 @@ namespace Hummingbird.Extensions.Resilience.Http
 
                 return response;
             }
+        }
+
+        public Task<HttpResponseMessage> UploadAsync(
+            string uri, 
+            List<FileStream> files,
+            IDictionary<string, string> item,
+            string authorizationToken = null,
+            string authorizationMethod = "Bearer", 
+            IDictionary<string, string> dictionary = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return DoUploadAsync(
+                uri: uri, 
+                files: files,
+                item: item, 
+                authorizationToken: authorizationToken, 
+                authorizationMethod: authorizationMethod, 
+                dictionary: dictionary,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer", IDictionary<string, string> dictionary = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -235,6 +255,108 @@ namespace Hummingbird.Extensions.Resilience.Http
             }
         }
 
+
+        private async Task<HttpResponseMessage> DoUploadAsync(
+            string uri,
+            List<FileStream> files,
+            IDictionary<string, string> item,
+            string authorizationToken = null,
+            string authorizationMethod = "Bearer",
+            IDictionary<string, string> dictionary = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+
+            uri = await _httpUrlResolver.Resolve(uri);
+
+     
+
+                using (var tracer =
+                       new Hummingbird.Extensions.Tracing.Tracer($"HTTP {HttpMethod.Post.Method.ToUpper()}"))
+                {
+                    tracer.SetComponent(_compomentName);
+                    tracer.SetTag("http.url", uri);
+                    tracer.SetTag("http.method", HttpMethod.Post);
+
+                    var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+                    #region LOG：记录请求
+
+                    if (dictionary != null && dictionary.ContainsKey("x-masking") &&
+                        (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "request"))
+                    {
+                        //日志脱敏                           
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Http Request Executing:{requestContent}", item);
+                    }
+
+                    #endregion
+
+                    SetAuthorizationHeader(requestMessage);
+
+                    var formData = new MultipartFormDataContent();
+
+                    formData.Headers.ContentType.MediaType = "multipart/form-data";
+
+                    //添加文件
+                    foreach (var file in files)
+                    {
+                        formData.Add(new StreamContent(file), "file", file.Name);
+                    }
+
+                    //添加参数
+                    foreach (var kv in item)
+                    {
+                        formData.Add(new StringContent(kv.Value), kv.Key);
+                    }
+
+                    requestMessage.Content = formData;
+
+                    if (authorizationToken != null)
+                    {
+                        requestMessage.Headers.Authorization =
+                            new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
+                    }
+
+                    if (dictionary != null)
+                    {
+                        foreach (var key in dictionary.Keys)
+                        {
+                            requestMessage.Headers.Add(key, dictionary[key]);
+                        }
+                    }
+
+                    var response = await _client.SendAsync(requestMessage, cancellationToken);
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    #region LOG:记录返回
+
+                    tracer.SetTag("http.status_code", (int)response.StatusCode);
+
+                    if (dictionary != null && dictionary.ContainsKey("x-masking") &&
+                        (dictionary["x-masking"] == "all" || dictionary["x-masking"] == "response"))
+                    {
+                        //日志脱敏不记录
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Http Request Executed:{responseContent}", responseContent);
+                    }
+
+                    #endregion
+
+                    if (response.StatusCode == HttpStatusCode.InternalServerError)
+                    {
+                        throw new HttpRequestException(response.ReasonPhrase);
+                    }
+
+                    return response;
+
+                }
+
+
+        }
     }
 }
 
