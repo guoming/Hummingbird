@@ -9,14 +9,14 @@ namespace Hummingbird.Example.Controllers
     using System.Threading.Tasks;
 
     [Route("api/[controller]")]
-    public class CacheingController : Controller
+    public class CacheingController : BaseController
     {
-        private readonly ICacheManager cacheManager;
+        private readonly ICacheManager _cacheManager;
 
         public CacheingController(
             ICacheManager cacheManager)
         {
-            this.cacheManager = cacheManager;
+            this._cacheManager = cacheManager;
         }
 
    
@@ -25,11 +25,11 @@ namespace Hummingbird.Example.Controllers
         [Route("Test/{cacheKey}")]
         public  string Test(string cacheKey="key1")
         {
-            var cacheValue = cacheManager.StringGet<string>(cacheKey);
+            var cacheValue = _cacheManager.StringGet<string>(cacheKey);
             if(cacheValue == null)
             {
                 cacheValue = "value";
-                cacheManager.StringSet(cacheKey, cacheValue);
+                _cacheManager.StringSet(cacheKey, cacheValue);
             }
 
             return cacheValue;
@@ -41,14 +41,14 @@ namespace Hummingbird.Example.Controllers
         [Route("Test2/{cacheKey}")]
         public  string Test2(string cacheKey="key1")
         {
-            var cacheValue = cacheManager.StringGet<object>(cacheKey);
+            var cacheValue = _cacheManager.StringGet<object>(cacheKey);
             if(cacheValue == null)
             {
                 cacheValue = new
                 {
                     name = Guid.NewGuid()
                 };
-                cacheManager.StringSet(cacheKey, cacheValue);
+                _cacheManager.StringSet(cacheKey, cacheValue);
             }
 
             return Newtonsoft.Json.JsonConvert.SerializeObject(cacheValue);

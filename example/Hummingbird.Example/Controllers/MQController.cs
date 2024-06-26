@@ -1,5 +1,6 @@
 ﻿
 
+using Hummingbird.Example.DTO;
 using Hummingbird.Extensions.EventBus.Kafka;
 using Hummingbird.Extensions.EventBus.RabbitMQ;
 
@@ -15,20 +16,18 @@ namespace Hummingbird.Example.Controllers
     using System.Linq;
     using System.Threading;
     [Route("api/[controller]")]
-    public class MQController : Controller
+    public class MQController : BaseController
     {
-        private readonly IEventLogger eventLogger;
-        private readonly IEventBus eventBus;
+        private readonly IEventLogger _eventLogger;
+        private readonly IEventBus _eventBus;
 
         public MQController(
-           // EventBusRabbitMQ  rabbitMq,
-           // EventBusKafka  kafka,
             IEventLogger eventLogger,
             IEventBus eventBus)
         {
            
-            this.eventLogger = eventLogger;
-            this.eventBus = eventBus;
+            this._eventLogger = eventLogger;
+            this._eventBus = eventBus;
             
         }
 
@@ -36,7 +35,7 @@ namespace Hummingbird.Example.Controllers
 
         [HttpGet]
         [Route("PublishEvents")]
-        public async Task<string> PublishAsync()
+        public async Task<IApiResponse> PublishAsync()
         {
             var item1 = new EventLogEntry("TestEventHandler", new Events.TestEvent()
             {
@@ -63,9 +62,9 @@ namespace Hummingbird.Example.Controllers
                    item1,item2,item3
             };
 
-            var ret=  await  eventBus.PublishAsync(events);
+            var ret=  await  _eventBus.PublishAsync(events);
 
-            return ret.ToString();
+            return ret ? OK() : Error();
         }
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace Hummingbird.Example.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("SaveEvents")]
-        public async Task<string> SaveEvents()
+        public async Task<IApiResponse> SaveEvents()
         {   
             var connectionString = "Server=localhost;Port=63307;Database=test; User=root;Password=123456;pooling=True;minpoolsize=1;maxpoolsize=100;connectiontimeout=180";
 
@@ -94,31 +93,34 @@ namespace Hummingbird.Example.Controllers
             };
 
                 //保存消息至业务数据库，保证写消息和业务操作在一个事务
-                await eventLogger.SaveEventAsync(events, sqlTran);
+                await _eventLogger.SaveEventAsync(events, sqlTran);
 
                 var ret = await sqlConnection.ExecuteAsync("you sql code");
 
-                return ret.ToString();
+                return ret > 0 ? OK() : Error();
             }
         }
 
         [HttpGet]
         [Route("PublishSavedEvents")]
-        public async Task PublishSavedEvents()
+        public async Task<IApiResponse> PublishSavedEvents()
         {   
             //获取1000条没有发布的事件
-            var unPublishedEventList = eventLogger.GetUnPublishedEventList(1000);
+            var unPublishedEventList = _eventLogger.GetUnPublishedEventList(1000);
             //通过消息总线发布消息
-            var ret = await eventBus.PublishAsync(unPublishedEventList);
+            var ret = await _eventBus.PublishAsync(unPublishedEventList);
 
             if (ret)
             {
-                await eventLogger.MarkEventAsPublishedAsync(unPublishedEventList.Select(a => a.EventId).ToList(), CancellationToken.None);
+                await _eventLogger.MarkEventAsPublishedAsync(unPublishedEventList.Select(a => a.EventId).ToList(),
+                    CancellationToken.None);
             }
             else
             {
-                await eventLogger.MarkEventAsPublishedFailedAsync(unPublishedEventList.Select(a => a.EventId).ToList(), CancellationToken.None);
+                await _eventLogger.MarkEventAsPublishedFailedAsync(unPublishedEventList.Select(a => a.EventId).ToList(), CancellationToken.None);
             }
+
+            return OK();
         }
     }
 

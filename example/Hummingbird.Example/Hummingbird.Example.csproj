@@ -38,6 +38,9 @@
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DistributedLock.Redis\Hummingbird.Extensions.DistributedLock.Redis.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Consul\Hummingbird.Extensions.DynamicRoute.Consul.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.DynamicRoute.Nacos\Hummingbird.Extensions.DynamicRoute.Nacos.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.FileSystem.Oss\Hummingbird.Extensions.FileSystem.Oss.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.FileSystem.Physical\Hummingbird.Extensions.FileSystem.Physical.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.FileSystem\Hummingbird.Extensions.FileSystem.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.Kafka\Hummingbird.Extensions.HealthChecks.Kafka.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.MongoDb\Hummingbird.Extensions.HealthChecks.MongoDb.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.HealthChecks.MySql\Hummingbird.Extensions.HealthChecks.MySql.csproj" />
@@ -88,7 +91,6 @@
 
   <ItemGroup>
     <Folder Include="Properties\" />
-    <Folder Include="Jobs\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties config_4appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>

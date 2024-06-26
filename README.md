@@ -42,13 +42,15 @@
   * 输出到控制台
   * 输出到Rabbitmq(待实现)
   * 输出到Kafka(待实现)
-  
+* 文件系统
+  * OSS 阿里云 OSS
+  * Physical 本地文件
 ## 3. 项目中如何使用
 ### 3.1 分布式锁
 
 步骤1：安装Nuget包
 ``` SHELL 
-Install-Package Hummingbird.Extensions.DistributedLock -Version 1.15.0
+Install-Package Hummingbird.Extensions.DistributedLock -Version 1.17.14
 ```
 步骤2：配置连接信息
 ``` C#
@@ -115,7 +117,7 @@ Install-Package Hummingbird.Extensions.DistributedLock -Version 1.15.0
 
 步骤1：安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
+Install-Package Hummingbird.Extensions.Cacheing -Version 1.17.14
 ```
 
 步骤2：设置缓存连接信息
@@ -176,8 +178,8 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
 
 步骤1： 安装Nuget包
 ``` SHELL
-  Install-Package Hummingbird.Extensions.UidGenerator -Version 1.15.5
-  Install-Package Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy -Version 1.15.7
+  Install-Package Hummingbird.Extensions.UidGenerator -Version 1.17.14
+  Install-Package Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy -Version 1.17.14
 ```
 
 步骤2：配置使用Snowfake算法生产唯一Id
@@ -225,8 +227,8 @@ Install-Package Hummingbird.Extensions.Cacheing -Version 1.15.0
 
 步骤1：安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.Extensions.OpenTracing -Version 1.15.0
-Install-Package Hummingbird.Extensions.OpenTracking.Jaeger -Version 1.15.0
+Install-Package Hummingbird.Extensions.OpenTracing -Version 1.17.14
+Install-Package Hummingbird.Extensions.OpenTracking.Jaeger -Version 1.17.14
 ```
 步骤2： 创建tracing.json 配置
 ```JSON
@@ -314,7 +316,7 @@ Install-Package Hummingbird.Extensions.OpenTracking.Jaeger -Version 1.15.0
 
 步骤1：安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.Extensions.EventBus -Version 1.15.0
+Install-Package Hummingbird.Extensions.EventBus -Version 1.17.14
 Install-Package Hummingbird.Extensions.EventBus.RabbitMQ -Version 1.15.3
 Install-Package Hummingbird.Extensions.EventBus.MySqlLogging -Version 1.15.3
 ```
@@ -569,11 +571,11 @@ Install-Package Hummingbird.Extensions.EventBus.MySqlLogging -Version 1.15.3
 ### 3.6 健康检查
 步骤1： 安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.Extensions.HealthChecks -Version 1.15.0
-Install-Package Hummingbird.Extensions.HealthChecks.Redis -Version 1.15.0
-Install-Package Hummingbird.Extensions.HealthChecks.Rabbitmq -Version 1.15.0
-Install-Package Hummingbird.Extensions.HealthChecks.MySql -Version 1.15.0
-Install-Package Hummingbird.Extensions.HealthChecks.SqlServer -Version 1.15.0
+Install-Package Hummingbird.Extensions.HealthChecks -Version 1.17.14
+Install-Package Hummingbird.Extensions.HealthChecks.Redis -Version 1.17.14
+Install-Package Hummingbird.Extensions.HealthChecks.Rabbitmq -Version 1.17.14
+Install-Package Hummingbird.Extensions.HealthChecks.MySql -Version 1.17.14
+Install-Package Hummingbird.Extensions.HealthChecks.SqlServer -Version 1.17.14
 ```
 
 步骤2： 配置健康检查Endpoint
@@ -633,10 +635,10 @@ Install-Package Hummingbird.Extensions.HealthChecks.SqlServer -Version 1.15.0
 #### 3.7.1 基于Consul
 步骤1： 安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.DynamicRoute -Version 1.15.1
-Install-Package Hummingbird.LoadBalancers -Version 1.15.0
-Install-Package Hummingbird.Extensions.DynamicRoute.Consul -Version 1.15.5
-Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.15.0
+Install-Package Hummingbird.DynamicRoute -Version 1.17.14
+Install-Package Hummingbird.LoadBalancers -Version 1.17.14
+Install-Package Hummingbird.Extensions.DynamicRoute.Consul -Version 1.17.14
+Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.17.14
 ```
 
 步骤2：配置 appsettings.json
@@ -774,10 +776,10 @@ Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.15.0
 #### 3.7.2 基于Nacos
 步骤1： 安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.DynamicRoute -Version 1.17.7
-Install-Package Hummingbird.LoadBalancers -Version 1.17.7
-Install-Package Hummingbird.Extensions.DynamicRoute.Nacos -Version 1.17.7
-Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.17.7
+Install-Package Hummingbird.DynamicRoute -Version 1.17.14
+Install-Package Hummingbird.LoadBalancers -Version 1.17.14
+Install-Package Hummingbird.Extensions.DynamicRoute.Nacos -Version 1.17.14
+Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.17.14
 ```
 
 步骤2：配置 appsettings.json
@@ -924,12 +926,11 @@ Install-Package Hummingbird.Extensions.Resilience.Http -Version 1.17.7
 
     }
 ```
-
 ### 3.8 Canal 数据集成
 
 步骤1： 安装Nuget包
 ``` SHELL
-Install-Package Hummingbird.Extensions.Canal -Version 1.17.7
+Install-Package Hummingbird.Extensions.Canal -Version 1.17.14
 ```
 
 步骤2：配置 canal.json, binlog日志输出到控制台
@@ -952,6 +953,7 @@ Install-Package Hummingbird.Extensions.Canal -Version 1.17.7
       }
     ]
   }
+}
 ```
 
 步骤3：添加appsettings.json 配置依赖
@@ -993,6 +995,89 @@ Install-Package Hummingbird.Extensions.Canal -Version 1.17.7
         }
     }
 ```
+### 3.文件系统
+
+步骤1： 安装Nuget包
+``` SHELL
+Install-Package Hummingbird.Extensions.FileSystem -Version 1.0.0
+Install-Package Hummingbird.Extensions.FileSystem.Oss -Version 1.0.0
+Install-Package Hummingbird.Extensions.FileSystem.Physical -Version 1.0.0
+```
+
+步骤2：添加配置
+```JSON
+{
+  "FileSystem":{
+			//本地文件系统
+     "Physical":
+     {
+      "DataPath":"/opt/data" 
+     },
+    //阿里云OSS 
+    "Oss":{
+      //缓存 Oss 文件元数据
+      "CacheOssFileMetaEnable":true,
+      //元数据缓存过期时间(秒)
+      "CacheOssFileMetaAbsoluteExpirationSeconds": 600,
+      //缓存本地目录(
+      "CacheLocalPath":"/opt/data",
+      //文件缓存(开关)
+      "CacheLocalFileEnabled":true,
+      //文件缓存(大文件不进行缓存)
+      "CacheLocalFileSizeLimit": 20971520,
+      // 文件缓存(通过命中次数计算是否热点)
+      "CacheLocalFileIfHits":5,
+      "EndpointName":"demo",
+      "Endpoints":{
+        "demo": {
+          "Endpoint": "oss-cn-shenzhen.aliyuncs.com",
+          "AccessKeyId": "xxxx",
+          "AccessKeySecret": "xxx",
+          "BucketName": "demo",
+          "ObjectPrefix": "/"
+        }
+      }
+    }
+  }
+}
+```
+
+步骤3：添加依赖
+``` C#
+  public class Startup
+  {
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddHummingbird(hb =>
+            {
+                //添加 OSS 文件系统
+                hb.AddOssFileSystem(Configuration.GetSection("FileSystem:Oss"));         
+            });
+        }
+        
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+           
+            app.UseMvc();
+            
+            var contentTypeProvider = app.ApplicationServices.GetRequiredService<IContentTypeProvider>();
+            var fileProvider = app.ApplicationServices.GetRequiredService<IFileProvider>();
+            var staticFileOptions = new StaticFileOptions
+            {
+                FileProvider = fileProvider,
+                RequestPath = "",
+                ContentTypeProvider = contentTypeProvider
+            };
+            //使用静态文件
+            app.UseStaticFiles(staticFileOptions);
+            //使用 OSS 静态文件
+            app.UseOssStaticFiles(staticFileOptions);
+           
+        }
+    }
+```
+
+
 ## 4. 如何快速部署开发环境
 ### 4.1 [Consul](https://github.com/guoming/docker-compose-consul)
 ### 4.2 [Apollo](https://github.com/guoming/docker-compose-apollo)

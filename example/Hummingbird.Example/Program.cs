@@ -52,10 +52,10 @@ namespace Hummingbird.Example
                .ConfigureLogging((hostingContext, logging) =>
                {
                    logging.ClearProviders();
-                   //logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
-                   //logging.AddLog4Net("Config/log4net.xml", true);
-                   // logging.AddConsole();
-                   // logging.AddDebug();
+                   logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+                   // logging.AddLog4Net("Config/log4net.xml", true);
+                    logging.AddConsole();
+                    logging.AddDebug();
                    LogManager.UseConsoleLogging(Com.Ctrip.Framework.Apollo.Logging.LogLevel.Debug);
                
 
