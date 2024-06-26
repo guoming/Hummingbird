@@ -12,6 +12,11 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using Confluent.Kafka;
+using Hummingbird.Extensions.FileSystem.Oss.StaticFile;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
+using PhysicalFileProvider = Hummingbird.Extensions.FileSystem.Physical.PhysicalFileProvider;
 
 namespace Hummingbird.Example
 {
@@ -49,7 +54,7 @@ namespace Hummingbird.Example
                    BootstrapServers = Configuration["Kafka:Sender:bootstrap.servers"]
                 });
             });
-            
+   
             services.AddHummingbird(hummingbird =>
             {
                 HttpClientHandler clientHandler = new HttpClientHandler();
@@ -78,7 +83,7 @@ namespace Hummingbird.Example
                 // .AddCache(option =>
                 // {
                 //     option.ConfigName = "HummingbirdCache";
-                //     option.CacheRegion = Configuration["SERVICE_NAME"];
+                //     option.CacheRegion = Config["SERVICE_NAME"];
                 // })
                  .AddRedisDistributedLock((option) =>
                 {
@@ -89,7 +94,7 @@ namespace Hummingbird.Example
                     option.WithSsl(false);
                     option.WithLockExpirySeconds(30);
                 })
-                //.AddConsulDistributedLock(Configuration)
+                //.AddConsulDistributedLock(Config)
                 .AddCacheing(option =>
                 {
                     option.WithDb(0);
@@ -104,7 +109,7 @@ namespace Hummingbird.Example
                     option.Druation = TimeSpan.FromMinutes(5);
                     option.CacheRegion = "Idempotency";
                 })
-                //.AddNacosDynamicRoute(Configuration.GetSection("Nacos"))
+                //.AddNacosDynamicRoute(Config.GetSection("Nacos"))
                 .AddConsulDynamicRoute(Configuration, s =>
                  {
                      s.AddTags(Configuration["SERVICE_TAGS"]);
@@ -167,11 +172,11 @@ namespace Hummingbird.Example
                         });
                     // .AddRabbitmq(factory =>
                     // {
-                    //     factory.WithEndPoint(Configuration["EventBus:HostName"] ?? "localhost",
-                    //         int.Parse(Configuration["EventBus:Port"] ?? "5672"));
-                    //     factory.WithAuth(Configuration["EventBus:UserName"] ?? "guest",
-                    //         Configuration["EventBus:Password"] ?? "guest");
-                    //     factory.WithExchange(Configuration["EventBus:VirtualHost"] ?? "/");
+                    //     factory.WithEndPoint(Config["EventBus:HostName"] ?? "localhost",
+                    //         int.Parse(Config["EventBus:Port"] ?? "5672"));
+                    //     factory.WithAuth(Config["EventBus:UserName"] ?? "guest",
+                    //         Config["EventBus:Password"] ?? "guest");
+                    //     factory.WithExchange(Config["EventBus:VirtualHost"] ?? "/");
                     //     factory.WithReceiver(PreFetch: 10, ReceiverMaxConnections: 1,
                     //         ReveiverMaxDegreeOfParallelism: 1);
                     //     factory.WithSender(10);
@@ -179,18 +184,35 @@ namespace Hummingbird.Example
                 });
                 
                 hummingbird.AddQuartz(Configuration.GetSection("Quartz"));
+                hummingbird.AddOssFileSystem(Configuration.GetSection("FileSystem:Oss"));
+              //  hummingbird.AddPhysicalFileSystem(Configuration.GetSection("FileSystem:Physical"));
 
             });
 
         }
+        
+        
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,IHttpContextAccessor accessor)
         {
+            HttpContextProvider.Accessor = accessor;
+            
             var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
             var logger = app.ApplicationServices.GetRequiredService<ILogger<IEventLogger>>();
 
             app.UseMvc();
+            
+            var contentTypeProvider = app.ApplicationServices.GetRequiredService<IContentTypeProvider>();
+            var fileProvider = app.ApplicationServices.GetRequiredService<IFileProvider>();
+            var staticFileOptions = new StaticFileOptions
+            {
+                FileProvider = fileProvider,
+                RequestPath = "",
+                ContentTypeProvider = contentTypeProvider
+            };
+            app.UseStaticFiles(staticFileOptions);
+            app.UseOssStaticFiles(staticFileOptions);
 
             app.UseHummingbird(humming =>
             {

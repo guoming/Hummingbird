@@ -1,4 +1,6 @@
 ﻿
+using Hummingbird.Example.DTO;
+
 namespace Hummingbird.Example.Controllers
 {
     using Hummingbird.Extensions.UidGenerator;
@@ -6,7 +8,7 @@ namespace Hummingbird.Example.Controllers
     using System.Threading.Tasks;
 
     [Route("api/[controller]")]
-    public class UniqueIdController : Controller
+    public class UniqueIdController : BaseController
     {
         private readonly IUniqueIdGenerator uniqueIdGenerator;
 
@@ -20,9 +22,9 @@ namespace Hummingbird.Example.Controllers
 
         [HttpGet]
         [Route("Test")]
-        public async Task<long> Test()
+        public async Task<IApiResponse> Test()
         {
-            return await Task.FromResult(uniqueIdGenerator.NewId());
+            return OK<long>( uniqueIdGenerator.NewId());
         }
     }
 

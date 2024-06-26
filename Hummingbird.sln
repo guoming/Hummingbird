@@ -99,6 +99,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.Dist
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.DistributedLock.Redis.UnitTest", "test\Hummingbird.Extensions.DistributedLock.Redis.UnitTest\Hummingbird.Extensions.DistributedLock.Redis.UnitTest.csproj", "{AC33F000-7E53-48C4-8C57-7049C741C289}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.FileSystem.Oss", "src\Hummingbird.Extensions.FileSystem.Oss\Hummingbird.Extensions.FileSystem.Oss.csproj", "{B47A74D8-DEDE-48B7-9B6E-4F63D57646BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.FileSystem.Physical", "src\Hummingbird.Extensions.FileSystem.Physical\Hummingbird.Extensions.FileSystem.Physical.csproj", "{1536D56E-CFE1-4E43-930C-5874BCEAEE93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hummingbird.Extensions.FileSystem", "src\Hummingbird.Extensions.FileSystem\Hummingbird.Extensions.FileSystem.csproj", "{761A8AF2-575C-42D1-9349-D60ADCC3BD8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -269,6 +275,18 @@ Global
 		{AC33F000-7E53-48C4-8C57-7049C741C289}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC33F000-7E53-48C4-8C57-7049C741C289}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC33F000-7E53-48C4-8C57-7049C741C289}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B47A74D8-DEDE-48B7-9B6E-4F63D57646BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B47A74D8-DEDE-48B7-9B6E-4F63D57646BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B47A74D8-DEDE-48B7-9B6E-4F63D57646BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B47A74D8-DEDE-48B7-9B6E-4F63D57646BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1536D56E-CFE1-4E43-930C-5874BCEAEE93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1536D56E-CFE1-4E43-930C-5874BCEAEE93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1536D56E-CFE1-4E43-930C-5874BCEAEE93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1536D56E-CFE1-4E43-930C-5874BCEAEE93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{761A8AF2-575C-42D1-9349-D60ADCC3BD8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{761A8AF2-575C-42D1-9349-D60ADCC3BD8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{761A8AF2-575C-42D1-9349-D60ADCC3BD8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{761A8AF2-575C-42D1-9349-D60ADCC3BD8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -316,6 +334,9 @@ Global
 		{74E16769-AF86-4E35-993D-89975CAD540E} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 		{0AA234A5-864A-4A6D-B89B-E68A7EFA7A2D} = {28015912-782A-4B96-9F86-D54081CD7A97}
 		{AC33F000-7E53-48C4-8C57-7049C741C289} = {28015912-782A-4B96-9F86-D54081CD7A97}
+		{B47A74D8-DEDE-48B7-9B6E-4F63D57646BA} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{1536D56E-CFE1-4E43-930C-5874BCEAEE93} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
+		{761A8AF2-575C-42D1-9349-D60ADCC3BD8A} = {DD64E829-CFBE-4FD8-8521-8BB2ADC886CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0205F412-9847-429E-BA6C-6DCF25E525DF}
