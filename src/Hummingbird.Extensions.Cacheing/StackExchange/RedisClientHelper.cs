@@ -434,6 +434,29 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
                 return result;
             });
         }
+        
+        
+        /// <summary>
+        /// 获取hashkey所有Redis key
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public async Task<IDictionary<string, T>> HashGetAllAsync<T>(string key)
+        {
+            key = AddSysCustomKey(key);
+            return await Do(async db =>
+            {
+                var hashEntries = await db.HashGetAllAsync(key);
+                var result = new Dictionary<string, T>();
+                foreach (var entry in hashEntries)
+                {
+                    result.Add(entry.Name, ConvertObj<T>(entry.Value));
+                }
+
+                return result;
+            });
+        }
 
         #endregion 同步方法
 
@@ -501,7 +524,7 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         /// <param name="key"></param>
         /// <param name="dataKey"></param>
         /// <returns></returns>
-        public async Task<T> HashGeAsync<T>(string key, string dataKey)
+        public async Task<T> HashGetAsync<T>(string key, string dataKey)
         {
             key = AddSysCustomKey(key);
             string value = await Do(db => db.HashGetAsync(key, dataKey));
@@ -663,6 +686,22 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
 
             return ConvertObj<T>(value);
         }
+        
+        /// <summary>
+        /// 入队
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public async Task<T> ListRightPopLeftPushAsync<T>(string source, string destination)
+        {
+            source = AddSysCustomKey(source);
+            destination = AddSysCustomKey(destination);
+
+            var value = await Do(async db => await db.ListRightPopLeftPushAsync(source, destination));
+
+            return ConvertObj<T>(value);
+        }
+
 
         #endregion 同步方法
 
@@ -767,6 +806,17 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(p => p.SetAdd(key, ConvertJson(value)));
         }
+        
+        /// <summary>
+        /// Add the specified member to the set stored at key. Specified members that are already a member of this set are ignored. If key does not exist, a new set is created before adding the specified members.
+        /// </summary>
+        /// <returns>True if the specified member was not already present in the set, else False</returns>
+        /// <remarks>http://redis.io/commands/sadd</remarks>
+        public async Task<bool> SetAddAsync<T>(string key, T value)
+        {
+            key = AddSysCustomKey(key);
+            return await Do(p => p.SetAddAsync(key, ConvertJson(value)));
+        }
 
         /// <summary>
         /// Returns if member is a member of the set stored at key.
@@ -778,6 +828,18 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(p => p.SetContains(key, ConvertJson(value)));
         }
+        
+        /// <summary>
+        /// Returns if member is a member of the set stored at key.
+        /// </summary>
+        /// <returns>1 if the element is a member of the set. 0 if the element is not a member of the set, or if key does not exist.</returns>
+        /// <remarks>http://redis.io/commands/sismember</remarks>
+        public async Task<bool> SetContainsAsync<T>(string key, T value)
+        {
+            key = AddSysCustomKey(key);
+            return await Do(p => p.SetContainsAsync(key, ConvertJson(value)));
+        }
+
 
         /// <summary>
         /// Returns the set cardinality (number of elements) of the set stored at key.
@@ -788,6 +850,17 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         {
             key = AddSysCustomKey(key);
             return Do(p => p.SetLength(key));
+        }
+        
+        /// <summary>
+        /// Returns the set cardinality (number of elements) of the set stored at key.
+        /// </summary>
+        /// <returns>the cardinality (number of elements) of the set, or 0 if key does not exist.</returns>
+        /// <remarks>http://redis.io/commands/scard</remarks>
+        public async Task<long> SetLengthAsync(string key)
+        {
+            key = AddSysCustomKey(key);
+            return await Do(p => p.SetLengthAsync(key));
         }
 
         /// <summary>
@@ -800,6 +873,18 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(p => ConvetList<T>(p.SetMembers(key)));
         }
+        
+        /// <summary>
+        /// Returns all the members of the set value stored at key.
+        /// </summary>
+        /// <returns>all elements of the set.</returns>
+        /// <remarks>http://redis.io/commands/smembers</remarks>
+        public async Task<List<T>> SetMembersAsync<T>(string key)
+        {
+            key = AddSysCustomKey(key);
+            
+            return await Do(async p =>  ConvetList<T>(await p.SetMembersAsync(key)));
+        }
 
         /// <summary>
         /// Removes and returns a random element from the set value stored at key.
@@ -811,6 +896,19 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(p => ConvertObj<T>(p.SetPop(key)));
         }
+        
+        
+        /// <summary>
+        /// Removes and returns a random element from the set value stored at key.
+        /// </summary>
+        /// <returns>the removed element, or nil when key does not exist.</returns>
+        /// <remarks>http://redis.io/commands/spop</remarks>
+        public async Task<T> SetPopAsync<T>(string key)
+        {
+            key = AddSysCustomKey(key);
+            return await Do(async p => ConvertObj<T>(await p.SetPopAsync(key)));
+        }
+
 
         /// <summary>
         /// Return a random element from the set value stored at key.
@@ -821,6 +919,17 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         {
             key = AddSysCustomKey(key);
             return Do(p => ConvertObj<T>(p.SetRandomMember(key)));
+        }
+        
+        /// <summary>
+        /// Return a random element from the set value stored at key.
+        /// </summary>
+        /// <returns>the randomly selected element, or nil when key does not exist</returns>
+        /// <remarks>http://redis.io/commands/srandmember</remarks>
+        public async Task<T> SetRandomMemberAsync<T>(string key)
+        {
+            key = AddSysCustomKey(key);
+            return await Do(async p => ConvertObj<T>(await p.SetRandomMemberAsync(key)));
         }
 
         /// <summary>
@@ -834,6 +943,18 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(p => ConvetList<T>(p.SetRandomMembers(key, count)));
         }
+        
+        /// <summary>
+        /// Return an array of count distinct elements if count is positive. If called with a negative count the behavior changes and the command is allowed to return the same element multiple times.
+        /// In this case the numer of returned elements is the absolute value of the specified count.
+        /// </summary>
+        /// <returns>an array of elements, or an empty array when key does not exist</returns>
+        /// <remarks>http://redis.io/commands/srandmember</remarks>
+        public async Task<List<T>> SetRandomMembersAsync<T>(string key, long count)
+        {
+            key = AddSysCustomKey(key);
+            return await Do(async p => ConvetList<T>(await p.SetRandomMembersAsync(key, count)));
+        }
 
         /// <summary>
         /// Remove the specified member from the set stored at key.  Specified members that are not a member of this set are ignored.
@@ -845,6 +966,19 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(p => p.SetRemove(key, ConvertJson(value)));
         }
+        
+        /// <summary>
+        /// Remove the specified member from the set stored at key.  Specified members that are not a member of this set are ignored.
+        /// </summary>
+        /// <returns>True if the specified member was already present in the set, else False</returns>
+        /// <remarks>http://redis.io/commands/srem</remarks>
+        public async Task<bool> SetRemoveAsync<T>(string key, T value)
+        {
+            key = AddSysCustomKey(key);
+            
+            return await Do(async p => await p.SetRemoveAsync(key, ConvertJson(value)));
+        }
+
 
         /// <summary>
         /// Remove the specified members from the set stored at key. Specified members that are not a member of this set are ignored.
@@ -856,13 +990,22 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(p => p.SetRemove(key, values.Select(x => (RedisValue)ConvertJson(x)).ToArray()));
         }
+        
+        /// <summary>
+        /// Remove the specified members from the set stored at key. Specified members that are not a member of this set are ignored.
+        /// </summary>
+        /// <returns>the number of members that were removed from the set, not including non existing members.</returns>
+        /// <remarks>http://redis.io/commands/srem</remarks>
+        public async  Task<long> SetRemoveAsync<T>(string key, T[] values)
+        {
+            key = AddSysCustomKey(key);
+            return await Do(async p => await p.SetRemoveAsync(key, values.Select(x => (RedisValue)ConvertJson(x)).ToArray()));
+        }
 
         #endregion
 
         #region SortedSet 有序集合
-
-        #region 同步方法
-
+        
         /// <summary>
         /// 添加
         /// </summary>
@@ -874,48 +1017,7 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             key = AddSysCustomKey(key);
             return Do(redis => redis.SortedSetAdd(key, ConvertJson<T>(value), score));
         }
-
-        /// <summary>
-        /// 删除
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        public bool SortedSetRemove<T>(string key, T value)
-        {
-            key = AddSysCustomKey(key);
-            return Do(redis => redis.SortedSetRemove(key, ConvertJson(value)));
-        }
-
-        /// <summary>
-        /// 获取全部
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public List<T> SortedSetRangeByRank<T>(string key)
-        {
-            key = AddSysCustomKey(key);
-            return Do(redis =>
-            {
-                var values = redis.SortedSetRangeByRank(key);
-                return ConvetList<T>(values);
-            });
-        }
-
-        /// <summary>
-        /// 获取集合中的数量
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public long SortedSetLength(string key)
-        {
-            key = AddSysCustomKey(key);
-            return Do(redis => redis.SortedSetLength(key));
-        }
-
-        #endregion 同步方法
-
-        #region 异步方法
-
+        
         /// <summary>
         /// 添加
         /// </summary>
@@ -933,12 +1035,38 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
+        public bool SortedSetRemove<T>(string key, T value)
+        {
+            key = AddSysCustomKey(key);
+            return Do(redis => redis.SortedSetRemove(key, ConvertJson(value)));
+        }
+        
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public async Task<bool> SortedSetRemoveAsync<T>(string key, T value)
         {
             key = AddSysCustomKey(key);
             return await Do(redis => redis.SortedSetRemoveAsync(key, ConvertJson(value)));
         }
 
+        /// <summary>
+        /// 获取全部
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public List<T> SortedSetRangeByRank<T>(string key)
+        {
+            key = AddSysCustomKey(key);
+            return Do(redis =>
+            {
+                var values = redis.SortedSetRangeByRank(key);
+                return ConvetList<T>(values);
+            });
+        }
+        
         /// <summary>
         /// 获取全部
         /// </summary>
@@ -956,13 +1084,24 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
+        public long SortedSetLength(string key)
+        {
+            key = AddSysCustomKey(key);
+            return Do(redis => redis.SortedSetLength(key));
+        }
+        
+        /// <summary>
+        /// 获取集合中的数量
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public async Task<long> SortedSetLengthAsync(string key)
         {
             key = AddSysCustomKey(key);
             return await Do(redis => redis.SortedSetLengthAsync(key));
         }
 
-        #endregion 异步方法
+
 
         #endregion SortedSet 有序集合
 

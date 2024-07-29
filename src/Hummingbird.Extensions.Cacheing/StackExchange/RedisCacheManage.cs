@@ -12,7 +12,7 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
 
     class RedisCacheManage : ICacheManager
     {
-        #region private
+
 
         #region 全局变量
         private static object _syncCreateInstance = new Object();
@@ -41,6 +41,7 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
 
         #endregion
 
+        #region 构造函数
         private RedisCacheManage(int DbNum=0, int NumberOfConnections=10)
         {
             this._DbNum = DbNum;
@@ -317,6 +318,7 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
 
         #region 接口实现
 
+        #region key
         /// <summary>
         /// 缓存是否存在
         /// </summary>
@@ -330,8 +332,8 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             }
             return false;
         }
-
-
+        
+        
         /// <summary>
         /// 移除缓存
         /// </summary>
@@ -350,7 +352,9 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         {
             return GetPooledClientManager(cacheKey).KeyExpire(cacheKey, cacheOutTime);
         }
+        #endregion
 
+        #region String
         /// <summary>
         /// 获取缓存
         /// </summary>
@@ -504,6 +508,8 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         {
             return await GetPooledClientManager(cacheKey).StringIncrementAsync(cacheKey);
         }
+        
+        #endregion
 
         #region 发布订阅
 
@@ -536,11 +542,17 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         }
 
         #endregion
-
-
+        
+        #region Hash
+        
         public double HashIncrement(string cacheKey, string dataKey, double value = 1)
         {
             return GetPooledClientManager(cacheKey).HashIncrement(cacheKey, dataKey, value);
+        }
+
+        public async Task<double> HashIncrementAsync(string cacheKey, string dataKey, double value = 1)
+        {
+            return await GetPooledClientManager(cacheKey).HashIncrementAsync(cacheKey, dataKey, value);
         }
 
         public double HashDecrement(string cacheKey, string dataKey, double value = 1)
@@ -548,28 +560,52 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(cacheKey).HashDecrement(cacheKey, dataKey, value);
         }
 
+        public async Task<double> HashDecrementAsync(string cacheKey, string dataKey, double value = 1)
+        {
+            return await GetPooledClientManager(cacheKey).HashDecrementAsync(cacheKey, dataKey, value);
+        }
+
         public List<T> HashKeys<T>(string cacheKey)
         {
             return GetPooledClientManager(cacheKey).HashKeys<T>(cacheKey);
         }
-        
 
-        public IDictionary<string,T> HashGetAll<T>(string cacheKey)
+        public async Task<List<T>> HashKeysAsync<T>(string cacheKey)
         {
-            return GetPooledClientManager(cacheKey).HashGetAll<T>(cacheKey);
+            return await GetPooledClientManager(cacheKey).HashKeysAsync<T>(cacheKey);
         }
 
         public T HashGet<T>(string cacheKey, string dataKey)
         {
             return GetPooledClientManager(cacheKey).HashGet<T>(cacheKey, dataKey);
         }
+        
+        public async Task<T> HashGetAsync<T>(string cacheKey, string dataKey)
+        {
+            return await GetPooledClientManager(cacheKey).HashGetAsync<T>(cacheKey, dataKey);
+        }
 
+        public IDictionary<string,T> HashGetAll<T>(string cacheKey)
+        {
+            return GetPooledClientManager(cacheKey).HashGetAll<T>(cacheKey);
+        }
+
+        public async Task<IDictionary<string, T>> HashGetAllAsync<T>(string cacheKey)
+        {
+            return await GetPooledClientManager(cacheKey).HashGetAllAsync<T>(cacheKey);
+        }
+        
         public bool HashKeys<T>(string cacheKey, string dataKey, T value)
         {
             return GetPooledClientManager(cacheKey).HashSet(cacheKey, dataKey, value);
         }
 
-
+        public async Task<bool> HashKeysAsync<T>(string cacheKey, string dataKey, T value)
+        {
+            return await GetPooledClientManager(cacheKey).HashSetAsync(cacheKey, dataKey, value);
+        }
+        #endregion
+        
         #region Lock
 
         public bool LockTake(string cacheKey, string value, TimeSpan expire)
@@ -602,6 +638,11 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(cacheKey).ListLeftPop<T>(cacheKey);
         }
 
+        public async Task<T> ListLeftPopAsync<T>(string cacheKey)
+        {
+            return await GetPooledClientManager(cacheKey).ListLeftPopAsync<T>(cacheKey);
+        }
+
         /// <summary>
         /// 入栈
         /// </summary>
@@ -614,6 +655,12 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             GetPooledClientManager(cacheKey).ListLeftPush<T>(cacheKey, value);
         }
 
+        public async Task ListLeftPushAsync<T>(string cacheKey, T value)
+        {
+            await GetPooledClientManager(cacheKey).ListLeftPushAsync<T>(cacheKey, value);
+
+        }
+
         /// <summary>
         /// 获取列表长度
         /// </summary>
@@ -623,6 +670,12 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         public long ListLength(string cacheKey)
         {
             return GetPooledClientManager(cacheKey).ListLength(cacheKey);
+        }
+
+        public async Task<long> ListLengthAsync(string cacheKey)
+        {
+            return await GetPooledClientManager(cacheKey).ListLengthAsync(cacheKey);
+
         }
 
         /// <summary>
@@ -637,6 +690,11 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(cacheKey).ListRange<T>(cacheKey);
         }
 
+        public async Task<List<T>> ListRangeAsync<T>(string cacheKey)
+        {
+            return await GetPooledClientManager(cacheKey).ListRangeAsync<T>(cacheKey);
+        }
+
         /// <summary>
         /// 移除一个元素
         /// </summary>
@@ -647,6 +705,11 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         public void ListRemove<T>(string cacheKey, T value)
         {
             GetPooledClientManager(cacheKey).ListRemove<T>(cacheKey, value);
+        }
+
+        public async Task ListRemoveAsync<T>(string cacheKey, T value)
+        {
+            await GetPooledClientManager(cacheKey).ListRemoveAsync<T>(cacheKey, value);
         }
 
 
@@ -662,6 +725,11 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             GetPooledClientManager(cacheKey).ListRightPush<T>(cacheKey, value);
         }
 
+        public async Task ListRightPushAsync<T>(string cacheKey, T value)
+        {
+            await GetPooledClientManager(cacheKey).ListRightPushAsync<T>(cacheKey, value);
+        }
+
         /// <summary>
         /// 出队列
         /// </summary>
@@ -672,6 +740,12 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         public T ListRightPush<T>(string cacheKey)
         {
             return GetPooledClientManager(cacheKey).ListRightPop<T>(cacheKey);
+        }
+
+        public async Task<T> ListRightPushAsync<T>(string cacheKey)
+        {
+            return await GetPooledClientManager(cacheKey).ListRightPopAsync<T>(cacheKey);
+
         }
 
         /// <summary>
@@ -686,8 +760,13 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(sourceCacheKey).ListRightPopLeftPush<T>(sourceCacheKey, destCacheKey);
         }
 
-        #endregion
+        public async Task<T> ListRightPopLeftPushAsync<T>(string sourceCacheKey, string destCacheKey)
+        {
+            return await GetPooledClientManager(sourceCacheKey).ListRightPopLeftPushAsync<T>(sourceCacheKey, destCacheKey);
 
+        }
+
+        #endregion
 
         #region Set
 
@@ -696,9 +775,20 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(key).SetAdd(key, value);
         }
 
+        public Task<bool> SetAddAsync<T>(string key, T value)
+        {
+            return GetPooledClientManager(key).SetAddAsync(key, value);
+        }
+
         public bool SetContains<T>(string key, T value)
         {
             return GetPooledClientManager(key).SetContains(key, value);
+        }
+
+        public async Task<bool> SetContainsAsync<T>(string key, T value)
+        {
+         
+            return await GetPooledClientManager(key).SetContainsAsync(key, value);
         }
 
         public long SetLength(string key)
@@ -706,9 +796,20 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(key).SetLength(key);
         }
 
+        public async Task<long> SetLengthAsync(string key)
+        {
+            return await GetPooledClientManager(key).SetLengthAsync(key);
+        }
+
         public List<T> SetMembers<T>(string key)
         {
             return GetPooledClientManager(key).SetMembers<T>(key);
+        }
+
+        public async Task<List<T>> SetMembersAsync<T>(string key)
+        {
+            return await GetPooledClientManager(key).SetMembersAsync<T>(key);
+
         }
 
         public T SetPop<T>(string key)
@@ -716,9 +817,21 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(key).SetPop<T>(key);
         }
 
+        public async Task<T> SetPopAsync<T>(string key)
+        {
+            return await GetPooledClientManager(key).SetPopAsync<T>(key);
+
+        }
+
         public T SetRandomMember<T>(string key)
         {
             return GetPooledClientManager(key).SetRandomMember<T>(key);
+        }
+
+        public async Task<T> SetRandomMemberAsync<T>(string key)
+        {
+            return await GetPooledClientManager(key).SetRandomMemberAsync<T>(key);
+
         }
 
         public List<T> SetRandomMembers<T>(string key, long count)
@@ -726,14 +839,32 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
             return GetPooledClientManager(key).SetRandomMembers<T>(key, count);
         }
 
+        public async Task<List<T>> SetRandomMembersAsync<T>(string key, long count)
+        {
+            return  await GetPooledClientManager(key).SetRandomMembersAsync<T>(key, count);
+
+        }
+
         public bool SetRemove<T>(string key, T value)
         {
             return GetPooledClientManager(key).SetRemove(key, value);
         }
 
+        public async Task<bool> SetRemoveAsync<T>(string key, T value)
+        {
+            return await GetPooledClientManager(key).SetRemoveAsync(key, value);
+
+        }
+
         public long SetRemove<T>(string key, T[] values)
         {
             return GetPooledClientManager(key).SetRemove(key, values);
+        }
+
+        public async Task<long> SetRemoveAsync<T>(string key, T[] values)
+        {
+            return await GetPooledClientManager(key).SetRemoveAsync(key, values);
+
         }
 
         public dynamic Execute(string command, params object[] objs)
