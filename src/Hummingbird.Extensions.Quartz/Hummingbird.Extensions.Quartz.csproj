@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <PackOnBuild>true</PackOnBuild>
-    <PackageVersion>1.17.15</PackageVersion>
+    <PackageVersion>1.17.16</PackageVersion>
     <Authors>郭明</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseUrl>https://github.com/guoming/Hummingbird</PackageLicenseUrl>
