@@ -57,6 +57,7 @@
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.EventBus.SqlServerLogging\Hummingbird.Extensions.EventBus.SqlServerLogging.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.EventBus\Hummingbird.Extensions.EventBus.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Idempotency\Hummingbird.Extensions.Idempotency.csproj" />
+    <ProjectReference Include="..\..\src\Hummingbird.Extensions.RequestLimit\Hummingbird.Extensions.RequestLimit.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.Resilience.Http\Hummingbird.Extensions.Resilience.Http.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy\Hummingbird.Extensions.UidGenerator.ConsulWorkIdStrategy.csproj" />
     <ProjectReference Include="..\..\src\Hummingbird.Extensions.UidGenerator\Hummingbird.Extensions.UidGenerator.csproj" />
