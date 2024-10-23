@@ -4,4 +4,5 @@
   &lt;TestAncestor&gt;
     &lt;TestId&gt;xUnit::AC33F000-7E53-48C4-8C57-7049C741C289::.NETCoreApp,Version=v2.2::Hummingbird.Extensions.DistributedLock.Redis.UnitTest.ConsulDistributedLockUnitTest.Test1&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=da121499_002D5dd1_002D4e2b_002D9592_002D554c0b2b4651_0023Hummingbird_002EExtensions_002ECache/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
