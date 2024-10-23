@@ -185,8 +185,13 @@ namespace Hummingbird.Example
                 
                 hummingbird.AddQuartz(Configuration.GetSection("Quartz"));
                 hummingbird.AddOssFileSystem(Configuration.GetSection("FileSystem:Oss"));
-              //  hummingbird.AddPhysicalFileSystem(Configuration.GetSection("FileSystem:Physical"));
-
+              //  hummingbird.AddPhysicalFileSystem(Configurations.GetSection("FileSystem:Physical"));
+              
+              hummingbird.AddRequestLimit(builder =>
+                      builder
+                          .AddRateLimit(Configuration.GetSection("RequestLimit:RateLimit"))
+                          .AddTimeoutLimit(Configuration.GetSection("RequestLimit:TimeoutLimit"))
+                  );
             });
 
         }
