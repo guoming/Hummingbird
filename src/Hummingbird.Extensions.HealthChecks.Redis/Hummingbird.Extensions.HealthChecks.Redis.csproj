@@ -5,8 +5,8 @@
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/guoming/Hummingbird</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.17.14</Version>
-    <PackageVersion>1.17.14</PackageVersion>  </PropertyGroup>
+    <Version>1.17.16</Version>
+    <PackageVersion>1.17.16</PackageVersion>  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="StackExchange.Redis" Version="2.0.601" />    
   </ItemGroup>
