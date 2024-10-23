@@ -1,9 +1,6 @@
 ﻿using Hummingbird.Core;
 using System;
-using App.Metrics;
-using App.Metrics.AspNetCore;
 using Hummingbird.Extensions.RequestLimit;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Builder;
 namespace Microsoft.Extensions.DependencyInjection
