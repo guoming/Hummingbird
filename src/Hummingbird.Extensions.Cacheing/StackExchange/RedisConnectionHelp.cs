@@ -83,7 +83,7 @@ namespace Hummingbird.Extensions.Cacheing.StackExchangeImplement
         /// <param name="e"></param>
         private static void MuxerConfigurationChanged(object sender, EndPointEventArgs e)
         {
-            Console.WriteLine("Configuration changed: " + e.EndPoint);
+            Console.WriteLine("Configurations changed: " + e.EndPoint);
         }
 
         /// <summary>

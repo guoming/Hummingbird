@@ -26,6 +26,10 @@
     <PackageReference Include="CacheManager.StackExchange.Redis" Version="1.2.0" />    
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.1" />
+    
+    
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <Reference Include="System.Runtime">
       <HintPath>..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0\System.Runtime.dll</HintPath>

@@ -5,7 +5,7 @@ using CacheManager.Redis;
 
 #if NETCORE
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configurations;
 using CacheManager.MicrosoftCachingMemory;
 using Hummingbird.Core;
 #else
@@ -19,8 +19,8 @@ namespace Microsoft.Extensions.DependencyInjection
 #if NETCORE
         static ICacheManager<T> GetCacheManager<T>(IServiceProvider sp,string ConfigName)
         {
-            var Configuration = sp.GetRequiredService<IConfiguration>();
-            var cacheConfiguration = Configuration.GetCacheConfiguration(ConfigName).Builder.Build();
+            var Configurations = sp.GetRequiredService<IConfiguration>();
+            var cacheConfiguration = Configurations.GetCacheConfiguration(ConfigName).Builder.Build();
             var cacheManager = CacheManager.Core.CacheFactory.FromConfiguration<T>(ConfigName, cacheConfiguration);
             return cacheManager;
         }
