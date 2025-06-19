@@ -113,7 +113,7 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                 // 设置超时
                 _receiverPolicy = _receiverPolicy.WrapAsync(Policy.TimeoutAsync(
                     TimeSpan.FromMilliseconds(receiverHandlerTimeoutMillseconds),
-                    TimeoutStrategy.Pessimistic,
+                    TimeoutStrategy.Optimistic,
                     (context, timespan, task) =>
                     {
                         return Task.FromResult(true);
@@ -420,13 +420,14 @@ namespace Hummingbird.Extensions.EventBus.Kafka
 
                                             try
                                             {
+                                                
+                                                
                                                 handlerSuccess = await _receiverPolicy.ExecuteAsync(
                                                     async (handlerCancellationToken) =>
                                                     {
-                                                        return await eventAction.Handle(eventResponse.Body,
-                                                            (Dictionary<string, object>)eventResponse.Headers,
-                                                            handlerCancellationToken);
-                                                    }, CancellationToken.None);
+                                                        return await eventAction.Handle(eventResponse.Body, (Dictionary<string, object>)eventResponse.Headers, handlerCancellationToken);
+                                                        
+                                                    }, cancellationToken);
 
                                                 if (handlerSuccess)
                                                 {
@@ -436,12 +437,8 @@ namespace Hummingbird.Extensions.EventBus.Kafka
                                                     }
 
                                                     consumer.StoreOffset(ea);
-                                                    _logger.LogInformation(
-                                                        $"kafk offset store,topic={routeKey} partation={ea.TopicPartition.Partition}offset={ea.TopicPartitionOffset.Offset.Value}");
+                                                    _logger.LogInformation($"kafk offset store,topic={routeKey} partation={ea.TopicPartition.Partition}offset={ea.TopicPartitionOffset.Offset.Value}");
 
-
-                                                    //   consumer.Commit(ea);
-                                                    //   Console.WriteLine($"kafk offset commit,topic={routeKey} partation={ea.TopicPartition.Partition}offset={ea.TopicPartitionOffset.Offset.Value}");
 
                                                 }
                                                 else
