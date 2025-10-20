@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Version>1.18.1</Version>
+    <Version>1.18.2</Version>
     <AssemblyName>Hummingbird.Extensions.EventBus.MySqlLogging</AssemblyName>
     <RootNamespace>Hummingbird.Extensions.EventBus.MySqlLogging</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -21,9 +21,8 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="1.50.5" />
-    <PackageReference Include="MySql.Data" Version="8.0.18" />
+    <PackageReference Include="MySql.Data" Version="8.0.32.1" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Hummingbird.Core\Hummingbird.Core.csproj" />
     <ProjectReference Include="..\Hummingbird.Extensions.EventBus\Hummingbird.Extensions.EventBus.csproj" />

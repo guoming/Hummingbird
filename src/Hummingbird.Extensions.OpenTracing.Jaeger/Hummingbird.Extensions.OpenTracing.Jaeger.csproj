@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <Version>1.18.1</Version>
+    <Version>1.18.2</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseUrl>https://github.com/guoming/Hummingbird</PackageLicenseUrl>
     <PackOnBuild>true</PackOnBuild>
