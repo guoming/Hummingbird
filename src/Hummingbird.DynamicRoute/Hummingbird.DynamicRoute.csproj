@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.18.2</Version>
+    <Version>1.18.3</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>guoming</Authors>
     <Company>guoming</Company>

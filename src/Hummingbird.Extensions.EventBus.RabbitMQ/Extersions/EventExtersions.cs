@@ -56,7 +56,7 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
         /// <returns></returns>
         public static void WithWait(this EventLogEntry @event, int TTL)
         {
-            @event.Headers["x-first-death-queue"]= $"{@event.EventTypeName}@Delay#{TTL}"; //死信队列名称
+            @event.Headers["x-first-death-queue"]= $"{@event.EventTypeName}@Delay-{TTL}"; //死信队列名称
             @event.Headers["x-message-ttl"] = TTL * 1000; //当一个消息被推送在该队列的时候 可以存在的时间 单位为ms，应小于队列过期时间  
             @event.Headers["x-dead-letter-exchange"] = @event.Headers["x-exchange"];//过期消息转向路由  
             @event.Headers["x-dead-letter-routing-key"]= @event.EventTypeName;//过期消息转向路由相匹配routingkey 
