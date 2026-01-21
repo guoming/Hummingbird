@@ -338,7 +338,10 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
                         //direct fanout topic
                         try
                         {
-                            _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
+                         
+                            _channel.ExchangeDeclarePassive(_exchange);
+                            
+                            //_channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
                         }
                         catch(Exception ex)
                         {
@@ -604,7 +607,8 @@ namespace Hummingbird.Extensions.EventBus.RabbitMQ
                     //direct fanout topic
                     try
                     {
-                        _channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
+                        _channel.ExchangeDeclarePassive(_exchange);
+                        //_channel.ExchangeDeclare(_exchange, _exchangeType, true, false, null);
                     }
                     catch (Exception ex)
                     {

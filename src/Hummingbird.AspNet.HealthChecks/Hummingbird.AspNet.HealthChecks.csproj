@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net46;</TargetFrameworks>
-    <Version>1.18.3</Version>
+    <Version>1.18.4</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackOnBuild>true</PackOnBuild>
   </PropertyGroup>
