@@ -83,7 +83,7 @@ namespace Microsoft.Extensions.DependencyInjection
                             {
                                 FailuresBeforeBackoff = int.Parse(configurationSection["Options:FailuresBeforeBackoff"] ?? "3"),
                                 BackoffPeriod = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:BackoffPeriod"] ?? "30")),
-                                Timeout = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:BackoffPeriod"] ?? "15"))
+                                Timeout = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:Timeout"] ?? "15"))
                             };
                             options.FlushInterval = TimeSpan.FromSeconds(int.Parse(configurationSection["Options:FlushInterval"] ?? "5"));
                         }
